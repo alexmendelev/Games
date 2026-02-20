@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Падающие примеры</title>
+  <style>
+    :root { --text:#ffffff; --muted:rgba(255,255,255,0.85); }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #06101f;
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-feature-settings: "tnum" 1, "lnum" 1;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+    .wrap { height: 100vh; padding: 14px; display: flex; gap: 14px; }
+
+    .game {
+      flex: 1;
+      min-width: 320px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      background: #1a2a46 url("assets/bg.png") center/cover no-repeat;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+	.mascot {
+	  position: absolute;
+	  left: 15%;              /* было 16px */
+	  bottom: 14px;
+	  width: 320px;           /* было 180px */
+	  height: auto;
+	  pointer-events: none;
+	  z-index: 5;
+	  filter: drop-shadow(0 14px 22px rgba(0,0,0,0.40));
+	}
+
+    .tile {
+      position: absolute;
+      top: 0; left: 0;
+      width: 180px;
+      height: 78px;
+      background: url("assets/tablet.png") center/contain no-repeat;
+      display: grid;
+      place-items: center;
+      font-size: 42px;
+      font-weight: 900;
+      
+      color: #1b1b1b; /* тёмные цифры */
+      text-shadow: 0 2px 0 rgba(255,255,255,0.25), 0 10px 22px rgba(0,0,0,0.20);	  
+	  
+      user-select: none;
+      transform: translate(20px, -90px);
+      pointer-events: none;
+    }
+
+    .side { width: 340px; max-width: 45vw; display: flex; flex-direction: column; gap: 12px; }
+    .panel { background: rgba(10,18,40,0.55); border: 1px solid rgba(255,255,255,0.16); border-radius: 16px; padding: 12px; backdrop-filter: blur(6px); }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .stat { color: var(--muted); font-size: 13px; }
+    .stat b { color: var(--text); font-size: 18px; margin-left: 6px; font-weight: 900; }
+
+    .btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .btn:hover { background: rgba(255,255,255,0.14); }
+    .btn.primary { background: rgba(90,120,255,0.25); border-color: rgba(90,120,255,0.45); }
+
+    .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+	.ans {
+	  height: 120px;              /* было 78 */
+	  font-size: 44px;           /* было 38 */
+	  font-weight: 900;
+	  border-radius: 18px;
+	  border: 0;
+
+	  color: #1b1b1b;            /* тёмные цифры */
+	  text-shadow: 0 2px 0 rgba(255,255,255,0.25); /* лёгкая читаемость на камне */
+
+	  background: url("assets/btn.png") center/contain no-repeat;
+	  cursor: pointer;
+	}
+    .ans:active { transform: translateY(1px); }
+
+    .hint { font-size: 12px; color: rgba(255,255,255,0.82); line-height: 1.35; }
+
+    .overlay {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(2px);
+    }
+    .card {
+      width: min(620px, 92%);
+      background: rgba(10,18,40,0.70);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .card h2 { margin: 0 0 8px; font-size: 18px; }
+    .card p { margin: 6px 0; color: rgba(255,255,255,0.85); }
+
+    .diffs { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .diffbtn.active { background: rgba(90,120,255,0.35); border-color: rgba(90,120,255,0.75); }
+
+    .fx {
+      position: absolute;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      background-repeat: no-repeat;
+      image-rendering: auto;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.25));
+    }
+	
+/* Ripple (видимый) */
+.ripple {
+  position: absolute;
+  left: 0; top: 0;
+
+  width: 44px; height: 44px;          /* было 26 */
+  border-radius: 999px;
+
+  border: 7px solid rgba(255,255,255,0.95);  /* толще/ярче */
+  background: radial-gradient(circle at 50% 50%,
+    rgba(255,255,255,0.22) 0%,
+    rgba(0,180,255,0.12) 45%,
+    rgba(0,0,0,0.00) 70%);
+
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.22))
+          drop-shadow(0 0 12px rgba(0,170,255,0.55));
+
+  animation: rippleRing 720ms ease-out forwards;
+}
+
+.ripple::after {
+  content: "";
+  position: absolute;
+  inset: -14px;                        /* больше второе кольцо */
+  border-radius: 999px;
+  border: 6px solid rgba(0,190,255,0.50);
+  opacity: 0;
+  filter: drop-shadow(0 0 10px rgba(0,190,255,0.45));
+  animation: rippleRing2 720ms ease-out forwards;
+}
+
+@keyframes rippleRing {
+  0%   { opacity: 0.00; transform: translate(-50%,-50%) scale(0.25); }
+  10%  { opacity: 1.00; }
+  65%  { opacity: 0.85; }
+  100% { opacity: 0.00; transform: translate(-50%,-50%) scale(3.8); }
+}
+
+@keyframes rippleRing2 {
+  0%   { opacity: 0.00; transform: scale(0.20); }
+  18%  { opacity: 0.70; }
+  70%  { opacity: 0.50; }
+  100% { opacity: 0.00; transform: scale(2.7); }
+}
+
+/* Капли (крупнее/контрастнее) */
+.drop {
+  position: absolute;
+  left: 0; top: 0;
+
+  width: 14px; height: 14px;           /* было 10 */
+  border-radius: 999px;
+
+  background: radial-gradient(circle at 35% 35%,
+    rgba(255,255,255,1.00) 0%,
+    rgba(170,235,255,0.95) 55%,
+    rgba(0,140,220,0.65) 100%);
+
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 55;
+
+  filter: drop-shadow(0 5px 6px rgba(0,0,0,0.18))
+          drop-shadow(0 0 8px rgba(0,180,255,0.35));
+
+  animation: dropPop 620ms ease-out forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes dropPop {
+  0%   { opacity: 0; transform: translate(-50%,-50%) translate(0,0) scale(0.6); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%,-50%) translate(var(--dx), var(--dy)) scale(1.0); }
+}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="game" class="game">
+    <img id="mascot" class="mascot" src="assets/cat_idle.png" alt="" />
+    <div id="tile" class="tile">1+3</div>
+
+    <div id="overlay" class="overlay">
+      <div class="card">
+        <h2>Падающие примеры</h2>
+
+        <p style="margin-top:10px; font-weight:800;">Сложность:</p>
+        <div class="diffs" id="diffs">
+          <button class="btn diffbtn" data-diff="easy">Простой</button>
+          <button class="btn diffbtn active" data-diff="medium">Средний</button>
+          <button class="btn diffbtn" data-diff="hard">Сложный</button>
+          <button class="btn diffbtn" data-diff="super">Супер</button>
+        </div>
+
+        <p id="ov1" style="margin-top:10px;">Нажми “Старт”.</p>
+        <p id="ov2">Правильный: 10..20 (быстрее = больше). Неправильный: -5. Упало в пруд: -10 и -1 жизнь.</p>
+
+        <div class="row" style="margin-top:10px">
+          <button id="startBtn" class="btn primary">Старт</button>
+          <button id="resetBtn" class="btn">Сброс очков</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="panel">
+      <div class="row">
+        <div class="stat">Очки<b id="score">0</b></div>
+        <div class="stat">Жизни<b id="lives">3</b></div>
+        <div class="stat">Уровень<b id="level">1</b></div>
+        <div class="stat">Сложность<b id="diffLabel">Средний</b></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="pauseBtn" class="btn">Пауза</button>
+        <button id="restartBtn" class="btn">Рестарт</button>
+      </div>
+      <div class="hint" style="margin-top:10px">
+        На простом/среднем — без отрицательных вариантов ответов.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="answers" id="answers">
+        <button class="ans" data-idx="0">0</button>
+        <button class="ans" data-idx="1">0</button>
+        <button class="ans" data-idx="2">0</button>
+        <button class="ans" data-idx="3">0</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const ASSETS = {
+    splash: { url: "assets/splash_sheet.png", sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.75 },
+    burst:  { url: "assets/burst_sheet.png",  sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.65 },
+    mascotIdle: "assets/cat_idle.png",
+    mascotHappy:"assets/cat_happy.png"
+  };
+
+  // где “вода” по высоте игрового поля (под фон можно подкрутить)
+  const WATER_Y_RATIO = 0.72;
+
+  const CONFIG = {
+    livesStart: 3,
+    scoreWrong: -5,
+    scoreMiss: -10,
+    ops: ["+", "-"],
+    minA: 0, maxA: 10,
+    minB: 0, maxB: 10,
+
+    baseSpeed: 170,
+    speedIncPerLevel: 22,
+    pointsPerLevel: 120,
+
+    tileWidth: 180,
+    tileHeight: 78,
+    tileMargin: 10,
+
+    correctMin: 10,
+    correctMax: 20,
+    correctTimeCapSec: 2.0,
+
+    sfxGain: 0.10
+  };
+
+  const DIFFICULTIES = {
+    easy:   { label: "Простой", speedMul: 0.50, noNegativeOptions: true  },
+    medium: { label: "Средний", speedMul: 1.00, noNegativeOptions: true  },
+    hard:   { label: "Сложный", speedMul: 1.20, noNegativeOptions: false },
+    super:  { label: "Супер",   speedMul: 1.50, noNegativeOptions: false }
+  };
+
+  const gameEl   = document.getElementById("game");
+  const tileEl   = document.getElementById("tile");
+  const overlay  = document.getElementById("overlay");
+  const startBtn = document.getElementById("startBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  const restartBtn = document.getElementById("restartBtn");
+
+  const scoreEl  = document.getElementById("score");
+  const livesEl  = document.getElementById("lives");
+  const levelEl  = document.getElementById("level");
+  const diffLabelEl = document.getElementById("diffLabel");
+
+  const answersEl = document.getElementById("answers");
+  const ansBtns = Array.from(answersEl.querySelectorAll(".ans"));
+
+  const diffsEl = document.getElementById("diffs");
+  const diffBtns = Array.from(diffsEl.querySelectorAll(".diffbtn"));
+
+  const ov1 = document.getElementById("ov1");
+  const ov2 = document.getElementById("ov2");
+
+  const mascotEl = document.getElementById("mascot");
+
+  let running = false;
+  let paused = false;
+  let rafId = null;
+  let lastTs = 0;
+
+  let score = 0;
+  let lives = CONFIG.livesStart;
+
+  let task = null; // { expr, correct, options[], x, y, spawnedAt }
+  let lockInputUntil = 0;
+
+  let selectedDiff = "medium";
+
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+  const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const shuffleInPlace = (arr) => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  function currentDiffCfg() { return DIFFICULTIES[selectedDiff] || DIFFICULTIES.medium; }
+
+  function setDifficulty(d) {
+    if (!DIFFICULTIES[d]) return;
+    selectedDiff = d;
+    diffBtns.forEach(b => b.classList.toggle("active", b.dataset.diff === d));
+    diffLabelEl.textContent = DIFFICULTIES[d].label;
+
+    const noNeg = DIFFICULTIES[d].noNegativeOptions ? "без отрицательных ответов" : "возможны отрицательные ответы";
+    ov1.textContent = `Выбрано: ${DIFFICULTIES[d].label}.`;
+    ov2.textContent = `Скорость: x${DIFFICULTIES[d].speedMul.toFixed(2)}; ${noNeg}.`;
+  }
+
+  function getLevel() { return Math.max(1, Math.floor(score / CONFIG.pointsPerLevel) + 1); }
+  function getSpeed() {
+    const base = CONFIG.baseSpeed + (getLevel() - 1) * CONFIG.speedIncPerLevel;
+    return base * currentDiffCfg().speedMul;
+  }
+  function setHUD() {
+    scoreEl.textContent = String(score);
+    livesEl.textContent = String(lives);
+    levelEl.textContent = String(getLevel());
+    diffLabelEl.textContent = currentDiffCfg().label;
+  }
+  function gameRect() { return gameEl.getBoundingClientRect(); }
+  function waterY(r) { return r.height * WATER_Y_RATIO; }
+
+  function pointsForCorrect(reactionSec) {
+    const t = clamp(reactionSec, 0, CONFIG.correctTimeCapSec);
+    const frac = 1 - (t / CONFIG.correctTimeCapSec);
+    return Math.round(CONFIG.correctMin + (CONFIG.correctMax - CONFIG.correctMin) * frac);
+  }
+
+  // ===== SOUND (быстрые “мультяшные” бипы) =====
+  let audioCtx = null;
+  let masterGain = null;
+
+  function ensureAudio() {
+    try {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new Ctx();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = CONFIG.sfxGain;
+        masterGain.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    } catch (_) {}
+  }
+
+  function beep({freq=440, dur=0.12, type="sine", gain=1.0, when=0, rampTo=null}) {
+    if (!audioCtx || !masterGain) return;
+    const t0 = audioCtx.currentTime + when;
+    const t1 = t0 + Math.max(0.01, dur);
+
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if (rampTo && rampTo > 0) osc.frequency.exponentialRampToValueAtTime(rampTo, t1);
+
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t1);
+
+    osc.connect(g);
+    g.connect(masterGain);
+
+    osc.start(t0);
+    osc.stop(t1 + 0.02);
+  }
+
+  const sfx = {
+    correct() { // “поп”
+      ensureAudio();
+      beep({freq: 880, dur: 0.06, type: "triangle", gain: 1.0, when: 0.00, rampTo: 1320});
+      beep({freq: 1320, dur: 0.08, type: "sine", gain: 0.8, when: 0.05});
+    },
+    wrong() { // мягкий “упс”
+      ensureAudio();
+      beep({freq: 240, dur: 0.10, type: "sine", gain: 0.9, when: 0.00, rampTo: 180});
+    },
+    splash() { // “плюх”
+      ensureAudio();
+      beep({freq: 190, dur: 0.14, type: "triangle", gain: 1.0, when: 0.00});
+      beep({freq: 120, dur: 0.10, type: "sine", gain: 0.7, when: 0.10});
+    },
+    death() {
+      ensureAudio();
+      beep({freq: 420, rampTo: 110, dur: 0.75, type: "sawtooth", gain: 1.0, when: 0.00});
+    }
+  };
+
+  window.addEventListener("pointerdown", ensureAudio, { once: true });
+
+  // ===== FX (sprite sheet) =====
+  function playFx(kind, x, y) {
+    const cfg = ASSETS[kind];
+    const frameW = cfg.sheetW / cfg.cols;
+    const frameH = cfg.sheetH / cfg.rows;
+
+    const el = document.createElement("div");
+    el.className = "fx";
+    el.style.left = `${x}px`;
+    el.style.top  = `${y}px`;
+
+    const scale = cfg.scale;
+    el.style.width  = `${frameW * scale}px`;
+    el.style.height = `${frameH * scale}px`;
+    el.style.backgroundImage = `url("${cfg.url}")`;
+    el.style.backgroundSize  = `${cfg.sheetW * scale}px ${cfg.sheetH * scale}px`;
+
+    gameEl.appendChild(el);
+	if (kind === "splash") {
+     // нижний край спрайта стоит на линии воды
+      el.style.transform = "translate(-50%, -100%)";
+    } else {
+      // взрыв/звёздочки — по центру
+      el.style.transform = "translate(-50%, -50%)";
+    }
+	
+
+    let frame = 0;
+    const interval = Math.round(1000 / cfg.fps);
+
+    const t = setInterval(() => {
+      const col = frame % cfg.cols;
+      const row = Math.floor(frame / cfg.cols);
+
+      el.style.backgroundPosition = `${-(col * frameW * scale)}px ${-(row * frameH * scale)}px`;
+
+      frame += 1;
+      if (frame >= cfg.frames) {
+        clearInterval(t);
+        el.remove();
+      }
+    }, interval);
+  }
+
+
+	function playRipple(x, y) {
+	  // кольцо (на воде)
+	  const ring = document.createElement("div");
+	  ring.className = "ripple";
+	  ring.style.left = `${x}px`;
+	  ring.style.top  = `${y}px`;
+	  gameEl.appendChild(ring);
+	  ring.addEventListener("animationend", () => ring.remove(), { once: true });
+
+	  // капли
+	  const drops = 6;
+	  for (let i = 0; i < drops; i++) {
+		const d = document.createElement("div");
+		d.className = "drop";
+		d.style.left = `${x}px`;
+		d.style.top  = `${y - 6}px`;
+
+		const angle = (Math.PI * 2) * (i / drops) + (Math.random() * 0.35);
+		const distX = 26 + Math.random() * 26;
+		const dx = Math.cos(angle) * distX;
+		const dy = - (34 + Math.random() * 30); // вверх
+
+		d.style.setProperty("--dx", `${dx.toFixed(1)}px`);
+		d.style.setProperty("--dy", `${dy.toFixed(1)}px`);
+		d.style.setProperty("--delay", `${(Math.random() * 60) | 0}ms`);
+
+		gameEl.appendChild(d);
+		d.addEventListener("animationend", () => d.remove(), { once: true });
+	  }
+	}
+
+
+  function mascotHappyPulse() {
+    mascotEl.src = ASSETS.mascotHappy;
+    setTimeout(() => { mascotEl.src = ASSETS.mascotIdle; }, 350);
+  }
+
+  // ===== TASKS =====
+  function generateTask() {
+    let a = randInt(CONFIG.minA, CONFIG.maxA);
+    let b = randInt(CONFIG.minB, CONFIG.maxB);
+    const op = choice(CONFIG.ops);
+
+    if (op === "-" && b > a) [a, b] = [b, a];
+
+    const correct = (op === "+") ? (a + b) : (a - b);
+    const expr = `${a}${op}${b}`;
+
+    const noNeg = currentDiffCfg().noNegativeOptions;
+
+    const opts = new Set([correct]);
+    const wrong1 = (op === "+") ? (a - b) : (a + b);
+    if (!noNeg || wrong1 >= 0) opts.add(wrong1);
+
+    let tries = 0;
+    while (opts.size < 4 && tries++ < 120) {
+      const delta = choice([1,2,3]);
+      const sign = choice([-1,1]);
+      const v = correct + sign * delta;
+      if (noNeg && v < 0) continue;
+      opts.add(v);
+    }
+    tries = 0;
+    while (opts.size < 4 && tries++ < 300) {
+      const hi = Math.max(20, correct + 10);
+      const v = noNeg ? randInt(0, hi) : randInt(-10, hi);
+      opts.add(v);
+    }
+
+    const options = shuffleInPlace(Array.from(opts).slice(0, 4));
+
+    const r = gameRect();
+    const maxX = Math.max(CONFIG.tileMargin, r.width - CONFIG.tileWidth - CONFIG.tileMargin);
+    const x = randInt(CONFIG.tileMargin, Math.floor(maxX));
+    const y = -CONFIG.tileHeight;
+
+    return { expr, correct, options, x, y };
+  }
+
+  function renderTask() {
+    tileEl.textContent = task.expr;
+    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    for (let i = 0; i < 4; i++) ansBtns[i].textContent = String(task.options[i]);
+  }
+
+  function spawnTask() {
+    task = generateTask();
+    task.spawnedAt = performance.now();
+    renderTask();
+  }
+
+  // ===== GAME =====
+  function startGame() {
+    ensureAudio();
+    running = true;
+    paused = false;
+    overlay.style.display = "none";
+    pauseBtn.textContent = "Пауза";
+    lastTs = 0;
+    spawnTask();
+    setHUD();
+    loop(performance.now());
+  }
+
+  function stopGame(message) {
+    running = false;
+    paused = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    overlay.style.display = "grid";
+    overlay.querySelector("h2").textContent = message || "Игра окончена";
+  }
+
+  function resetState() {
+    score = 0;
+    lives = CONFIG.livesStart;
+    setHUD();
+    spawnTask();
+  }
+
+  function togglePause() {
+    if (!running) return;
+    paused = !paused;
+    pauseBtn.textContent = paused ? "Продолжить" : "Пауза";
+    if (!paused) { lastTs = 0; loop(performance.now()); }
+  }
+
+  function handleAnswer(idx) {
+    if (!running || paused) return;
+    const now = performance.now();
+    if (now < lockInputUntil) return;
+
+    const val = Number(ansBtns[idx].textContent);
+    const isCorrect = (val === task.correct);
+
+    if (isCorrect) {
+      const rtSec = (now - task.spawnedAt) / 1000;
+      score += pointsForCorrect(rtSec);
+
+      // burst на табличке
+      playFx("burst", task.x + CONFIG.tileWidth/2, task.y + CONFIG.tileHeight/2);
+      sfx.correct();
+      mascotHappyPulse();
+
+      setHUD();
+      lockInputUntil = now + 120;
+      setTimeout(() => { if (running) spawnTask(); }, 120);
+    } else {
+      score += CONFIG.scoreWrong;
+      sfx.wrong();
+      setHUD();
+    }
+  }
+
+  function loop(ts) {
+    if (!running || paused) return;
+
+    if (!lastTs) lastTs = ts;
+    const dt = (ts - lastTs) / 1000;
+    lastTs = ts;
+
+    task.y += getSpeed() * dt;
+    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+
+    const r = gameRect();
+    const wy = waterY(r);
+
+    // “врезалась в воду” (раньше, чем самый низ)
+    if (task.y + CONFIG.tileHeight * 0.65 >= wy) {
+      score += CONFIG.scoreMiss;
+      lives -= 1;
+      setHUD();
+
+	playRipple(task.x + CONFIG.tileWidth/2, wy + 10);
+	sfx.splash();
+	
+      if (lives <= 0) {
+        sfx.death();
+        stopGame("Game Over");
+        return;
+      } else {
+        spawnTask();
+      }
+    }
+
+    rafId = requestAnimationFrame(loop);
+  }
+
+  // ===== EVENTS =====
+  diffBtns.forEach(btn => btn.addEventListener("click", () => setDifficulty(btn.dataset.diff)));
+
+  startBtn.addEventListener("click", () => {
+    ensureAudio();
+    if (!running) { resetState(); startGame(); }
+    else overlay.style.display = "none";
+  });
+
+  resetBtn.addEventListener("click", () => { ensureAudio(); score = 0; setHUD(); });
+
+  pauseBtn.addEventListener("click", () => { ensureAudio(); togglePause(); });
+
+  restartBtn.addEventListener("click", () => {
+    ensureAudio();
+    score = 0; lives = CONFIG.livesStart; setHUD();
+    if (!running) { overlay.style.display = "grid"; return; }
+    spawnTask();
+  });
+
+  answersEl.addEventListener("click", (e) => {
+    ensureAudio();
+    const btn = e.target.closest("button.ans");
+    if (!btn) return;
+    handleAnswer(Number(btn.dataset.idx));
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (!running) return;
+    if (e.key === "Escape") { ensureAudio(); togglePause(); }
+    if (e.key >= "1" && e.key <= "4") { ensureAudio(); handleAnswer(Number(e.key) - 1); }
+  });
+
+  setDifficulty("medium");
+  setHUD();
+})();
+</script>
+</body>
+</html>
