@@ -2,10 +2,16 @@
 <html lang="he" dir="ltr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>תרגילים נופלים</title>
   <style>
-    :root { --text:#ffffff; --muted:rgba(255,255,255,0.85); }
+    :root {
+      --text:#ffffff;
+      --muted:rgba(255,255,255,0.85);
+
+      /* Responsive scaling knob (JS updates it) */
+      --ui: 1;
+    }
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -16,12 +22,21 @@
       line-height: 1.35;
       font-feature-settings: "tnum" 1, "lnum" 1;
       font-variant-numeric: tabular-nums lining-nums;
+      overflow-x: hidden;
     }
-    .wrap { height: 100vh; padding: 14px; display: flex; gap: 14px; }
+
+    /* Layout: desktop = side-by-side, phone = stacked */
+    .wrap {
+      min-height: 100dvh;
+      padding: 14px;
+      display: flex;
+      gap: 14px;
+      align-items: stretch;
+    }
 
     .game {
       flex: 1;
-      min-width: 320px;
+      min-width: 280px;
       border-radius: 16px;
       position: relative;
       overflow: hidden;
@@ -31,10 +46,13 @@
 
     .mascot {
       position: absolute;
-      left: 12%;
+      left: 10%;
       bottom: 14px;
-      width: 320px;
+
+      /* was 320px: too big on phones */
+      width: min(calc(260px * var(--ui)), 34vw);
       height: auto;
+
       pointer-events: none;
       z-index: 110;
       filter: drop-shadow(0 14px 22px rgba(0,0,0,0.40));
@@ -43,14 +61,17 @@
     .tile {
       position: absolute;
       top: 0; left: 0;
-      width: 240px;
-      height: 78px;
+
+      /* driven by --ui; JS keeps CONFIG in sync */
+      width: calc(240px * var(--ui));
+      height: calc(78px * var(--ui));
+
       background: url("assets/tablet.png") center/contain no-repeat;
-	  background-size:100% 100%;
+      background-size:100% 100%;
       display: grid;
       place-items: center;
 
-      font-size: 42px;
+      font-size: calc(42px * var(--ui));
       font-weight: 900;
       color: #1b1b1b;
       text-shadow: 0 2px 0 rgba(255,255,255,0.25), 0 10px 22px rgba(0,0,0,0.20);
@@ -61,22 +82,27 @@
       z-index: 10;
     }
 
-    .side { width: 340px; max-width: 45vw; display: flex; flex-direction: column; gap: 12px; }
+    .side {
+      width: min(calc(340px * var(--ui)), 45vw);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
     .panel {
       background: rgba(10,18,40,0.55);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 16px;
-      padding: 12px;
+      padding: calc(12px * var(--ui));
       backdrop-filter: blur(6px);
     }
 
     .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-    .stat { color: var(--muted); font-size: 13px; }
+    .stat { color: var(--muted); font-size: calc(16px * var(--ui)); }
     .stat b {
       color: var(--text);
-      font-size: 18px;
+      font-size: calc(22px * var(--ui));
       margin-inline-start: 6px;
       font-weight: 900;
     }
@@ -86,21 +112,22 @@
       border: 1px solid rgba(255,255,255,0.18);
       background: rgba(255,255,255,0.10);
       color: var(--text);
-      padding: 10px 12px;
+      padding: calc(12px * var(--ui)) calc(14px * var(--ui));
       border-radius: 12px;
       cursor: pointer;
       font-weight: 800;
+      font-size: calc(18px * var(--ui));
     }
     .btn:hover { background: rgba(255,255,255,0.14); }
     .btn.primary { background: rgba(90,120,255,0.25); border-color: rgba(90,120,255,0.45); }
 
-    .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .answers { display: grid; grid-template-columns: 1fr 1fr; gap: calc(12px * var(--ui)); }
 
     .ans {
-      height: 92px;
-      font-size: 44px;
+      height: calc(92px * var(--ui));
+      font-size: calc(44px * var(--ui));
       font-weight: 900;
-      border-radius: 18px;
+      border-radius: calc(18px * var(--ui));
       border: 0;
 
       color: #1b1b1b;
@@ -111,7 +138,7 @@
     }
     .ans:active { transform: translateY(1px); }
 
-    .hint { font-size: 12px; color: rgba(255,255,255,0.82); line-height: 1.35; }
+    .hint { font-size: calc(16px * var(--ui)); color: rgba(255,255,255,0.82); line-height: 1.45; }
 
     .overlay {
       position: absolute; inset: 0;
@@ -125,10 +152,10 @@
       background: rgba(10,18,40,0.70);
       border: 1px solid rgba(255,255,255,0.18);
       border-radius: 16px;
-      padding: 16px;
+      padding: calc(16px * var(--ui));
     }
-    .card h2 { margin: 0 0 8px; font-size: 18px; }
-    .card p { margin: 6px 0; color: rgba(255,255,255,0.85); }
+    .card h2 { font-size: calc(32px * var(--ui)); font-weight: 900; margin: 0 0 10px; }
+    .card p  { font-size: calc(20px * var(--ui)); margin: 6px 0; color: rgba(255,255,255,0.85); }
 
     .diffs { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
     .diffbtn.active { background: rgba(90,120,255,0.35); border-color: rgba(90,120,255,0.75); }
@@ -144,17 +171,20 @@
 
     .panel, .card { direction: rtl; text-align: right; }
 
-    .card h2 { font-size: 32px; font-weight: 900; margin: 0 0 10px; }
-    .card p  { font-size: 20px; }
-    .hint    { font-size: 16px; line-height: 1.45; }
+    /* Phone: stack + shrink panel area and mascot */
+    @media (max-width: 820px){
+      .wrap { flex-direction: column; }
+      .side { width: 100%; max-width: 100%; }
+      .mascot { width: min(calc(220px * var(--ui)), 32vw); left: 6%; }
+    }
 
-    .btn     { font-size: 18px; padding: 12px 14px; }
-    .diffbtn { font-size: 18px; }
-
-    .stat    { font-size: 16px; }
-    .stat b  { font-size: 22px; }
+    /* Extra-tight phones: slightly smaller UI */
+    @media (max-width: 420px){
+      .mascot { width: min(calc(200px * var(--ui)), 30vw); }
+    }
   </style>
 </head>
+
 <body>
 <div class="wrap">
   <div id="game" class="game">
@@ -243,6 +273,7 @@
     speedIncPerLevel: 22,
     pointsPerLevel: 120,
 
+    // Will be overwritten by responsive sizing:
     tileWidth: 240,
     tileHeight: 78,
     tileMargin: 10,
@@ -284,7 +315,41 @@
   const ov2 = document.getElementById("ov2");
   const mascotEl = document.getElementById("mascot");
 
-  // ===== Image readiness helpers (fixes browser-dependent decode timing) =====
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+  const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const shuffleInPlace = (arr) => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  // ===== Responsive UI scale =====
+  function computeUi() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const s = Math.min(vw / 900, vh / 650);
+    const portrait = vh > vw;
+    return clamp(s * (portrait ? 0.92 : 1.0), 0.58, 1.0);
+  }
+
+  function applyUi() {
+    const ui = computeUi();
+    document.documentElement.style.setProperty("--ui", ui.toFixed(3));
+
+    // Keep JS hit logic aligned with CSS sizes
+    CONFIG.tileWidth  = Math.round(240 * ui);
+    CONFIG.tileHeight = Math.round(78  * ui);
+    CONFIG.tileMargin = Math.round(10  * ui);
+  }
+
+  window.addEventListener("resize", applyUi);
+  window.addEventListener("orientationchange", applyUi);
+  applyUi();
+
+  // ===== Image readiness helpers =====
   function waitImgReady(img) {
     if (img.decode) return img.decode().catch(() => {});
     return new Promise((res, rej) => {
@@ -301,7 +366,6 @@
     return img;
   }
 
-  // Kick off preload (best-effort). Game still runs even if preload fails.
   (async () => {
     try {
       await Promise.all([
@@ -323,19 +387,8 @@
   let score = 0;
   let lives = CONFIG.livesStart;
 
-  let task = null; // { expr, correct, options[], x, y, spawnedAt }
+  let task = null;
   let lockInputUntil = 0;
-
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
-  const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  const shuffleInPlace = (arr) => {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  };
 
   function currentDiffCfg() { return DIFFICULTIES[selectedDiff] || DIFFICULTIES.medium; }
 
@@ -475,15 +528,12 @@
     }, interval);
   }
 
-  // ===== Mascot (fixed: wait for decode + avoid timeout races) =====
+  // ===== Mascot =====
   let mascotPulseToken = 0;
-
   async function mascotHappyPulse() {
     const token = ++mascotPulseToken;
-
     mascotEl.src = ASSETS.mascotHappy;
     try { await waitImgReady(mascotEl); } catch {}
-
     setTimeout(() => {
       if (token === mascotPulseToken) mascotEl.src = ASSETS.mascotIdle;
     }, 350);
@@ -594,7 +644,7 @@
 
       playFx("burst", task.x + CONFIG.tileWidth/2, task.y + CONFIG.tileHeight/2);
       sfx.correct();
-      mascotHappyPulse(); // async best-effort
+      mascotHappyPulse();
 
       setHUD();
       lockInputUntil = now + 120;
@@ -645,6 +695,7 @@
 
   startBtn.addEventListener("click", () => {
     ensureAudio();
+    applyUi();              // recalc on start (orientation changes, iframe sizing, etc.)
     if (!running) { resetState(); startGame(); }
     else overlay.style.display = "none";
   });
@@ -655,6 +706,7 @@
 
   restartBtn.addEventListener("click", () => {
     ensureAudio();
+    applyUi();
     score = 0; lives = CONFIG.livesStart; setHUD();
     if (!running) { overlay.style.display = "grid"; return; }
     spawnTask();
