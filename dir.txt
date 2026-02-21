@@ -1,0 +1,485 @@
+ Volume in drive C has no label.
+ Volume Serial Number is F60C-EB82
+
+ Directory of C:\Users\alexm\games
+
+02/21/2026  07:59 AM    <DIR>          .
+02/21/2026  07:37 AM    <DIR>          ..
+02/21/2026  07:30 AM    <DIR>          assets
+02/21/2026  07:59 AM                 0 dir.txt
+02/21/2026  07:31 AM    <DIR>          fallingNumbers
+02/21/2026  07:58 AM    <DIR>          games
+02/21/2026  07:36 AM             6,480 index.html
+               2 File(s)          6,480 bytes
+
+ Directory of C:\Users\alexm\games\.git
+
+02/21/2026  07:59 AM    <DIR>          ..
+02/21/2026  07:41 AM                11 COMMIT_EDITMSG
+02/20/2026  05:51 PM               301 config
+02/20/2026  05:39 PM                73 description
+02/20/2026  05:50 PM                 0 FETCH_HEAD
+02/20/2026  05:40 PM                21 HEAD
+02/20/2026  05:39 PM    <DIR>          hooks
+02/21/2026  07:41 AM             1,961 index
+02/20/2026  05:39 PM    <DIR>          info
+02/20/2026  05:39 PM    <DIR>          logs
+02/21/2026  07:41 AM    <DIR>          objects
+02/20/2026  05:51 PM    <DIR>          refs
+               6 File(s)          2,367 bytes
+
+ Directory of C:\Users\alexm\games\.git\hooks
+
+02/20/2026  05:39 PM    <DIR>          .
+02/20/2026  05:39 PM               478 applypatch-msg.sample
+02/20/2026  05:39 PM               896 commit-msg.sample
+02/20/2026  05:39 PM             4,726 fsmonitor-watchman.sample
+02/20/2026  05:39 PM               189 post-update.sample
+02/20/2026  05:39 PM               424 pre-applypatch.sample
+02/20/2026  05:39 PM             1,649 pre-commit.sample
+02/20/2026  05:39 PM               416 pre-merge-commit.sample
+02/20/2026  05:39 PM             1,374 pre-push.sample
+02/20/2026  05:39 PM             4,898 pre-rebase.sample
+02/20/2026  05:39 PM               544 pre-receive.sample
+02/20/2026  05:39 PM             1,492 prepare-commit-msg.sample
+02/20/2026  05:39 PM             2,783 push-to-checkout.sample
+02/20/2026  05:39 PM             2,308 sendemail-validate.sample
+02/20/2026  05:39 PM             3,650 update.sample
+              14 File(s)         25,827 bytes
+
+ Directory of C:\Users\alexm\games\.git\info
+
+02/20/2026  05:39 PM    <DIR>          .
+02/20/2026  05:39 PM               240 exclude
+               1 File(s)            240 bytes
+
+ Directory of C:\Users\alexm\games\.git\logs
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM             1,352 HEAD
+02/20/2026  05:51 PM    <DIR>          refs
+               1 File(s)          1,352 bytes
+
+ Directory of C:\Users\alexm\games\.git\logs\refs
+
+02/20/2026  05:51 PM    <DIR>          .
+02/20/2026  05:39 PM    <DIR>          ..
+02/20/2026  05:40 PM    <DIR>          heads
+02/20/2026  05:51 PM    <DIR>          remotes
+               0 File(s)              0 bytes
+
+ Directory of C:\Users\alexm\games\.git\logs\refs\heads
+
+02/20/2026  05:40 PM    <DIR>          .
+02/20/2026  05:51 PM    <DIR>          ..
+02/21/2026  07:41 AM             1,157 main
+               1 File(s)          1,157 bytes
+
+ Directory of C:\Users\alexm\games\.git\logs\refs\remotes
+
+02/20/2026  05:51 PM    <DIR>          .
+02/20/2026  05:51 PM    <DIR>          ..
+02/20/2026  05:51 PM    <DIR>          origin
+               0 File(s)              0 bytes
+
+ Directory of C:\Users\alexm\games\.git\logs\refs\remotes\origin
+
+02/20/2026  05:51 PM    <DIR>          .
+02/20/2026  05:51 PM    <DIR>          ..
+02/21/2026  12:03 AM               785 main
+               1 File(s)            785 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects
+
+02/21/2026  07:41 AM    <DIR>          .
+02/20/2026  05:39 PM    <DIR>          00
+02/20/2026  05:59 PM    <DIR>          01
+02/20/2026  05:39 PM    <DIR>          0d
+02/20/2026  05:39 PM    <DIR>          15
+02/20/2026  05:39 PM    <DIR>          16
+02/20/2026  05:39 PM    <DIR>          18
+02/20/2026  05:59 PM    <DIR>          19
+02/20/2026  11:43 PM    <DIR>          1a
+02/20/2026  11:22 PM    <DIR>          26
+02/20/2026  05:39 PM    <DIR>          33
+02/20/2026  05:39 PM    <DIR>          4b
+02/21/2026  12:03 AM    <DIR>          54
+02/20/2026  11:43 PM    <DIR>          58
+02/21/2026  12:03 AM    <DIR>          5a
+02/21/2026  07:41 AM    <DIR>          5c
+02/20/2026  11:22 PM    <DIR>          5f
+02/21/2026  12:03 AM    <DIR>          62
+02/20/2026  05:39 PM    <DIR>          6a
+02/21/2026  07:41 AM    <DIR>          6e
+02/21/2026  07:38 AM    <DIR>          6f
+02/20/2026  11:22 PM    <DIR>          70
+02/21/2026  07:41 AM    <DIR>          91
+02/20/2026  05:39 PM    <DIR>          9b
+02/20/2026  11:43 PM    <DIR>          9d
+02/20/2026  05:39 PM    <DIR>          a2
+02/20/2026  05:39 PM    <DIR>          ae
+02/20/2026  05:39 PM    <DIR>          b3
+02/20/2026  05:39 PM    <DIR>          bc
+02/21/2026  07:41 AM    <DIR>          c6
+02/20/2026  11:43 PM    <DIR>          c8
+02/21/2026  07:40 AM    <DIR>          dd
+02/20/2026  05:39 PM    <DIR>          e0
+02/20/2026  05:39 PM    <DIR>          e6
+02/21/2026  07:41 AM    <DIR>          ec
+02/21/2026  12:03 AM    <DIR>          ee
+02/20/2026  11:22 PM    <DIR>          fb
+02/20/2026  05:39 PM    <DIR>          info
+02/20/2026  05:39 PM    <DIR>          pack
+               0 File(s)              0 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\00
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM         1,542,019 21595ef15f3d7d0144b4717a109ac8a7a40303
+               1 File(s)      1,542,019 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\01
+
+02/20/2026  05:59 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:59 PM               156 61bbe708731d26dd51714adefb25c5bf8215e0
+               1 File(s)            156 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\0d
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM           687,848 62fe3268500ad515d5f3e3d2d0e8005e3e00ee
+               1 File(s)        687,848 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\15
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM             7,145 86654214b9d45a21fca28183150d390f7c5206
+               1 File(s)          7,145 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\16
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM         1,787,299 5caa0aaac07515d3ab3901c2d714f674fa74a6
+               1 File(s)      1,787,299 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\18
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM               180 70cbd5a6162eaf345cf8ead1fbb8f955156d12
+               1 File(s)            180 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\19
+
+02/20/2026  05:59 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:59 PM               190 61fd7f45948f21c76cb8bfb8c214d0b4f5f778
+02/20/2026  05:59 PM                57 de8429012e8c1444f5b583ca35965e4dd90600
+               2 File(s)            247 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\1a
+
+02/20/2026  11:43 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  11:43 PM             7,304 ef13d89a8d0392e092cd308f4cd23be09cafa0
+               1 File(s)          7,304 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\26
+
+02/20/2026  11:22 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  11:22 PM               328 4c21c6b73f3705aa5da01f2c53a08789c4d9d7
+               1 File(s)            328 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\33
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM         1,458,019 46638d99c2d42a0ab0ca658753f2e57bbf89bd
+               1 File(s)      1,458,019 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\4b
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM                15 825dc642cb6eb9a060e54bf8d69288fbee4904
+               1 File(s)             15 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\54
+
+02/21/2026  12:03 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  07:40 AM             7,327 91143ed7ce54388a6de7518a2b04b357b95435
+               1 File(s)          7,327 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\58
+
+02/20/2026  11:43 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  11:43 PM               158 fcd9cb5420df978b6cd3274a56d7a296fc0c80
+               1 File(s)            158 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\5a
+
+02/21/2026  12:03 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  12:03 AM                56 5007410254554ca77ddbc9b019368f63bb860d
+               1 File(s)             56 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\5c
+
+02/21/2026  07:41 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM             7,247 38d5a9cc01127b9e0f6d1c0ad1021be67ed7c5
+02/21/2026  07:41 AM               297 c8652c935768df2181f2f51670b91c6d473904
+               2 File(s)          7,544 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\5f
+
+02/20/2026  11:22 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  11:22 PM               157 080881a89c69c6ca6bf025682bd4ccbe65d759
+02/20/2026  11:22 PM                56 4257c25dead935fc2392c542f188c765d19d4d
+               2 File(s)            213 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\62
+
+02/21/2026  12:03 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  12:03 AM               210 5f90d8f40c515339ebb225169817dfdab118b0
+               1 File(s)            210 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\6a
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM               129 7ca6c22ab999fd12ad80d1c0f612a54c5fd64e
+               1 File(s)            129 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\6e
+
+02/21/2026  07:41 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  07:41 AM               127 b7081bbe4f8ea5d04c08467e2adbf8250ecb4a
+               1 File(s)            127 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\6f
+
+02/21/2026  07:38 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  07:38 AM             2,185 8fd7118832262a01aa2e1394162d34435937c4
+02/20/2026  11:22 PM         1,538,294 d7eebbb446b44545af65187a69c1aa19e6868f
+02/20/2026  05:39 PM         2,714,047 e4ca12193ec2f382a6101f6e7f6414f4b9091e
+               3 File(s)      4,254,526 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\70
+
+02/20/2026  11:22 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  11:22 PM               210 5d961cee077499add61e5cb726a272cc1aa10d
+               1 File(s)            210 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\91
+
+02/21/2026  07:41 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  07:41 AM                57 45af93ed2eea19b8f4a662cd25301ba402ccc2
+02/21/2026  07:40 AM         1,710,053 8208512a1a25161f1c7e840c34f48296ac0fd4
+               2 File(s)      1,710,110 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\9b
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM                56 254d8fccdda596132b39a2f8fb8a8235f8c657
+               1 File(s)             56 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\9d
+
+02/20/2026  11:43 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  11:43 PM                56 37c873817731c02ada1187a6747e8a3f77d563
+02/20/2026  05:39 PM               321 8e8ff7270f1ac5f4b6a223930ea9f0f7318388
+               2 File(s)            377 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\a2
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM         2,542,362 55fa915d31350685f1076cb2a81939dd0f187a
+               1 File(s)      2,542,362 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\ae
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM         1,549,608 7c027c12d08054fd66e781c4af057b0af8a2c2
+               1 File(s)      1,549,608 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\b3
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:59 PM             7,013 5bfc497e34a353875390e4a3e41965f635e8b4
+               1 File(s)          7,013 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\bc
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM         2,776,149 cf396ba72c8dcd8aac3f79c1380d7ad0af9b47
+               1 File(s)      2,776,149 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\c6
+
+02/21/2026  07:41 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  07:41 AM               158 9aa3653354648ecbe186b768369b300589f3a8
+               1 File(s)            158 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\c8
+
+02/20/2026  11:43 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  11:43 PM               211 7f24ae7745b43c9394953bf85d061492844bbb
+               1 File(s)            211 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\dd
+
+02/21/2026  07:40 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  07:40 AM             3,041 49a2538a11f87b21dc0210f09701de07cc04d5
+               1 File(s)          3,041 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\e0
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM             8,142 e291bdc80929288ca65ba5dfed2b8af064ee13
+               1 File(s)          8,142 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\e6
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  05:39 PM         1,855,045 77d2c9f674b29f05b0c388633e8e256dda2331
+               1 File(s)      1,855,045 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\ec
+
+02/21/2026  07:41 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  07:41 AM               239 75e4fb0a9c38962fec6f875496ea98a6fdd845
+               1 File(s)            239 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\ee
+
+02/21/2026  12:03 AM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/21/2026  12:03 AM               157 0902942dd6f455571131ac93ccb81c4662c096
+               1 File(s)            157 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\fb
+
+02/20/2026  11:22 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+02/20/2026  11:22 PM             7,018 655e19e3412cd915334f29b89720a2a73cc7b4
+               1 File(s)          7,018 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\info
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+               0 File(s)              0 bytes
+
+ Directory of C:\Users\alexm\games\.git\objects\pack
+
+02/20/2026  05:39 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          ..
+               0 File(s)              0 bytes
+
+ Directory of C:\Users\alexm\games\.git\refs
+
+02/20/2026  05:51 PM    <DIR>          .
+02/21/2026  07:41 AM    <DIR>          heads
+02/20/2026  05:51 PM    <DIR>          remotes
+02/20/2026  05:39 PM    <DIR>          tags
+               0 File(s)              0 bytes
+
+ Directory of C:\Users\alexm\games\.git\refs\heads
+
+02/21/2026  07:41 AM    <DIR>          .
+02/20/2026  05:51 PM    <DIR>          ..
+02/21/2026  07:41 AM                41 main
+               1 File(s)             41 bytes
+
+ Directory of C:\Users\alexm\games\.git\refs\remotes
+
+02/20/2026  05:51 PM    <DIR>          .
+02/20/2026  05:51 PM    <DIR>          ..
+02/21/2026  12:03 AM    <DIR>          origin
+               0 File(s)              0 bytes
+
+ Directory of C:\Users\alexm\games\.git\refs\remotes\origin
+
+02/21/2026  12:03 AM    <DIR>          .
+02/20/2026  05:51 PM    <DIR>          ..
+02/21/2026  12:03 AM                41 main
+               1 File(s)             41 bytes
+
+ Directory of C:\Users\alexm\games\.git\refs\tags
+
+02/20/2026  05:39 PM    <DIR>          .
+02/20/2026  05:51 PM    <DIR>          ..
+               0 File(s)              0 bytes
+
+ Directory of C:\Users\alexm\games\assets
+
+02/21/2026  07:30 AM    <DIR>          .
+02/21/2026  07:59 AM    <DIR>          ..
+02/21/2026  07:18 AM         1,734,552 main_logo.png
+               1 File(s)      1,734,552 bytes
+
+ Directory of C:\Users\alexm\games\fallingNumbers
+
+02/21/2026  07:31 AM    <DIR>          .
+02/21/2026  07:59 AM    <DIR>          ..
+02/21/2026  07:39 AM    <DIR>          assets
+02/20/2026  11:59 PM            21,060 falling_math_heb.html
+02/20/2026  02:51 PM            19,998 falling_numbers.html
+02/20/2026  03:17 PM            23,229 falling_numbers2.html
+02/20/2026  04:08 PM            20,351 falling_numbers3.html
+02/20/2026  04:28 PM            20,166 falling_numbers_heb.html
+02/21/2026  06:55 AM             7,862 index.html
+               6 File(s)        112,666 bytes
+
+ Directory of C:\Users\alexm\games\fallingNumbers\assets
+
+02/21/2026  07:39 AM    <DIR>          .
+02/21/2026  07:31 AM    <DIR>          ..
+02/20/2026  02:12 PM         1,963,696 bg.png
+02/20/2026  02:21 PM         2,566,834 btn.png
+02/20/2026  02:24 PM         1,811,035 burst_sheet.png
+02/20/2026  02:27 PM         1,562,878 cat_happy.png
+02/20/2026  02:27 PM         1,562,878 cat_happy_v2.png
+02/20/2026  02:46 PM         1,483,023 cat_idle.png
+02/20/2026  04:03 PM           691,418 splash_sheet.png
+02/20/2026  03:09 PM         1,577,492 splash_sheet_2.png
+02/20/2026  02:24 PM         2,799,715 splash_sheet~.png
+02/20/2026  02:18 PM         2,737,987 tablet.png
+              10 File(s)     18,756,956 bytes
+
+ Directory of C:\Users\alexm\games\games
+
+02/21/2026  07:58 AM    <DIR>          .
+02/21/2026  07:59 AM    <DIR>          ..
+               0 File(s)              0 bytes
+
+     Total Files Listed:
+              88 File(s)     40,863,210 bytes
+             163 Dir(s)  147,358,347,264 bytes free
