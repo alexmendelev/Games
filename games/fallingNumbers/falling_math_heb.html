@@ -269,8 +269,8 @@
     minA: 0, maxA: 10,
     minB: 0, maxB: 10,
 
-    baseSpeed: 170,
-    speedIncPerLevel: 22,
+    baseSpeed: 120,
+    speedIncPerLevel: 15,
     pointsPerLevel: 120,
 
     // Will be overwritten by responsive sizing:
@@ -405,10 +405,17 @@
 
   function getLevel() { return Math.max(1, Math.floor(score / CONFIG.pointsPerLevel) + 1); }
 
-  function getSpeed() {
-    const base = CONFIG.baseSpeed + (getLevel() - 1) * CONFIG.speedIncPerLevel;
-    return base * currentDiffCfg().speedMul;
-  }
+function getSpeed() {
+  const base = CONFIG.baseSpeed + (getLevel() - 1) * CONFIG.speedIncPerLevel;
+
+  // Normalize by game area height so phone doesn't feel faster
+  const r = gameRect();
+  const h = (r && r.height) ? r.height : 650;     // fallback
+  const heightMul = Math.max(0.72, Math.min(1.15, h / 650));
+
+  return base * currentDiffCfg().speedMul * heightMul;
+}
+
 
   function setHUD() {
     scoreEl.textContent = String(score);
