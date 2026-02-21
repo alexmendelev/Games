@@ -327,36 +327,22 @@
   // ===== Emoji list =====
   let EMOJIS = []; // {id,en,he,src}
 
-  async function loadEmojiTsv() {
-    const r = await fetch(ASSETS.emojiTsv, { cache: "no-store" });
-    if (!r.ok) throw new Error("Failed to load TSV: " + r.status);
-    const txt = await r.text();
-    const rows = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+ async function loadEmojiTsv() {
+  const r = await fetch(ASSETS.emojiTsv, { cache: "no-store" });
+  if (!r.ok) throw new Error("Failed to load TSV: " + r.status);
+  const txt = await r.text();
 
-    const list = rows.map(line => {
-      const [id, en, he] = line.split("\t");
-      const code = (id || "").trim().toUpperCase();
-      return {
-        id: code,
-        en: (en || "").trim(),
-        he: (he || "").trim(),
-        src: `${ASSETS.emojiDir}/${code}.png`
-      };
-    }).filter(x => x.id && x.he && x.src);
-
-    // Optional: filter out missing images (best-effort)
-    // If your host blocks HEAD, you can remove this block.
-    const exists = async (url) => {
-      try { const rr = await fetch(url, { method: "HEAD" }); return rr.ok; }
-      catch { return false; }
-    };
-
-    const ok = [];
-    for (const e of list) {
-      if (await exists(e.src)) ok.push(e);
-    }
-    return ok.length ? ok : list;
-  }
+  return txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(line => {
+	const [id, en, he] = line.split("\t");
+	const code = (id || "").trim().toUpperCase();
+	return {
+	  id: code,
+	  en: (en || "").trim(),
+	  he: (he || "").trim(),
+	  src: `${ASSETS.emojiDir}/${code}.png`
+	};
+  }).filter(x => x.id && x.he);
+}
 
   // ===== Responsive UI scale =====
   function computeUi() {
@@ -625,19 +611,26 @@
     };
   }
 
-  function renderTask() {
-    tileEl.textContent = task.wordHe;
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+	function warm(url) {
+	  const im = new Image();
+	  im.decoding = "async";
+	  im.loading = "eager"; // harmless for JS-created Image
+	  im.src = url;
+	}
 
-    for (let i = 0; i < 4; i++) {
-      const e = task.options[i];
-      ansBtns[i].dataset.value = e.id;
+	function renderTask() {
+	  tileEl.textContent = task.wordHe;
+	  tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
 
-      ansImgs[i].src = e.src;
-      ansImgs[i].alt = e.en || e.he || e.id;
-      ansImgs[i].title = e.he || e.en || e.id;
-    }
-  }
+	  for (let i = 0; i < 4; i++) {
+		const e = task.options[i];
+
+		ansBtns[i].dataset.value = e.id;
+
+		ansImgs[i].src = e.src;  // what user sees
+		warm(e.src);             // preloads into cache (safe to call even if already cached)
+	  }
+	}
 
   function spawnTask() {
     task = generateTask();
