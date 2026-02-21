@@ -41,7 +41,6 @@
 
     .container{ width:min(980px, 100%); }
 
-    /* Header / hero */
     .hero{
       display:grid;
       grid-template-columns: 260px 1fr;
@@ -92,7 +91,6 @@
       line-height: 1.1;
     }
 
-    /* Game tiles */
     .grid{
       display:grid;
       grid-template-columns: repeat(2, minmax(0,1fr));
@@ -102,7 +100,9 @@
       .grid{ grid-template-columns: 1fr; }
     }
 
+    /* Tile is now a <button> */
     .tile{
+      width: 100%;
       display:block;
       text-decoration:none;
       color: inherit;
@@ -115,11 +115,11 @@
       user-select:none;
       -webkit-tap-highlight-color: transparent;
       transform: translateZ(0);
+      padding: 0;
+      cursor: pointer;
+      text-align: inherit;
     }
-    .tile:active{
-      transform: translateY(1px);
-    }
-
+    .tile:active{ transform: translateY(1px); }
     @media (hover: hover) and (pointer: fine){
       .tile:hover{ border-color: rgba(255,255,255,0.26); }
     }
@@ -193,16 +193,8 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.35);
       padding: 18px;
     }
-    #loadingTitle{
-      font-size: 22px;
-      font-weight: 900;
-      margin: 0 0 10px 0;
-    }
-    #loadingText{
-      font-size: 16px;
-      margin: 0 0 12px 0;
-      opacity: 0.88;
-    }
+    #loadingTitle{ font-size: 22px; font-weight: 900; margin: 0 0 10px 0; }
+    #loadingText{ font-size: 16px; margin: 0 0 12px 0; opacity: 0.88; }
     .bar{
       height: 10px;
       border-radius: 999px;
@@ -217,48 +209,75 @@
       transition: width 120ms linear;
     }
 
-    /* Fullscreen hint button (shown only if not fullscreen) */
-    #fsBtn{
-      margin-top: 14px;
-      width: 100%;
+    /* Fullscreen button (visible by default) */
+    #fsFloating{
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 20000;
       border: 1px solid rgba(255,255,255,0.20);
       border-radius: 14px;
-      background: rgba(255,255,255,0.10);
+      background: rgba(10,18,40,0.70);
+      backdrop-filter: blur(6px);
       color: #fff;
-      font: 800 18px Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      padding: 12px 14px;
+      font: 800 16px Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      padding: 10px 12px;
       cursor: pointer;
+      display: block;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-    #fsNote{
-      margin: 10px 0 0 0;
-      font-size: 13px;
-      opacity: 0.70;
-      line-height: 1.35;
+
+    /* -------- Game modal + iframe -------- */
+    #gameModal{
+      position: fixed;
+      inset: 0;
+      z-index: 15000;
+      display: none;
+      background: rgba(0,0,0,0.72);
+    }
+    #gameFrame{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
+    }
+    #closeGame{
+      position: fixed;
+      top: calc(12px + env(safe-area-inset-top));
+      right: calc(12px + env(safe-area-inset-right));
+      z-index: 16000;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 12px;
+      background: rgba(10,18,40,0.75);
+      backdrop-filter: blur(6px);
+      color:#fff;
+      font: 800 14px Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      padding: 10px 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Loading overlay (removed after assets load) -->
+  <button id="fsFloating" type="button">מסך מלא</button>
+
+  <!-- Loading overlay -->
   <div id="loadingOverlay" aria-live="polite">
     <div id="loadingBox">
       <h2 id="loadingTitle">טוען…</h2>
       <p id="loadingText">0/0</p>
       <div class="bar"><div id="loadingBar"></div></div>
-
-      <!-- Fullscreen (requires user gesture; shows after loading) -->
-      <button id="fsBtn" type="button" style="display:none;">מסך מלא</button>
-      <p id="fsNote" style="display:none;">
-        דפדפנים לא מאפשרים כניסה אוטומטית למסך מלא בלי לחיצה.
-      </p>
     </div>
   </div>
 
   <div class="wrap">
     <div class="container">
 
-      <!-- HERO -->
       <div class="hero">
         <div class="logoCard">
           <img class="logo" src="assets/main_logo.png" alt="מאיה וחברים" />
@@ -268,10 +287,9 @@
         </div>
       </div>
 
-      <!-- GAME GRID (whole tile is clickable) -->
       <div class="grid">
-        <!-- 1) Falling math -->
-        <a class="tile" href="fallingNumbers/falling_math_heb.html" aria-label="תרגילים נופלים">
+        <!-- 1) Falling math (opens in iframe modal) -->
+        <button class="tile" type="button" data-game="fallingNumbers/falling_math_heb.html" aria-label="תרגילים נופלים">
           <div class="thumb" style="background-image:url('fallingNumbers/assets/bg.png');"></div>
           <div class="label">
             <h2 class="name">תרגילים נופלים</h2>
@@ -281,10 +299,10 @@
               </svg>
             </div>
           </div>
-        </a>
+        </button>
 
         <!-- 2) Placeholder -->
-        <a class="tile" href="game2.html" aria-label="משחק 2">
+        <button class="tile" type="button" disabled aria-label="משחק 2">
           <div class="thumb" style="background-image:linear-gradient(135deg,#243b6b,#1a2a46);"></div>
           <div class="label">
             <h2 class="name">משחק 2</h2>
@@ -294,28 +312,55 @@
               </svg>
             </div>
           </div>
-        </a>
-
-        <!-- Add more tiles here -->
+        </button>
       </div>
 
       <div class="footer">מאיה וחברים</div>
     </div>
   </div>
 
+  <!-- Game modal -->
+  <div id="gameModal" aria-hidden="true">
+    <button id="closeGame" type="button">סגור</button>
+    <iframe id="gameFrame" allow="fullscreen; autoplay" title="Game"></iframe>
+  </div>
+
   <script>
     // ----------------------------
-    // 1) PRELOAD ALL ASSETS BEFORE "READY"
+    // Fullscreen (toggle)
     // ----------------------------
+    const fsBtn = document.getElementById('fsFloating');
 
-    // Add here anything you want preloaded for this landing page AND for the game(s).
-    // (Images, sprites, audio, etc.)
+    function isFs() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    async function toggleFs() {
+      try {
+        if (isFs()) {
+          await (document.exitFullscreen?.() || document.webkitExitFullscreen?.());
+        } else {
+          const el = document.documentElement;
+          const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+          if (!req) return;
+          await req.call(el, { navigationUI: "hide" });
+        }
+        fsBtn.textContent = isFs() ? 'צא ממסך מלא' : 'מסך מלא';
+      } catch (e) {
+        console.error('Fullscreen error:', e);
+        alert((e?.name || 'Error') + ': ' + (e?.message || ''));
+      }
+    }
+
+    fsBtn.addEventListener('click', toggleFs);
+
+    // ----------------------------
+    // Preload (audio capped with timeout)
+    // ----------------------------
     const ASSETS = {
       images: [
         'assets/main_logo.png',
         'fallingNumbers/assets/bg.png',
-
-        // game assets (add/remove based on what your game actually uses)
         'fallingNumbers/assets/tablet.png',
         'fallingNumbers/assets/btn.png',
         'fallingNumbers/assets/cat_idle.png',
@@ -324,8 +369,6 @@
         'fallingNumbers/assets/splash_sheet.png',
       ],
       audio: [
-        // If your game has these files, preload them.
-        // If not, remove/rename.
         'fallingNumbers/assets/sfx_ok.mp3',
         'fallingNumbers/assets/sfx_wrong.mp3',
         'fallingNumbers/assets/sfx_splash.mp3',
@@ -333,15 +376,13 @@
       ]
     };
 
-    const $overlay = document.getElementById('loadingOverlay');
-    const $text = document.getElementById('loadingText');
-    const $bar = document.getElementById('loadingBar');
-    const $fsBtn = document.getElementById('fsBtn');
-    const $fsNote = document.getElementById('fsNote');
+    const overlay = document.getElementById('loadingOverlay');
+    const textEl = document.getElementById('loadingText');
+    const barEl  = document.getElementById('loadingBar');
 
     function updateLoading(done, total) {
-      $text.textContent = `${done}/${total}`;
-      $bar.style.width = total ? `${Math.round((done / total) * 100)}%` : '0%';
+      textEl.textContent = `${done}/${total}`;
+      barEl.style.width = total ? `${Math.round((done / total) * 100)}%` : '0%';
     }
 
     function loadImage(url) {
@@ -356,27 +397,32 @@
       });
     }
 
-    function loadAudio(url) {
-      // Preload fetch/prepare only. Playback still requires a user gesture on mobile.
-      return new Promise((resolve, reject) => {
+    function loadAudioWithTimeout(url, timeoutMs = 2500) {
+      return new Promise((resolve) => {
         const a = new Audio();
-        a.preload = 'auto';
-        a.src = url;
+        let done = false;
 
-        const ok = () => { cleanup(); resolve(); };
-        const bad = () => { cleanup(); reject(new Error('Failed audio: ' + url)); };
-        const cleanup = () => {
-          a.removeEventListener('canplaythrough', ok);
-          a.removeEventListener('error', bad);
-          a.removeEventListener('loadeddata', ok);
+        const finish = () => {
+          if (done) return;
+          done = true;
+          cleanup();
+          resolve();
         };
 
-        // canplaythrough is not always reliable; loadeddata is a fallback
-        a.addEventListener('canplaythrough', ok, { once: true });
-        a.addEventListener('loadeddata', ok, { once: true });
-        a.addEventListener('error', bad, { once: true });
+        const cleanup = () => {
+          a.removeEventListener('canplaythrough', finish);
+          a.removeEventListener('loadeddata', finish);
+          a.removeEventListener('error', finish);
+        };
 
-        a.load();
+        a.preload = 'auto';
+        a.addEventListener('canplaythrough', finish, { once: true });
+        a.addEventListener('loadeddata', finish, { once: true });
+        a.addEventListener('error', finish, { once: true });
+        a.src = url;
+        try { a.load(); } catch(e) {}
+
+        setTimeout(finish, timeoutMs);
       });
     }
 
@@ -387,85 +433,52 @@
       let done = 0;
 
       updateLoading(done, total);
+      const tick = () => { done++; updateLoading(done, total); };
 
-      const tick = () => {
-        done++;
-        updateLoading(done, total);
-      };
-
-      // Load images (hard-fail if missing: you probably want to know)
       const imgPromises = imgs.map(u => loadImage(u).then(tick));
-
-      // Load audio (soft-fail: don't block page if a sound file is missing)
-      const audPromises = auds.map(u =>
-        loadAudio(u).then(tick).catch(err => {
-          console.warn(err);
-          tick();
-        })
-      );
+      const audPromises = auds.map(u => loadAudioWithTimeout(u).then(tick));
 
       await Promise.all([...imgPromises, ...audPromises]);
     }
 
-    // ----------------------------
-    // 2) FULLSCREEN (USER GESTURE ONLY)
-    // ----------------------------
-
-    async function requestFullscreen() {
-      const el = document.documentElement;
-      try {
-        if (!document.fullscreenElement && el.requestFullscreen) {
-          await el.requestFullscreen({ navigationUI: "hide" });
-        }
-      } catch (e) {
-        console.warn('Fullscreen failed:', e);
-      }
-    }
-
-    function showFullscreenControlsIfNeeded() {
-      const canFS = !!document.documentElement.requestFullscreen;
-      const isFS = !!document.fullscreenElement;
-
-      if (canFS && !isFS) {
-        $fsBtn.style.display = '';
-        $fsNote.style.display = '';
-      } else {
-        $fsBtn.style.display = 'none';
-        $fsNote.style.display = 'none';
-      }
-    }
-
-    $fsBtn.addEventListener('click', async () => {
-      await requestFullscreen();
-      showFullscreenControlsIfNeeded();
-      // keep overlay up; user can click a game tile after this
-    });
-
-    document.addEventListener('fullscreenchange', showFullscreenControlsIfNeeded);
-
-    // ----------------------------
-    // BOOT
-    // ----------------------------
     window.addEventListener('load', async () => {
       try {
         await preloadAll();
+        overlay.style.display = 'none';
       } catch (e) {
         console.error(e);
-        $text.textContent = 'טעינה נכשלה. בדוק נתיבים (paths) בקונסול.';
-      } finally {
-        // After preload completes (even if audio failed), enable fullscreen button and remove overlay
-        showFullscreenControlsIfNeeded();
-        $overlay.style.display = 'none';
+        textEl.textContent = 'טעינה נכשלה. בדוק Console.';
       }
     });
 
-    // Optional: if you want fullscreen on first tile click (still user gesture):
-    // document.querySelectorAll('.tile').forEach(a => {
-    //   a.addEventListener('click', (e) => {
-    //     // don't block navigation; just request fullscreen and let browser navigate
-    //     requestFullscreen();
-    //   }, { passive: true });
-    // });
+    // ----------------------------
+    // Iframe modal open/close
+    // ----------------------------
+    const modal = document.getElementById('gameModal');
+    const frame = document.getElementById('gameFrame');
+    const closeBtn = document.getElementById('closeGame');
+
+    function openGame(url) {
+      frame.src = url;
+      modal.style.display = 'block';
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeGame() {
+      frame.src = 'about:blank';
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.querySelectorAll('[data-game]').forEach(btn => {
+      btn.addEventListener('click', () => openGame(btn.getAttribute('data-game')));
+    });
+
+    closeBtn.addEventListener('click', closeGame);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display === 'block') closeGame();
+    });
   </script>
 </body>
 </html>
