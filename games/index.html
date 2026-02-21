@@ -357,7 +357,8 @@
           if (!req) return;
           await req.call(el, { navigationUI: "hide" });
         }
-        fsBtn.textContent = isFs() ? 'צא ממסך מלא' : 'מסך מלא';
+        fsBtn.textContent = isFs() ? '' : 'מסך מלא';
+		
       } catch (e) {
         console.error('Fullscreen error:', e);
         alert((e?.name || 'Error') + ': ' + (e?.message || ''));
