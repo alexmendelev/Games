@@ -4,12 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>תרגילים נופלים</title>
+
+  <!-- Preload splash mp3 early -->
+  <link rel="preload" href="assets/splash.mp3" as="audio" type="audio/mpeg">
+
   <style>
     :root {
       --text:#ffffff;
       --muted:rgba(255,255,255,0.85);
-
-      /* Responsive scaling knob (JS updates it) */
       --ui: 1;
     }
     * { box-sizing: border-box; }
@@ -25,7 +27,6 @@
       overflow-x: hidden;
     }
 
-    /* Layout: desktop = side-by-side, phone = stacked */
     .wrap {
       min-height: 100dvh;
       padding: 14px;
@@ -48,40 +49,32 @@
       position: absolute;
       left: 10%;
       bottom: 14px;
-
-      /* was 320px: too big on phones */
       width: min(calc(260px * var(--ui)), 34vw);
       height: auto;
-
       pointer-events: none;
       z-index: 110;
       filter: drop-shadow(0 14px 22px rgba(0,0,0,0.40));
     }
-	
-	/* Force LTR for numeric text so "-2" doesn't render as "2-" */
-     .tile, .ans {
-       direction: ltr;
+
+    /* Force LTR for numeric text so "-2" doesn't render as "2-" */
+    .tile, .ans {
+      direction: ltr;
       unicode-bidi: bidi-override;
-      }
+    }
 
     .tile {
       position: absolute;
       top: 0; left: 0;
-
-      /* driven by --ui; JS keeps CONFIG in sync */
       width: calc(240px * var(--ui));
       height: calc(78px * var(--ui));
-
       background: url("assets/tablet.png") center/contain no-repeat;
       background-size:100% 100%;
       display: grid;
       place-items: center;
-
       font-size: calc(42px * var(--ui));
       font-weight: 900;
       color: #1b1b1b;
       text-shadow: 0 2px 0 rgba(255,255,255,0.25), 0 10px 22px rgba(0,0,0,0.20);
-
       user-select: none;
       transform: translate(20px, -90px);
       pointer-events: none;
@@ -135,10 +128,8 @@
       font-weight: 900;
       border-radius: calc(18px * var(--ui));
       border: 0;
-
       color: #1b1b1b;
       text-shadow: 0 2px 0 rgba(255,255,255,0.25);
-
       background: url("assets/btn.png") center/contain no-repeat;
       cursor: pointer;
     }
@@ -177,14 +168,12 @@
 
     .panel, .card { direction: rtl; text-align: right; }
 
-    /* Phone: stack + shrink panel area and mascot */
     @media (max-width: 820px){
       .wrap { flex-direction: column; }
       .side { width: 100%; max-width: 100%; }
       .mascot { width: min(calc(220px * var(--ui)), 32vw); left: 6%; }
     }
 
-    /* Extra-tight phones: slightly smaller UI */
     @media (max-width: 420px){
       .mascot { width: min(calc(200px * var(--ui)), 30vw); }
     }
@@ -267,7 +256,7 @@
   };
 
   const CONFIG = {
-    livesStart: 3,
+    livesStart: 10,
     scoreWrong: -5,
     scoreMiss: -10,
 
@@ -279,7 +268,6 @@
     speedIncPerLevel: 15,
     pointsPerLevel: 120,
 
-    // Will be overwritten by responsive sizing:
     tileWidth: 240,
     tileHeight: 78,
     tileMargin: 10,
@@ -333,10 +321,9 @@
   };
 
   function fmtNum(n){
-  // LRM + U+2212 minus gives stable rendering across RTL contexts
-  return n < 0 ? "\u200E\u2212" + Math.abs(n) : "\u200E" + n;
-}
-  
+    return n < 0 ? "\u200E\u2212" + Math.abs(n) : "\u200E" + n;
+  }
+
   // ===== Responsive UI scale =====
   function computeUi() {
     const vw = window.innerWidth;
@@ -349,8 +336,6 @@
   function applyUi() {
     const ui = computeUi();
     document.documentElement.style.setProperty("--ui", ui.toFixed(3));
-
-    // Keep JS hit logic aligned with CSS sizes
     CONFIG.tileWidth  = Math.round(240 * ui);
     CONFIG.tileHeight = Math.round(78  * ui);
     CONFIG.tileMargin = Math.round(10  * ui);
@@ -416,17 +401,19 @@
 
   function getLevel() { return Math.max(1, Math.floor(score / CONFIG.pointsPerLevel) + 1); }
 
-function getSpeed() {
-  const base = CONFIG.baseSpeed + (getLevel() - 1) * CONFIG.speedIncPerLevel;
+  function gameRect() { return gameEl.getBoundingClientRect(); }
+  function waterY(r) { return r.height * WATER_Y_RATIO; }
 
-  // Normalize by game area height so phone doesn't feel faster
-  const r = gameRect();
-  const h = (r && r.height) ? r.height : 650;     // fallback
-  const heightMul = Math.max(0.72, Math.min(1.15, h / 650));
+  function getSpeed() {
+    const base = CONFIG.baseSpeed + (getLevel() - 1) * CONFIG.speedIncPerLevel;
 
-  return base * currentDiffCfg().speedMul * heightMul;
-}
+    // Normalize by game area height so phone doesn't feel faster
+    const r = gameRect();
+    const h = (r && r.height) ? r.height : 650;
+    const heightMul = Math.max(0.72, Math.min(1.15, h / 650));
 
+    return base * currentDiffCfg().speedMul * heightMul;
+  }
 
   function setHUD() {
     scoreEl.textContent = String(score);
@@ -435,9 +422,6 @@ function getSpeed() {
     diffLabelEl.textContent = currentDiffCfg().label;
   }
 
-  function gameRect() { return gameEl.getBoundingClientRect(); }
-  function waterY(r) { return r.height * WATER_Y_RATIO; }
-
   function pointsForCorrect(reactionSec) {
     const t = clamp(reactionSec, 0, CONFIG.correctTimeCapSec);
     const frac = 1 - (t / CONFIG.correctTimeCapSec);
@@ -445,66 +429,106 @@ function getSpeed() {
   }
 
   // ===== SOUND =====
-  let audioCtx = null;
-  let masterGain = null;
+ // ===== SOUND =====
+let audioCtx = null;
+let masterGain = null;
 
-  function ensureAudio() {
-    try {
-      if (!audioCtx) {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new Ctx();
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = CONFIG.sfxGain;
-        masterGain.connect(audioCtx.destination);
-      }
-      if (audioCtx.state === "suspended") audioCtx.resume();
-    } catch (_) {}
-  }
+// pool for overlap (but unlock only ONE element)
+const splashPool = Array.from({ length: 6 }, (_, i) => {
+  const a = new Audio("assets/splash.mp3");
+  a.preload = "auto";
+  a.volume = 0.9;
+  a.load();
+  return a;
+});
+let splashI = 0;
 
-  function beep({freq=440, dur=0.12, type="sine", gain=1.0, when=0, rampTo=null}) {
-    if (!audioCtx || !masterGain) return;
-    const t0 = audioCtx.currentTime + when;
-    const t1 = t0 + Math.max(0.01, dur);
+let audioUnlocked = false;
 
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, t0);
-    if (rampTo && rampTo > 0) osc.frequency.exponentialRampToValueAtTime(rampTo, t1);
-
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t0 + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t1);
-
-    osc.connect(g);
-    g.connect(masterGain);
-
-    osc.start(t0);
-    osc.stop(t1 + 0.02);
-  }
-
-  const sfx = {
-    correct() {
-      ensureAudio();
-      beep({freq: 880, dur: 0.06, type: "triangle", gain: 1.0, when: 0.00, rampTo: 1320});
-      beep({freq: 1320, dur: 0.08, type: "sine", gain: 0.8, when: 0.05});
-    },
-    wrong() {
-      ensureAudio();
-      beep({freq: 240, dur: 0.10, type: "sine", gain: 0.9, when: 0.00, rampTo: 180});
-    },
-    splash() {
-      ensureAudio();
-      beep({freq: 190, dur: 0.14, type: "triangle", gain: 1.0, when: 0.00});
-      beep({freq: 120, dur: 0.10, type: "sine", gain: 0.7, when: 0.10});
-    },
-    death() {
-      ensureAudio();
-      beep({freq: 420, rampTo: 110, dur: 0.75, type: "sawtooth", gain: 1.0, when: 0.00});
+function ensureAudio() {
+  // WebAudio (beeps)
+  try {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = CONFIG.sfxGain;
+      masterGain.connect(audioCtx.destination);
     }
-  };
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch (_) {}
 
+  // HTMLAudio unlock (ONLY ONE play/pause)
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+
+  const a = splashPool[0];
+  try {
+    a.muted = true;
+    const p = a.play();
+    if (p && p.then) {
+      p.then(() => {
+        a.pause();
+        a.currentTime = 0;
+        a.muted = false;
+      }).catch(() => {
+        a.muted = false;
+      });
+    } else {
+      // older browsers
+      a.pause();
+      a.currentTime = 0;
+      a.muted = false;
+    }
+  } catch (_) {
+    a.muted = false;
+  }
+}
+
+function playSplash() {
+  const a = splashPool[splashI++ % splashPool.length];
+  try {
+    a.currentTime = 0;
+  } catch (_) {}
+  a.play().catch((e) => {
+    // if still locked, try unlocking once more on demand
+    audioUnlocked = false;
+    ensureAudio();
+  });
+}
+
+function beep({freq=440, dur=0.12, type="sine", gain=1.0, when=0, rampTo=null}) {
+  if (!audioCtx || !masterGain) return;
+  const t0 = audioCtx.currentTime + when;
+  const t1 = t0 + Math.max(0.01, dur);
+
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  if (rampTo && rampTo > 0) osc.frequency.exponentialRampToValueAtTime(rampTo, t1);
+
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t1);
+
+  osc.connect(g);
+  g.connect(masterGain);
+
+  osc.start(t0);
+  osc.stop(t1 + 0.02);
+}
+
+const sfx = {
+  correct() { ensureAudio(); beep({freq: 880, dur: 0.06, type: "triangle", gain: 1.0, rampTo: 1320}); beep({freq: 1320, dur: 0.08, type: "sine", gain: 0.8, when: 0.05}); },
+  wrong()   { ensureAudio(); beep({freq: 240, dur: 0.10, type: "sine", gain: 0.9, rampTo: 180}); },
+  splash()  { ensureAudio(); playSplash(); },
+  death()   { ensureAudio(); beep({freq: 420, rampTo: 110, dur: 0.75, type: "sawtooth", gain: 1.0}); }
+};
+
+// unlock on the first real user gesture
+window.addEventListener("pointerdown", ensureAudio, { once: true });
   window.addEventListener("pointerdown", ensureAudio, { once: true });
 
   // ===== FX (sprite sheet) =====
@@ -604,10 +628,10 @@ function getSpeed() {
     tileEl.textContent = task.expr;
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
     for (let i = 0; i < 4; i++) {
-	  const v = task.options[i];
-	  ansBtns[i].dataset.value = String(v);      // real numeric value
-	  ansBtns[i].textContent = fmtNum(v);        // pretty RTL-safe text
-	}
+      const v = task.options[i];
+      ansBtns[i].dataset.value = String(v);
+      ansBtns[i].textContent = fmtNum(v);
+    }
   }
 
   function spawnTask() {
@@ -697,7 +721,7 @@ function getSpeed() {
       lives -= 1;
       setHUD();
 
-      playFx("splash", task.x + CONFIG.tileWidth/2, wy + 80);
+      playFx("splash", task.x + CONFIG.tileWidth/2, wy + 120);
       sfx.splash();
 
       if (lives <= 0) {
@@ -717,7 +741,7 @@ function getSpeed() {
 
   startBtn.addEventListener("click", () => {
     ensureAudio();
-    applyUi();              // recalc on start (orientation changes, iframe sizing, etc.)
+    applyUi();
     if (!running) { resetState(); startGame(); }
     else overlay.style.display = "none";
   });
