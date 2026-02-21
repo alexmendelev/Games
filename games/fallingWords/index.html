@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="he" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>מילים נופלות</title>
+
+  <link rel="preload" href="assets/splash.mp3" as="audio" type="audio/mpeg">
+
+  <style>
+    :root {
+      --text:#ffffff;
+      --muted:rgba(255,255,255,0.85);
+      --ui: 1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #06101f;
+      color: var(--text);
+      font-family: Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 18px;
+      line-height: 1.35;
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      min-height: 100dvh;
+      padding: 14px;
+      display: flex;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .game {
+      flex: 1;
+      min-width: 280px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      background: #1a2a46 url("assets/bg.png") center/cover no-repeat;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    .mascot {
+      position: absolute;
+      left: 10%;
+      bottom: 14px;
+      width: min(calc(260px * var(--ui)), 34vw);
+      height: auto;
+      pointer-events: none;
+      z-index: 110;
+      filter: drop-shadow(0 14px 22px rgba(0,0,0,0.40));
+    }
+
+    .tile {
+      position: absolute;
+      top: 0; left: 0;
+      width: calc(240px * var(--ui));
+      height: calc(78px * var(--ui));
+      background: url("assets/tablet.png") center/contain no-repeat;
+      background-size:100% 100%;
+      display: grid;
+      place-items: center;
+      font-size: calc(36px * var(--ui));
+      font-weight: 900;
+      color: #1b1b1b;
+      text-shadow: 0 2px 0 rgba(255,255,255,0.25), 0 10px 22px rgba(0,0,0,0.20);
+      user-select: none;
+      transform: translate(20px, -90px);
+      pointer-events: none;
+      z-index: 10;
+
+      direction: rtl;
+      text-align: center;
+      padding: 0 calc(10px * var(--ui));
+    }
+
+    .side {
+      width: min(calc(340px * var(--ui)), 45vw);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel {
+      background: rgba(10,18,40,0.55);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 16px;
+      padding: calc(12px * var(--ui));
+      backdrop-filter: blur(6px);
+    }
+
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .stat { color: var(--muted); font-size: calc(16px * var(--ui)); }
+    .stat b {
+      color: var(--text);
+      font-size: calc(22px * var(--ui));
+      margin-inline-start: 6px;
+      font-weight: 900;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      padding: calc(12px * var(--ui)) calc(14px * var(--ui));
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: calc(18px * var(--ui));
+    }
+    .btn:hover { background: rgba(255,255,255,0.14); }
+    .btn.primary { background: rgba(90,120,255,0.25); border-color: rgba(90,120,255,0.45); }
+
+    .answers { display: grid; grid-template-columns: 1fr 1fr; gap: calc(12px * var(--ui)); }
+
+.ans {
+  height: calc(184px * var(--ui));
+  border: 0;
+  background: transparent;       /* no btn.png */
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+.ans img {
+  width: calc(160px * var(--ui));   /* adjust as you like */
+  height: calc(160px * var(--ui));
+  object-fit: contain;
+  pointer-events: none;
+
+  /* optional: make them pop on dark bg */
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,0.35));
+}
+
+.ans:active img { transform: scale(0.98); }
+.ans:hover  img { transform: scale(1.04); }
+
+    .hint { font-size: calc(16px * var(--ui)); color: rgba(255,255,255,0.82); line-height: 1.45; }
+
+    .overlay {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+    }
+    .card {
+      width: min(620px, 92%);
+      background: rgba(10,18,40,0.70);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      padding: calc(16px * var(--ui));
+    }
+    .card h2 { font-size: calc(32px * var(--ui)); font-weight: 900; margin: 0 0 10px; }
+    .card p  { font-size: calc(20px * var(--ui)); margin: 6px 0; color: rgba(255,255,255,0.85); }
+
+    .diffs { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .diffbtn.active { background: rgba(90,120,255,0.35); border-color: rgba(90,120,255,0.75); }
+
+    .fx {
+      position: absolute;
+      pointer-events: none;
+      background-repeat: no-repeat;
+      image-rendering: auto;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.25));
+      z-index: 8;
+    }
+
+    .panel, .card { direction: rtl; text-align: right; }
+
+    @media (max-width: 820px){
+      .wrap { flex-direction: column; }
+      .side { width: 100%; max-width: 100%; }
+      .mascot { width: min(calc(220px * var(--ui)), 32vw); left: 6%; }
+    }
+    @media (max-width: 420px){
+      .mascot { width: min(calc(200px * var(--ui)), 30vw); }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <div id="game" class="game">
+    <img id="mascot" class="mascot" src="assets/cat_idle.png" alt="" />
+    <div id="tile" class="tile">טוען…</div>
+
+    <div id="overlay" class="overlay">
+      <div class="card">
+        <h2>מילים נופלות</h2>
+
+        <p style="margin-top:10px; font-weight:800;">רמת קושי:</p>
+        <div class="diffs" id="diffs">
+          <button class="btn diffbtn" data-diff="easy">קל</button>
+          <button class="btn diffbtn active" data-diff="medium">בינוני</button>
+          <button class="btn diffbtn" data-diff="hard">קשה</button>
+          <button class="btn diffbtn" data-diff="super">סופר</button>
+        </div>
+
+        <p id="ov1" style="margin-top:10px;">לחץ/י על ״התחל״.</p>
+        <p id="ov2">תבחר/י את התמונה שמתאימה למילה. נכון: 10..20. שגוי: ‎-5. נפל לבריכה: ‎-10 וחיים ‎-1.</p>
+
+        <div class="row" style="margin-top:10px">
+          <button id="startBtn" class="btn primary">התחל</button>
+          <button id="resetBtn" class="btn">איפוס ניקוד</button>
+        </div>
+
+        <p class="hint" style="margin-top:10px;">
+          הצליל יופעל אחרי קליק ראשון.
+          מקלדת: 1-4 לבחור תשובה, Esc השהיה.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="panel">
+      <div class="row">
+        <div class="stat">ניקוד<b id="score">0</b></div>
+        <div class="stat">חיים<b id="lives">3</b></div>
+        <div class="stat">רמה<b id="level">1</b></div>
+        <div class="stat">קושי<b id="diffLabel">בינוני</b></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="pauseBtn" class="btn">השהה</button>
+        <button id="restartBtn" class="btn">התחל מחדש</button>
+      </div>
+      <div class="hint" style="margin-top:10px">
+        תשובה שגויה לא מורידה את הטבלית — היא ממשיכה ליפול.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="answers" id="answers">
+        <button class="ans" data-idx="0"><img alt=""></button>
+        <button class="ans" data-idx="1"><img alt=""></button>
+        <button class="ans" data-idx="2"><img alt=""></button>
+        <button class="ans" data-idx="3"><img alt=""></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const WATER_Y_RATIO = 0.72;
+
+  const ASSETS = {
+    splash: { url: "assets/splash_sheet.png", sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.75 },
+    burst:  { url: "assets/burst_sheet.png",  sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.65 },
+    mascotIdle: "assets/cat_idle.png",
+    mascotHappy: "assets/cat_happy.png?v=2",
+    mascotShame: "assets/cat_shame.png",
+    emojiTsv: "assets/emoji-easy-oneword-he.tsv",
+    emojiDir: "assets/emojis"
+  };
+
+  const CONFIG = {
+    livesStart: 10,
+    scoreWrong: -5,
+    scoreMiss: -10,
+
+    baseSpeed: 120,
+    speedIncPerLevel: 15,
+    pointsPerLevel: 120,
+
+    tileWidth: 240,
+    tileHeight: 78,
+    tileMargin: 10,
+
+    correctMin: 10,
+    correctMax: 20,
+    correctTimeCapSec: 2.0,
+
+    sfxGain: 0.10
+  };
+
+  const DIFFICULTIES = {
+    easy:   { label: "קל",     speedMul: 0.50 },
+    medium: { label: "בינוני", speedMul: 1.00 },
+    hard:   { label: "קשה",    speedMul: 1.20 },
+    super:  { label: "סופר",   speedMul: 1.50 }
+  };
+
+  const gameEl   = document.getElementById("game");
+  const tileEl   = document.getElementById("tile");
+  const overlay  = document.getElementById("overlay");
+  const startBtn = document.getElementById("startBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  const restartBtn = document.getElementById("restartBtn");
+
+  const scoreEl  = document.getElementById("score");
+  const livesEl  = document.getElementById("lives");
+  const levelEl  = document.getElementById("level");
+  const diffLabelEl = document.getElementById("diffLabel");
+
+  const answersEl = document.getElementById("answers");
+  const ansBtns = Array.from(answersEl.querySelectorAll(".ans"));
+  const ansImgs = ansBtns.map(b => b.querySelector("img"));
+
+  const diffsEl = document.getElementById("diffs");
+  const diffBtns = Array.from(diffsEl.querySelectorAll(".diffbtn"));
+
+  const ov1 = document.getElementById("ov1");
+  const ov2 = document.getElementById("ov2");
+  const mascotEl = document.getElementById("mascot");
+
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+  const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const shuffleInPlace = (arr) => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  // ===== Emoji list =====
+  let EMOJIS = []; // {id,en,he,src}
+
+  async function loadEmojiTsv() {
+    const r = await fetch(ASSETS.emojiTsv, { cache: "no-store" });
+    if (!r.ok) throw new Error("Failed to load TSV: " + r.status);
+    const txt = await r.text();
+    const rows = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+    const list = rows.map(line => {
+      const [id, en, he] = line.split("\t");
+      const code = (id || "").trim().toUpperCase();
+      return {
+        id: code,
+        en: (en || "").trim(),
+        he: (he || "").trim(),
+        src: `${ASSETS.emojiDir}/${code}.png`
+      };
+    }).filter(x => x.id && x.he && x.src);
+
+    // Optional: filter out missing images (best-effort)
+    // If your host blocks HEAD, you can remove this block.
+    const exists = async (url) => {
+      try { const rr = await fetch(url, { method: "HEAD" }); return rr.ok; }
+      catch { return false; }
+    };
+
+    const ok = [];
+    for (const e of list) {
+      if (await exists(e.src)) ok.push(e);
+    }
+    return ok.length ? ok : list;
+  }
+
+  // ===== Responsive UI scale =====
+  function computeUi() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const s = Math.min(vw / 900, vh / 650);
+    const portrait = vh > vw;
+    return clamp(s * (portrait ? 0.92 : 1.0), 0.58, 1.0);
+  }
+
+  function applyUi() {
+    const ui = computeUi();
+    document.documentElement.style.setProperty("--ui", ui.toFixed(3));
+    CONFIG.tileWidth  = Math.round(240 * ui);
+    CONFIG.tileHeight = Math.round(78  * ui);
+    CONFIG.tileMargin = Math.round(10  * ui);
+  }
+
+  window.addEventListener("resize", applyUi);
+  window.addEventListener("orientationchange", applyUi);
+  applyUi();
+
+  // ===== Image readiness helpers =====
+  function waitImgReady(img) {
+    if (img.decode) return img.decode().catch(() => {});
+    return new Promise((res, rej) => {
+      if (img.complete && img.naturalWidth) return res();
+      img.onload = () => res();
+      img.onerror = rej;
+    });
+  }
+
+  async function preload(url) {
+    const img = new Image();
+    img.src = url;
+    await waitImgReady(img);
+    return img;
+  }
+
+  (async () => {
+    try {
+      await Promise.all([
+        preload(ASSETS.mascotIdle),
+        preload(ASSETS.mascotHappy),
+        preload(ASSETS.mascotShame),
+        preload(ASSETS.splash.url),
+        preload(ASSETS.burst.url),
+      ]);
+    } catch (_) {}
+  })();
+
+  let selectedDiff = "medium";
+
+  let running = false;
+  let paused = false;
+  let rafId = null;
+  let lastTs = 0;
+
+  let score = 0;
+  let lives = CONFIG.livesStart;
+
+  let task = null;
+  let lockInputUntil = 0;
+
+  function currentDiffCfg() { return DIFFICULTIES[selectedDiff] || DIFFICULTIES.medium; }
+
+  function setDifficulty(d) {
+    if (!DIFFICULTIES[d]) return;
+    selectedDiff = d;
+    diffBtns.forEach(b => b.classList.toggle("active", b.dataset.diff === d));
+    diffLabelEl.textContent = DIFFICULTIES[d].label;
+
+    ov1.textContent = `נבחר: ${DIFFICULTIES[d].label}.`;
+    ov2.textContent = `מהירות: x${DIFFICULTIES[d].speedMul.toFixed(2)}. תבחר/י את התמונה שמתאימה למילה.`;
+  }
+
+  function getLevel() { return Math.max(1, Math.floor(score / CONFIG.pointsPerLevel) + 1); }
+
+  function gameRect() { return gameEl.getBoundingClientRect(); }
+  function waterY(r) { return r.height * WATER_Y_RATIO; }
+
+  function getSpeed() {
+    const base = CONFIG.baseSpeed + (getLevel() - 1) * CONFIG.speedIncPerLevel;
+
+    // Normalize by game area height so phone doesn't feel faster
+    const r = gameRect();
+    const h = (r && r.height) ? r.height : 650;
+    const heightMul = Math.max(0.72, Math.min(1.15, h / 650));
+
+    return base * currentDiffCfg().speedMul * heightMul;
+  }
+
+  function setHUD() {
+    scoreEl.textContent = String(score);
+    livesEl.textContent = String(lives);
+    levelEl.textContent = String(getLevel());
+    diffLabelEl.textContent = currentDiffCfg().label;
+  }
+
+  function pointsForCorrect(reactionSec) {
+    const t = clamp(reactionSec, 0, CONFIG.correctTimeCapSec);
+    const frac = 1 - (t / CONFIG.correctTimeCapSec);
+    return Math.round(CONFIG.correctMin + (CONFIG.correctMax - CONFIG.correctMin) * frac);
+  }
+
+  // ===== SOUND =====
+  let audioCtx = null;
+  let masterGain = null;
+
+  const splashPool = Array.from({ length: 6 }, () => {
+    const a = new Audio("assets/splash.mp3");
+    a.preload = "auto";
+    a.volume = 0.9;
+    a.load();
+    return a;
+  });
+  let splashI = 0;
+  let audioUnlocked = false;
+
+  function ensureAudio() {
+    try {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new Ctx();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = CONFIG.sfxGain;
+        masterGain.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    } catch (_) {}
+
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+
+    const a = splashPool[0];
+    try {
+      a.muted = true;
+      const p = a.play();
+      if (p && p.then) {
+        p.then(() => {
+          a.pause();
+          a.currentTime = 0;
+          a.muted = false;
+        }).catch(() => { a.muted = false; });
+      } else {
+        a.pause(); a.currentTime = 0; a.muted = false;
+      }
+    } catch (_) { a.muted = false; }
+  }
+
+  function playSplash() {
+    const a = splashPool[splashI++ % splashPool.length];
+    try { a.currentTime = 0; } catch (_) {}
+    a.play().catch(() => { audioUnlocked = false; ensureAudio(); });
+  }
+
+  function beep({freq=440, dur=0.12, type="sine", gain=1.0, when=0, rampTo=null}) {
+    if (!audioCtx || !masterGain) return;
+    const t0 = audioCtx.currentTime + when;
+    const t1 = t0 + Math.max(0.01, dur);
+
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if (rampTo && rampTo > 0) osc.frequency.exponentialRampToValueAtTime(rampTo, t1);
+
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t1);
+
+    osc.connect(g);
+    g.connect(masterGain);
+
+    osc.start(t0);
+    osc.stop(t1 + 0.02);
+  }
+
+  const sfx = {
+    correct() { ensureAudio(); beep({freq: 880, dur: 0.06, type: "triangle", gain: 1.0, rampTo: 1320}); beep({freq: 1320, dur: 0.08, type: "sine", gain: 0.8, when: 0.05}); },
+    wrong()   { ensureAudio(); beep({freq: 240, dur: 0.10, type: "sine", gain: 0.9, rampTo: 180}); },
+    splash()  { ensureAudio(); playSplash(); },
+    death()   { ensureAudio(); beep({freq: 420, rampTo: 110, dur: 0.75, type: "sawtooth", gain: 1.0}); }
+  };
+
+  window.addEventListener("pointerdown", ensureAudio, { once: true });
+
+  // ===== FX (sprite sheet) =====
+  function playFx(kind, x, y) {
+    const cfg = ASSETS[kind];
+    const frameW = cfg.sheetW / cfg.cols;
+    const frameH = cfg.sheetH / cfg.rows;
+
+    const el = document.createElement("div");
+    el.className = "fx";
+    el.style.left = `${x}px`;
+    el.style.top  = `${y}px`;
+
+    const scale = cfg.scale;
+    el.style.width  = `${frameW * scale}px`;
+    el.style.height = `${frameH * scale}px`;
+    el.style.backgroundImage = `url("${cfg.url}")`;
+    el.style.backgroundSize  = `${cfg.sheetW * scale}px ${cfg.sheetH * scale}px`;
+
+    el.style.transform = (kind === "splash")
+      ? "translate(-50%, -100%)"
+      : "translate(-50%, -50%)";
+
+    gameEl.appendChild(el);
+
+    let frame = 0;
+    const interval = Math.round(1000 / cfg.fps);
+
+    const t = setInterval(() => {
+      const col = frame % cfg.cols;
+      const row = Math.floor(frame / cfg.cols);
+      el.style.backgroundPosition = `${-(col * frameW * scale)}px ${-(row * frameH * scale)}px`;
+
+      frame += 1;
+      if (frame >= cfg.frames) {
+        clearInterval(t);
+        el.remove();
+      }
+    }, interval);
+  }
+
+  // ===== Mascot =====
+  let mascotPulseToken = 0;
+  async function mascotHappyPulse() {
+    const token = ++mascotPulseToken;
+    mascotEl.src = ASSETS.mascotHappy;
+    try { await waitImgReady(mascotEl); } catch {}
+    setTimeout(() => { if (token === mascotPulseToken) mascotEl.src = ASSETS.mascotIdle; }, 350);
+  }
+
+  let mascotShameToken = 0;
+  async function mascotShamePulse() {
+    const token = ++mascotShameToken;
+    mascotEl.src = ASSETS.mascotShame;
+    try { await waitImgReady(mascotEl); } catch {}
+    setTimeout(() => { if (token === mascotShameToken) mascotEl.src = ASSETS.mascotIdle; }, 700);
+  }
+
+  // ===== TASKS (word -> image) =====
+  function generateTask() {
+    // Pick correct emoji
+    const correct = choice(EMOJIS);
+
+    // Pick 3 wrong distinct emojis
+    const pool = EMOJIS.filter(e => e.id !== correct.id);
+    shuffleInPlace(pool);
+    const options = [correct, pool[0], pool[1], pool[2]];
+    shuffleInPlace(options);
+
+    const r = gameRect();
+    const maxX = Math.max(CONFIG.tileMargin, r.width - CONFIG.tileWidth - CONFIG.tileMargin);
+    const x = randInt(CONFIG.tileMargin, Math.floor(maxX));
+    const y = -CONFIG.tileHeight;
+
+    return {
+      wordHe: correct.he,
+      correctId: correct.id,
+      options,
+      x, y
+    };
+  }
+
+  function renderTask() {
+    tileEl.textContent = task.wordHe;
+    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+
+    for (let i = 0; i < 4; i++) {
+      const e = task.options[i];
+      ansBtns[i].dataset.value = e.id;
+
+      ansImgs[i].src = e.src;
+      ansImgs[i].alt = e.en || e.he || e.id;
+      ansImgs[i].title = e.he || e.en || e.id;
+    }
+  }
+
+  function spawnTask() {
+    task = generateTask();
+    task.spawnedAt = performance.now();
+    renderTask();
+  }
+
+  // ===== GAME =====
+  function startGame() {
+    ensureAudio();
+    running = true;
+    paused = false;
+    overlay.style.display = "none";
+    pauseBtn.textContent = "השהה";
+    lastTs = 0;
+    spawnTask();
+    setHUD();
+    loop(performance.now());
+  }
+
+  function stopGame(message) {
+    running = false;
+    paused = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    overlay.style.display = "grid";
+    overlay.querySelector("h2").textContent = message || "המשחק הסתיים";
+  }
+
+  function resetState() {
+    score = 0;
+    lives = CONFIG.livesStart;
+    setHUD();
+    spawnTask();
+  }
+
+  function togglePause() {
+    if (!running) return;
+    paused = !paused;
+    pauseBtn.textContent = paused ? "המשך" : "השהה";
+    if (!paused) { lastTs = 0; loop(performance.now()); }
+  }
+
+  function handleAnswer(idx) {
+    if (!running || paused) return;
+    const now = performance.now();
+    if (now < lockInputUntil) return;
+
+    const val = String(ansBtns[idx].dataset.value || "");
+    const isCorrect = (val === task.correctId);
+
+    if (isCorrect) {
+      const rtSec = (now - task.spawnedAt) / 1000;
+      score += pointsForCorrect(rtSec);
+
+      playFx("burst", task.x + CONFIG.tileWidth/2, task.y + CONFIG.tileHeight/2);
+      sfx.correct();
+      mascotHappyPulse();
+
+      setHUD();
+      lockInputUntil = now + 120;
+      setTimeout(() => { if (running) spawnTask(); }, 120);
+    } else {
+      score += CONFIG.scoreWrong;
+      sfx.wrong();
+      setHUD();
+    }
+  }
+
+  function loop(ts) {
+    if (!running || paused) return;
+
+    if (!lastTs) lastTs = ts;
+    const dt = (ts - lastTs) / 1000;
+    lastTs = ts;
+
+    task.y += getSpeed() * dt;
+    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+
+    const r = gameRect();
+    const wy = waterY(r);
+
+    const DROWN_RATIO = 0.40;
+    if (task.y + CONFIG.tileHeight * DROWN_RATIO >= wy) {
+      score += CONFIG.scoreMiss;
+      lives -= 1;
+      setHUD();
+
+      playFx("splash", task.x + CONFIG.tileWidth/2, wy + 120);
+      sfx.splash();
+      mascotShamePulse();
+
+      if (lives <= 0) {
+        sfx.death();
+        stopGame("סוף המשחק");
+        return;
+      } else {
+        spawnTask();
+      }
+    }
+
+    rafId = requestAnimationFrame(loop);
+  }
+
+  // ===== EVENTS =====
+  diffBtns.forEach(btn => btn.addEventListener("click", () => setDifficulty(btn.dataset.diff)));
+
+  startBtn.addEventListener("click", async () => {
+    ensureAudio();
+    applyUi();
+
+    // Load emoji list once, on first start
+    if (!EMOJIS.length) {
+      tileEl.textContent = "טוען…";
+      try {
+        EMOJIS = await loadEmojiTsv();
+      } catch (e) {
+        tileEl.textContent = "שגיאה בטעינת אימוג׳י";
+        overlay.style.display = "grid";
+        ov1.textContent = "שגיאה";
+        ov2.textContent = "ודא/י שמריצים דרך http://localhost ושקיים assets/emoji-easy-oneword-he.tsv";
+        return;
+      }
+      if (EMOJIS.length < 8) {
+        overlay.style.display = "grid";
+        ov1.textContent = "אין מספיק אימוג׳ים";
+        ov2.textContent = "צריך לפחות 8 כדי לייצר אפשרויות.";
+        return;
+      }
+    }
+
+    if (!running) { resetState(); startGame(); }
+    else overlay.style.display = "none";
+  });
+
+  resetBtn.addEventListener("click", () => { ensureAudio(); score = 0; setHUD(); });
+
+  pauseBtn.addEventListener("click", () => { ensureAudio(); togglePause(); });
+
+  restartBtn.addEventListener("click", () => {
+    ensureAudio();
+    applyUi();
+    score = 0; lives = CONFIG.livesStart; setHUD();
+    if (!running) { overlay.style.display = "grid"; return; }
+    spawnTask();
+  });
+
+  answersEl.addEventListener("click", (e) => {
+    ensureAudio();
+    const btn = e.target.closest("button.ans");
+    if (!btn) return;
+    handleAnswer(Number(btn.dataset.idx));
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (!running) return;
+    if (e.key === "Escape") { ensureAudio(); togglePause(); }
+    if (e.key >= "1" && e.key <= "4") { ensureAudio(); handleAnswer(Number(e.key) - 1); }
+  });
+
+  setDifficulty("medium");
+  setHUD();
+})();
+</script>
+</body>
+</html>
