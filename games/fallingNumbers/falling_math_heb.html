@@ -57,6 +57,12 @@
       z-index: 110;
       filter: drop-shadow(0 14px 22px rgba(0,0,0,0.40));
     }
+	
+	/* Force LTR for numeric text so "-2" doesn't render as "2-" */
+     .tile, .ans {
+       direction: ltr;
+      unicode-bidi: bidi-override;
+      }
 
     .tile {
       position: absolute;
@@ -326,6 +332,11 @@
     return arr;
   };
 
+  function fmtNum(n){
+  // LRM + U+2212 minus gives stable rendering across RTL contexts
+  return n < 0 ? "\u200E\u2212" + Math.abs(n) : "\u200E" + n;
+}
+  
   // ===== Responsive UI scale =====
   function computeUi() {
     const vw = window.innerWidth;
@@ -592,7 +603,11 @@ function getSpeed() {
   function renderTask() {
     tileEl.textContent = task.expr;
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    for (let i = 0; i < 4; i++) ansBtns[i].textContent = String(task.options[i]);
+    for (let i = 0; i < 4; i++) {
+	  const v = task.options[i];
+	  ansBtns[i].dataset.value = String(v);      // real numeric value
+	  ansBtns[i].textContent = fmtNum(v);        // pretty RTL-safe text
+	}
   }
 
   function spawnTask() {
@@ -642,7 +657,7 @@ function getSpeed() {
     const now = performance.now();
     if (now < lockInputUntil) return;
 
-    const val = Number(ansBtns[idx].textContent);
+    const val = Number(ansBtns[idx].dataset.value);
     const isCorrect = (val === task.correct);
 
     if (isCorrect) {
