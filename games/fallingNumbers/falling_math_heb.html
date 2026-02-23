@@ -1,791 +1,626 @@
 <!doctype html>
-<html lang="he" dir="ltr">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>תרגילים נופלים</title>
-
-  <!-- Preload splash mp3 early -->
   <link rel="preload" href="assets/splash.mp3" as="audio" type="audio/mpeg">
-
   <style>
-    :root {
-      --text:#ffffff;
-      --muted:rgba(255,255,255,0.85);
-      --ui: 1;
+    :root{ --ui:1; --text:#fff; --muted:rgba(255,255,255,.85); }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; background:#06101f; color:var(--text);
+      font-family: Arial, "Noto Sans Hebrew","Rubik","Heebo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      overflow:hidden;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: #06101f;
-      color: var(--text);
-      font-family: Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      font-size: 18px;
-      line-height: 1.35;
-      font-feature-settings: "tnum" 1, "lnum" 1;
-      font-variant-numeric: tabular-nums lining-nums;
-      overflow-x: hidden;
+    .wrap{ height:100dvh; padding:14px; display:flex; gap:14px;  direction:ltr; }
+    .game{
+      position:relative; flex:1; min-width:280px; overflow:hidden; border-radius:16px;
+      background:#1a2a46 url("assets/bg.png") center/cover no-repeat;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
     }
-
-    .wrap {
-      min-height: 100dvh;
-      padding: 14px;
-      display: flex;
-      gap: 14px;
-      align-items: stretch;
-    }
-
-    .game {
-      flex: 1;
-      min-width: 280px;
-      border-radius: 16px;
-      position: relative;
-      overflow: hidden;
-      background: #1a2a46 url("assets/bg.png") center/cover no-repeat;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-    }
-
-    .mascot {
-      position: absolute;
-      left: 10%;
-      bottom: 14px;
-      width: min(calc(260px * var(--ui)), 34vw);
-      height: auto;
-      pointer-events: none;
-      z-index: 110;
-      filter: drop-shadow(0 14px 22px rgba(0,0,0,0.40));
-    }
-
-    /* Force LTR for numeric text so "-2" doesn't render as "2-" */
-    .tile, .ans {
-      direction: ltr;
-      unicode-bidi: bidi-override;
-    }
-
-    .tile {
-      position: absolute;
-      top: 0; left: 0;
-      width: calc(240px * var(--ui));
-      height: calc(78px * var(--ui));
-      background: url("assets/tablet.png") center/contain no-repeat;
-      background-size:100% 100%;
-      display: grid;
-      place-items: center;
-      font-size: calc(42px * var(--ui));
-      font-weight: 900;
-      color: #1b1b1b;
-      text-shadow: 0 2px 0 rgba(255,255,255,0.25), 0 10px 22px rgba(0,0,0,0.20);
-      user-select: none;
-      transform: translate(20px, -90px);
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .side {
-      width: min(calc(340px * var(--ui)), 45vw);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .panel {
-      background: rgba(10,18,40,0.55);
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 16px;
+    .side{ width:min(calc(340px * var(--ui)), 45vw); display:flex; flex-direction:column; gap:12px;  direction:rtl; }
+    .panel{
+      background: rgba(10,18,40,.55);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:16px;
       padding: calc(12px * var(--ui));
       backdrop-filter: blur(6px);
     }
-
-    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-
-    .stat { color: var(--muted); font-size: calc(16px * var(--ui)); }
-    .stat b {
-      color: var(--text);
-      font-size: calc(22px * var(--ui));
-      margin-inline-start: 6px;
-      font-weight: 900;
-    }
-
-    .btn {
-      appearance: none;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.10);
-      color: var(--text);
-      padding: calc(12px * var(--ui)) calc(14px * var(--ui));
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 800;
-      font-size: calc(18px * var(--ui));
-    }
-    .btn:hover { background: rgba(255,255,255,0.14); }
-    .btn.primary { background: rgba(90,120,255,0.25); border-color: rgba(90,120,255,0.45); }
-
-    .answers { display: grid; grid-template-columns: 1fr 1fr; gap: calc(12px * var(--ui)); }
-
-    .ans {
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .stat{ color:var(--muted); font-size: calc(20px * var(--ui)); }
+    .stat b{ color:var(--text); font-size: calc(34px * var(--ui)); margin-inline-start:8px; font-weight:900; }
+    .answers{ display:grid; grid-template-columns:1fr 1fr; gap: calc(12px * var(--ui)); }
+    .ans{
       height: calc(92px * var(--ui));
       font-size: calc(44px * var(--ui));
       font-weight: 900;
       border-radius: calc(18px * var(--ui));
-      border: 0;
-      color: #1b1b1b;
-      text-shadow: 0 2px 0 rgba(255,255,255,0.25);
+      border:0;
+      color:#1b1b1b;
+      text-shadow:0 2px 0 rgba(255,255,255,.25);
       background: url("assets/btn.png") center/contain no-repeat;
+      cursor:pointer;
+      direction:ltr; unicode-bidi:bidi-override;
+    }
+    .ans:active{ transform: translateY(1px); }
+
+    .ctrl{
+      height: calc(54px * var(--ui));
+      padding: 0 calc(16px * var(--ui));
+      font-size: calc(20px * var(--ui));
+      font-weight: 800;
+      border-radius: calc(14px * var(--ui));
+      border:1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.10);
+      color: var(--text);
       cursor: pointer;
+      backdrop-filter: blur(6px);
     }
-    .ans:active { transform: translateY(1px); }
+    .ctrl:active{ transform: translateY(1px); }
 
-    .hint { font-size: calc(16px * var(--ui)); color: rgba(255,255,255,0.82); line-height: 1.45; }
 
-    .overlay {
-      position: absolute; inset: 0;
-      display: grid; place-items: center;
-      background: rgba(0,0,0,0.35);
+    .tile{
+      position:absolute; left:0; top:0;
+      width: calc(240px * var(--ui));
+      height: calc(78px * var(--ui));
+      background: url("assets/tablet.png") center/contain no-repeat;
+      background-size:100% 100%;
+      display:grid; place-items:center;
+      font-size: calc(42px * var(--ui));
+      font-weight: 900;
+      color:#1b1b1b;
+      text-shadow:0 2px 0 rgba(255,255,255,.25), 0 10px 22px rgba(0,0,0,.20);
+      user-select:none;
+      pointer-events:none;
+      direction:ltr; unicode-bidi:bidi-override;
+      z-index:10;
+      transform: translate(20px, -120px);
+    }
+
+    .mascot{
+      position:absolute;
+      left:10%;
+      bottom:14px;
+      width: min(calc(260px * var(--ui)), 34vw);
+      height:auto;
+      pointer-events:none;
+      z-index:110;
+      filter: drop-shadow(0 14px 22px rgba(0,0,0,.40));
+    }
+
+    .overlay{
+      position:absolute; inset:0;
+      display:grid; place-items:center;
+      background: rgba(0,0,0,.35);
       backdrop-filter: blur(2px);
-      z-index: 100;
+      z-index:200;
     }
-    .card {
-      width: min(620px, 92%);
-      background: rgba(10,18,40,0.70);
-      border: 1px solid rgba(255,255,255,0.18);
+    .card{
+      width: min(520px, 92%);
+      background: rgba(10,18,40,.70);
+      border: 1px solid rgba(255,255,255,.18);
       border-radius: 16px;
       padding: calc(16px * var(--ui));
     }
-    .card h2 { font-size: calc(32px * var(--ui)); font-weight: 900; margin: 0 0 10px; }
-    .card p  { font-size: calc(20px * var(--ui)); margin: 6px 0; color: rgba(255,255,255,0.85); }
-
-    .diffs { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    .diffbtn.active { background: rgba(90,120,255,0.35); border-color: rgba(90,120,255,0.75); }
-
-    .fx {
-      position: absolute;
-      pointer-events: none;
-      background-repeat: no-repeat;
-      image-rendering: auto;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.25));
-      z-index: 8;
+    .card h2{ margin:0 0 12px; font-size: calc(30px * var(--ui)); font-weight:900; }
+    .diffs{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .diffbtn{
+      appearance:none;
+      border: 2px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.12);
+      color: var(--text);
+      border-radius: 18px;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: clamp(28px, 4.2vw, 64px);
+      padding: clamp(18px, 3.2vw, 44px) clamp(14px, 2.8vw, 36px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+      touch-action: manipulation;
     }
+    .diffbtn:active{ transform: scale(0.98); }
+    .diffbtn:hover{ background: rgba(255,255,255,.14); }
 
-    .panel, .card { direction: rtl; text-align: right; }
+    .fx{
+      position:absolute; pointer-events:none;
+      background-repeat:no-repeat;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.25));
+      z-index:8;
+    }
 
     @media (max-width: 820px){
-      .wrap { flex-direction: column; }
-      .side { width: 100%; max-width: 100%; }
-      .mascot { width: min(calc(220px * var(--ui)), 32vw); left: 6%; }
-    }
-
-    @media (max-width: 420px){
-      .mascot { width: min(calc(200px * var(--ui)), 30vw); }
+      .wrap{ flex-direction:column; }
+      .side{ width:100%; }
+      .mascot{ width: min(calc(220px * var(--ui)), 32vw); left:6%; }
     }
   </style>
 </head>
-
 <body>
-<div class="wrap">
-  <div id="game" class="game">
-    <img id="mascot" class="mascot" src="assets/cat_idle.png" alt="" />
-    <div id="tile" class="tile">1+3</div>
+  <div class="wrap">
+    <div id="game" class="game">
+      <img id="mascot" class="mascot" src="assets/cat_idle.png" alt="">
+      <div id="tile" class="tile">1+3</div>
 
-    <div id="overlay" class="overlay">
-      <div class="card">
-        <h2>תרגילים נופלים</h2>
-
-        <p style="margin-top:10px; font-weight:800;">רמת קושי:</p>
-        <div class="diffs" id="diffs">
-          <button class="btn diffbtn" data-diff="easy">קל</button>
-          <button class="btn diffbtn active" data-diff="medium">בינוני</button>
-          <button class="btn diffbtn" data-diff="hard">קשה</button>
-          <button class="btn diffbtn" data-diff="super">סופר</button>
+      <div id="overlay" class="overlay">
+        <div class="menu">
+          <div class="diffs" id="diffs">
+            <button class="diffbtn" data-diff="easy">קל</button>
+            <button class="diffbtn" data-diff="medium">בינוני</button>
+            <button class="diffbtn" data-diff="hard">קשה</button>
+            <button class="diffbtn" data-diff="super">סופר</button>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <p id="ov1" style="margin-top:10px;">לחץ/י על ״התחל״.</p>
-        <p id="ov2">נכון: 10..20 (מהר יותר = יותר נקודות). שגוי: ‎-5. נפל לבריכה: ‎-10 וחיים ‎-1.</p>
-
-        <div class="row" style="margin-top:10px">
-          <button id="startBtn" class="btn primary">התחל</button>
-          <button id="resetBtn" class="btn">איפוס ניקוד</button>
+    <div class="side">
+      <div class="panel">
+        <div class="row">
+          <div class="stat">ניקוד<b id="score">0</b></div>
+          <div class="stat">חיים<b id="lives">10</b></div>
+          <div class="stat">רמה<b id="level">1</b></div>
+          <div class="stat">קושי<b id="diffLabel">—</b></div>
+          <button id="stopBtn" class="ctrl" type="button">עצור</button>
         </div>
+      </div>
 
-        <p class="hint" style="margin-top:10px;">
-          ברמה קלה/בינונית אין תשובות שליליות. הצליל יופעל אחרי קליק ראשון.
-          מקלדת: 1-4 לבחור תשובה, Esc השהיה.
-        </p>
+      <div class="panel">
+        <div class="answers" id="answers">
+          <button class="ans" data-idx="0">0</button>
+          <button class="ans" data-idx="1">0</button>
+          <button class="ans" data-idx="2">0</button>
+          <button class="ans" data-idx="3">0</button>
+        </div>
       </div>
     </div>
   </div>
-
-  <div class="side">
-    <div class="panel">
-      <div class="row">
-        <div class="stat">ניקוד<b id="score">0</b></div>
-        <div class="stat">חיים<b id="lives">3</b></div>
-        <div class="stat">רמה<b id="level">1</b></div>
-        <div class="stat">קושי<b id="diffLabel">בינוני</b></div>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button id="pauseBtn" class="btn">השהה</button>
-        <button id="restartBtn" class="btn">התחל מחדש</button>
-      </div>
-      <div class="hint" style="margin-top:10px">
-        תשובה שגויה לא מורידה את הטבלית — היא ממשיכה ליפול.
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="answers" id="answers">
-        <button class="ans" data-idx="0">0</button>
-        <button class="ans" data-idx="1">0</button>
-        <button class="ans" data-idx="2">0</button>
-        <button class="ans" data-idx="3">0</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
 (() => {
   "use strict";
 
-  const WATER_Y_RATIO = 0.72;
+  const WATER_Y_RATIO = 0.80;
+  // Splash drawn lower than waterline.
+  // Use sublinear scaling so it does not drift too much on very large / small screens.
+  // Baseline: 150px at 650px height; exponent 0.5 (sqrt).
+  const SPLASH_OFFSET_BASE_PX = 150;
+  const SPLASH_OFFSET_BASELINE_H = 650;
+  const SPLASH_OFFSET_EXP = 0.5;
+
 
   const ASSETS = {
-    splash: { url: "assets/splash_sheet.png", sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.75 },
-    burst:  { url: "assets/burst_sheet.png",  sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.65 },
-    mascotIdle: "assets/cat_idle.png",
+    splashSheet: { url: "assets/splash_sheet.png", sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.75 },
+    burstSheet:  { url: "assets/burst_sheet.png",  sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.65 },
+    mascotIdle:  "assets/cat_idle.png",
     mascotHappy: "assets/cat_happy.png?v=2",
-	mascotShame: "assets/cat_shame.png"
+    mascotShame: "assets/cat_shame.png"
+  };
+
+  const DIFFS = {
+    easy:   { label:"קל",     speedMul:0.55, correct:+10, allowNegResult:false, noNegOptions:true,  ops:["+", "-"] },
+    medium: { label:"בינוני", speedMul:1.00, correct:+15, allowNegResult:false, noNegOptions:true,  ops:["+", "-"] },
+    hard:   { label:"קשה",    speedMul:1.20, correct:+20, allowNegResult:true,  noNegOptions:false, ops:["+", "-"] },
+    super:  { label:"סופר",   speedMul:1.50, correct:+25, allowNegResult:true,  noNegOptions:false, ops:["+", "-", "*", "/"] },
   };
 
   const CONFIG = {
     livesStart: 10,
     scoreWrong: -5,
-    scoreMiss: -10,
-
-    ops: ["+", "-"],
-    minA: 0, maxA: 10,
-    minB: 0, maxB: 10,
-
-    baseSpeed: 120,
-    speedIncPerLevel: 15,
-    pointsPerLevel: 120,
-
-    tileWidth: 240,
-    tileHeight: 78,
-    tileMargin: 10,
-
-    correctMin: 10,
-    correctMax: 20,
-    correctTimeCapSec: 2.0,
-
+    scoreMiss:  -10,
+    baseSpeed:  80,      // px/s baseline (scaled by device height and difficulty)
+    speedIncPerLevel: 6,
+    pointsPerLevel: 200,
+    tileWBase: 240,
+    tileHBase: 78,
+    marginBase: 10,
     sfxGain: 0.10
   };
 
-  const DIFFICULTIES = {
-    easy:   { label: "קל",     speedMul: 0.50, noNegativeOptions: true  },
-    medium: { label: "בינוני", speedMul: 1.00, noNegativeOptions: true  },
-    hard:   { label: "קשה",    speedMul: 1.20, noNegativeOptions: false },
-    super:  { label: "סופר",   speedMul: 1.50, noNegativeOptions: false }
-  };
-
-  const gameEl   = document.getElementById("game");
-  const tileEl   = document.getElementById("tile");
-  const overlay  = document.getElementById("overlay");
-  const startBtn = document.getElementById("startBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const pauseBtn = document.getElementById("pauseBtn");
-  const restartBtn = document.getElementById("restartBtn");
-
-  const scoreEl  = document.getElementById("score");
-  const livesEl  = document.getElementById("lives");
-  const levelEl  = document.getElementById("level");
+  const gameEl = document.getElementById("game");
+  const tileEl = document.getElementById("tile");
+  const overlayEl = document.getElementById("overlay");
+  const diffsEl = document.getElementById("diffs");
+  const stopBtn = document.getElementById("stopBtn");
   const diffLabelEl = document.getElementById("diffLabel");
 
-  const answersEl = document.getElementById("answers");
-  const ansBtns = Array.from(answersEl.querySelectorAll(".ans"));
+  const scoreEl = document.getElementById("score");
+  const livesEl = document.getElementById("lives");
+  const levelEl = document.getElementById("level");
 
-  const diffsEl = document.getElementById("diffs");
-  const diffBtns = Array.from(diffsEl.querySelectorAll(".diffbtn"));
-
-  const ov1 = document.getElementById("ov1");
-  const ov2 = document.getElementById("ov2");
+  const ansBtns = Array.from(document.querySelectorAll(".ans"));
   const mascotEl = document.getElementById("mascot");
 
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
-  const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  const shuffleInPlace = (arr) => {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  };
+  const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+  const randInt = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const choice = (arr)=>arr[Math.floor(Math.random()*arr.length)];
 
   function fmtNum(n){
+    // keep LTR and show real minus sign
     return n < 0 ? "\u200E\u2212" + Math.abs(n) : "\u200E" + n;
   }
 
-  // ===== Responsive UI scale =====
-  function computeUi() {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const s = Math.min(vw / 900, vh / 650);
+  // ===== UI scale =====
+  function computeUi(){
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const s = Math.min(vw/900, vh/650);
     const portrait = vh > vw;
     return clamp(s * (portrait ? 0.92 : 1.0), 0.58, 1.0);
   }
-
-  function applyUi() {
+  function applyUi(){
     const ui = computeUi();
     document.documentElement.style.setProperty("--ui", ui.toFixed(3));
-    CONFIG.tileWidth  = Math.round(240 * ui);
-    CONFIG.tileHeight = Math.round(78  * ui);
-    CONFIG.tileMargin = Math.round(10  * ui);
   }
-
   window.addEventListener("resize", applyUi);
   window.addEventListener("orientationchange", applyUi);
   applyUi();
 
-  // ===== Image readiness helpers =====
-  function waitImgReady(img) {
-    if (img.decode) return img.decode().catch(() => {});
-    return new Promise((res, rej) => {
-      if (img.complete && img.naturalWidth) return res();
-      img.onload = () => res();
-      img.onerror = rej;
-    });
+  // ===== audio (simple + splash mp3) =====
+  let audioCtx=null, masterGain=null, audioUnlocked=false;
+  const splashPool = Array.from({length:6}, ()=> {
+    const a = new Audio("assets/splash.mp3");
+    a.preload="auto";
+    a.volume=0.9;
+    a.load();
+    return a;
+  });
+  let splashI=0;
+
+  function ensureAudio(){
+    try{
+      if(!audioCtx){
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new Ctx();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = CONFIG.sfxGain;
+        masterGain.connect(audioCtx.destination);
+      }
+      if(audioCtx.state==="suspended") audioCtx.resume();
+    }catch(_){}
+
+    if(audioUnlocked) return;
+    audioUnlocked = true;
+    const a = splashPool[0];
+    try{
+      a.muted = true;
+      const p = a.play();
+      if(p && p.then){
+        p.then(()=>{ a.pause(); a.currentTime=0; a.muted=false; }).catch(()=>{ a.muted=false; });
+      }else{
+        a.pause(); a.currentTime=0; a.muted=false;
+      }
+    }catch(_){ a.muted=false; }
+  }
+  window.addEventListener("pointerdown", ensureAudio, { once:true });
+
+  function beep({freq=440, dur=0.12, type="sine", gain=1.0, when=0, rampTo=null}){
+    if(!audioCtx || !masterGain) return;
+    const t0 = audioCtx.currentTime + when;
+    const t1 = t0 + Math.max(0.01, dur);
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if(rampTo && rampTo>0) osc.frequency.exponentialRampToValueAtTime(rampTo, t1);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t1);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(t0); osc.stop(t1 + 0.02);
+  }
+  function playSplash(){
+    const a = splashPool[splashI++ % splashPool.length];
+    try{ a.currentTime = 0; }catch(_){}
+    a.play().catch(()=>{ audioUnlocked=false; ensureAudio(); });
+  }
+  const sfx = {
+    correct(){ ensureAudio(); beep({freq:880, dur:0.06, type:"triangle", gain:1.0, rampTo:1320}); beep({freq:1320, dur:0.08, type:"sine", gain:0.8, when:0.05}); },
+    wrong(){ ensureAudio(); beep({freq:240, dur:0.10, type:"sine", gain:0.9, rampTo:180}); },
+    splash(){ ensureAudio(); playSplash(); },
+    death(){ ensureAudio(); beep({freq:420, rampTo:110, dur:0.75, type:"sawtooth", gain:1.0}); }
+  };
+
+  // ===== sprite FX =====
+  function playSheetFx(sheetCfg, x, y, anchor){
+    const cfg = sheetCfg;
+    const frameW = cfg.sheetW / cfg.cols;
+    const frameH = cfg.sheetH / cfg.rows;
+
+    const el = document.createElement("div");
+    el.className = "fx";
+    el.style.left = x + "px";
+    el.style.top  = y + "px";
+    el.style.width  = (frameW * cfg.scale) + "px";
+    el.style.height = (frameH * cfg.scale) + "px";
+    el.style.backgroundImage = `url("${cfg.url}")`;
+    el.style.backgroundSize  = (cfg.sheetW * cfg.scale) + "px " + (cfg.sheetH * cfg.scale) + "px";
+    el.style.transform = anchor === "bottom" ? "translate(-50%, -100%)" : "translate(-50%, -50%)";
+    gameEl.appendChild(el);
+
+    let f = 0;
+    const dt = 1 / cfg.fps;
+    let acc = 0;
+    let last = performance.now();
+
+    function step(ts){
+      const d = (ts - last) / 1000; last = ts;
+      acc += d;
+      while(acc >= dt){
+        acc -= dt;
+        const col = f % cfg.cols;
+        const row = Math.floor(f / cfg.cols);
+        el.style.backgroundPosition = (-col * frameW * cfg.scale) + "px " + (-row * frameH * cfg.scale) + "px";
+        f++;
+        if(f >= cfg.frames){
+          el.remove();
+          return;
+        }
+      }
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
   }
 
-  async function preload(url) {
-    const img = new Image();
-    img.src = url;
-    await waitImgReady(img);
-    return img;
-  }
-
-  (async () => {
-    try {
-      await Promise.all([
-        preload(ASSETS.mascotIdle),
-        preload(ASSETS.mascotHappy),
-		preload(ASSETS.mascotShame),
-        preload(ASSETS.splash.url),
-        preload(ASSETS.burst.url),
-      ]);
-    } catch (_) {}
-  })();
-
-  let selectedDiff = "medium";
-
+  // ===== game state =====
+  let selected = null;
   let running = false;
-  let paused = false;
   let rafId = null;
   let lastTs = 0;
 
   let score = 0;
   let lives = CONFIG.livesStart;
 
-  let task = null;
-  let lockInputUntil = 0;
+  let tileX = 20;
+  let tileY = -120;
+  let prevCorrectIdx = -1;
 
-  function currentDiffCfg() { return DIFFICULTIES[selectedDiff] || DIFFICULTIES.medium; }
+  let task = null; // { text, answer }
 
-  function setDifficulty(d) {
-    if (!DIFFICULTIES[d]) return;
-    selectedDiff = d;
-    diffBtns.forEach(b => b.classList.toggle("active", b.dataset.diff === d));
-    diffLabelEl.textContent = DIFFICULTIES[d].label;
+  function rect(){ return gameEl.getBoundingClientRect(); }
+  function waterY(r){ return r.height * WATER_Y_RATIO; }
 
-    const noNeg = DIFFICULTIES[d].noNegativeOptions ? "ללא תשובות שליליות" : "ייתכנו תשובות שליליות";
-    ov1.textContent = `נבחר: ${DIFFICULTIES[d].label}.`;
-    ov2.textContent = `מהירות: x${DIFFICULTIES[d].speedMul.toFixed(2)}; ${noNeg}.`;
+  function level(){
+    return Math.max(1, Math.floor(score / CONFIG.pointsPerLevel) + 1);
   }
 
-  function getLevel() { return Math.max(1, Math.floor(score / CONFIG.pointsPerLevel) + 1); }
-
-  function gameRect() { return gameEl.getBoundingClientRect(); }
-  function waterY(r) { return r.height * WATER_Y_RATIO; }
-
-  function getSpeed() {
-    const base = CONFIG.baseSpeed + (getLevel() - 1) * CONFIG.speedIncPerLevel;
-
-    // Normalize by game area height so phone doesn't feel faster
-    const r = gameRect();
-    const h = (r && r.height) ? r.height : 650;
+  function speedPxPerSec(){
+    const base = CONFIG.baseSpeed + (level() - 1) * CONFIG.speedIncPerLevel;
+    const r = rect();
+    const h = r && r.height ? r.height : 650;
     const heightMul = Math.max(0.72, Math.min(1.15, h / 650));
-
-    return base * currentDiffCfg().speedMul * heightMul;
+    return base * DIFFS[selected].speedMul * heightMul;
   }
 
-  function setHUD() {
+  function setHUD(){
     scoreEl.textContent = String(score);
     livesEl.textContent = String(lives);
-    levelEl.textContent = String(getLevel());
-    diffLabelEl.textContent = currentDiffCfg().label;
+    levelEl.textContent = String(level());
+    diffLabelEl.textContent = selected ? DIFFS[selected].label : "—";
   }
 
-  function pointsForCorrect(reactionSec) {
-    const t = clamp(reactionSec, 0, CONFIG.correctTimeCapSec);
-    const frac = 1 - (t / CONFIG.correctTimeCapSec);
-    return Math.round(CONFIG.correctMin + (CONFIG.correctMax - CONFIG.correctMin) * frac);
+  function setMascot(state){
+    if(state==="happy") mascotEl.src = ASSETS.mascotHappy;
+    else if(state==="shame") mascotEl.src = ASSETS.mascotShame;
+    else mascotEl.src = ASSETS.mascotIdle;
   }
 
-  // ===== SOUND =====
- // ===== SOUND =====
-let audioCtx = null;
-let masterGain = null;
-
-// pool for overlap (but unlock only ONE element)
-const splashPool = Array.from({ length: 6 }, (_, i) => {
-  const a = new Audio("assets/splash.mp3");
-  a.preload = "auto";
-  a.volume = 0.9;
-  a.load();
-  return a;
-});
-let splashI = 0;
-
-let audioUnlocked = false;
-
-function ensureAudio() {
-  // WebAudio (beeps)
-  try {
-    if (!audioCtx) {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new Ctx();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.value = CONFIG.sfxGain;
-      masterGain.connect(audioCtx.destination);
-    }
-    if (audioCtx.state === "suspended") audioCtx.resume();
-  } catch (_) {}
-
-  // HTMLAudio unlock (ONLY ONE play/pause)
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-
-  const a = splashPool[0];
-  try {
-    a.muted = true;
-    const p = a.play();
-    if (p && p.then) {
-      p.then(() => {
-        a.pause();
-        a.currentTime = 0;
-        a.muted = false;
-      }).catch(() => {
-        a.muted = false;
-      });
-    } else {
-      // older browsers
-      a.pause();
-      a.currentTime = 0;
-      a.muted = false;
-    }
-  } catch (_) {
-    a.muted = false;
+  function randomTileX(){
+    const r = rect();
+    const ui = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ui")) || 1;
+    const tileW = CONFIG.tileWBase * ui;
+    const m = CONFIG.marginBase * ui;
+    const maxX = Math.max(m, r.width - tileW - m);
+    return randInt(Math.round(m), Math.round(maxX));
   }
-}
 
-function playSplash() {
-  const a = splashPool[splashI++ % splashPool.length];
-  try {
-    a.currentTime = 0;
-  } catch (_) {}
-  a.play().catch((e) => {
-    // if still locked, try unlocking once more on demand
-    audioUnlocked = false;
-    ensureAudio();
-  });
-}
+  function makeTask(){
+    const cfg = DIFFS[selected];
+    const op = choice(cfg.ops);
 
-function beep({freq=440, dur=0.12, type="sine", gain=1.0, when=0, rampTo=null}) {
-  if (!audioCtx || !masterGain) return;
-  const t0 = audioCtx.currentTime + when;
-  const t1 = t0 + Math.max(0.01, dur);
+    let a,b,ans,text;
 
-  const osc = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, t0);
-  if (rampTo && rampTo > 0) osc.frequency.exponentialRampToValueAtTime(rampTo, t1);
-
-  g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t0 + 0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001, t1);
-
-  osc.connect(g);
-  g.connect(masterGain);
-
-  osc.start(t0);
-  osc.stop(t1 + 0.02);
-}
-
-const sfx = {
-  correct() { ensureAudio(); beep({freq: 880, dur: 0.06, type: "triangle", gain: 1.0, rampTo: 1320}); beep({freq: 1320, dur: 0.08, type: "sine", gain: 0.8, when: 0.05}); },
-  wrong()   { ensureAudio(); beep({freq: 240, dur: 0.10, type: "sine", gain: 0.9, rampTo: 180}); },
-  splash()  { ensureAudio(); playSplash(); },
-  death()   { ensureAudio(); beep({freq: 420, rampTo: 110, dur: 0.75, type: "sawtooth", gain: 1.0}); }
-};
-
-// unlock on the first real user gesture
-window.addEventListener("pointerdown", ensureAudio, { once: true });
-  window.addEventListener("pointerdown", ensureAudio, { once: true });
-
-  // ===== FX (sprite sheet) =====
-  function playFx(kind, x, y) {
-    const cfg = ASSETS[kind];
-    const frameW = cfg.sheetW / cfg.cols;
-    const frameH = cfg.sheetH / cfg.rows;
-
-    const el = document.createElement("div");
-    el.className = "fx";
-    el.style.left = `${x}px`;
-    el.style.top  = `${y}px`;
-
-    const scale = cfg.scale;
-    el.style.width  = `${frameW * scale}px`;
-    el.style.height = `${frameH * scale}px`;
-    el.style.backgroundImage = `url("${cfg.url}")`;
-    el.style.backgroundSize  = `${cfg.sheetW * scale}px ${cfg.sheetH * scale}px`;
-
-    el.style.transform = (kind === "splash")
-      ? "translate(-50%, -100%)"
-      : "translate(-50%, -50%)";
-
-    gameEl.appendChild(el);
-
-    let frame = 0;
-    const interval = Math.round(1000 / cfg.fps);
-
-    const t = setInterval(() => {
-      const col = frame % cfg.cols;
-      const row = Math.floor(frame / cfg.cols);
-      el.style.backgroundPosition = `${-(col * frameW * scale)}px ${-(row * frameH * scale)}px`;
-
-      frame += 1;
-      if (frame >= cfg.frames) {
-        clearInterval(t);
-        el.remove();
+    if(op === "+"){
+      a = randInt(0, 10);
+      b = randInt(0, 10);
+      ans = a + b;
+      text = `${a}+${b}`;
+    } else if(op === "-"){
+      a = randInt(0, 10);
+      b = randInt(0, 10);
+      if(!cfg.allowNegResult){
+        if(b > a){ const t=a; a=b; b=t; }
       }
-    }, interval);
-  }
-
-  // ===== Mascot =====
-  let mascotPulseToken = 0;
-  async function mascotHappyPulse() {
-    const token = ++mascotPulseToken;
-    mascotEl.src = ASSETS.mascotHappy;
-    try { await waitImgReady(mascotEl); } catch {}
-    setTimeout(() => {
-      if (token === mascotPulseToken) mascotEl.src = ASSETS.mascotIdle;
-    }, 350);
-  }
-    
-	let mascotShameToken = 0;
-	async function mascotShamePulse() {
-	  const token = ++mascotShameToken;
-	  console.log("DROWN -> shame cat");
-	  mascotEl.src = ASSETS.mascotShame;
-	  try { await waitImgReady(mascotEl); } catch {}
-	  setTimeout(() => {
-		if (token === mascotShameToken) mascotEl.src = ASSETS.mascotIdle;
-	  }, 700); // duration on screen
-	}
-
-  // ===== TASKS =====
-  function generateTask() {
-    let a = randInt(CONFIG.minA, CONFIG.maxA);
-    let b = randInt(CONFIG.minB, CONFIG.maxB);
-    const op = choice(CONFIG.ops);
-
-    if (op === "-" && b > a) [a, b] = [b, a];
-
-    const correct = (op === "+") ? (a + b) : (a - b);
-    const expr = `${a}${op}${b}`;
-
-    const noNeg = currentDiffCfg().noNegativeOptions;
-    const opts = new Set([correct]);
-
-    const wrong1 = (op === "+") ? (a - b) : (a + b);
-    if (!noNeg || wrong1 >= 0) opts.add(wrong1);
-
-    let tries = 0;
-    while (opts.size < 4 && tries++ < 120) {
-      const delta = choice([1,2,3]);
-      const sign = choice([-1,1]);
-      const v = correct + sign * delta;
-      if (noNeg && v < 0) continue;
-      opts.add(v);
+      ans = a - b;
+      text = `${a}-${b}`;
+    } else if(op === "*"){
+      a = randInt(0, 10);
+      b = randInt(0, 10);
+      ans = a * b;
+      text = `${a}×${b}`;
+    } else { // "/"
+      b = randInt(1, 10);
+      ans = randInt(0, 10);
+      a = ans * b;
+      text = `${a}÷${b}`;
     }
 
-    tries = 0;
-    while (opts.size < 4 && tries++ < 300) {
-      const hi = Math.max(20, correct + 10);
-      const v = noNeg ? randInt(0, hi) : randInt(-10, hi);
-      opts.add(v);
-    }
-
-    const options = shuffleInPlace(Array.from(opts).slice(0, 4));
-
-    const r = gameRect();
-    const maxX = Math.max(CONFIG.tileMargin, r.width - CONFIG.tileWidth - CONFIG.tileMargin);
-    const x = randInt(CONFIG.tileMargin, Math.floor(maxX));
-    const y = -CONFIG.tileHeight;
-
-    return { expr, correct, options, x, y };
+    return { op, a, b, answer: ans, text };
   }
 
-  function renderTask() {
-    tileEl.textContent = task.expr;
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    for (let i = 0; i < 4; i++) {
-      const v = task.options[i];
-      ansBtns[i].dataset.value = String(v);
-      ansBtns[i].textContent = fmtNum(v);
+  function uniqueWrongs(correct){
+    const cfg = DIFFS[selected];
+    const set = new Set([correct]);
+
+    function ok(n){
+      if(cfg.noNegOptions && n < 0) return false;
+      return true;
     }
+
+    let guard = 0;
+    while(set.size < 4 && guard++ < 200){
+      // generate wrong near correct
+      const delta = randInt(-6, 6) || 1;
+      let w = correct + delta;
+
+      // sometimes jump more
+      if(Math.random() < 0.25) w = correct + randInt(-15, 15);
+
+      // avoid duplicates and invalid
+      if(!ok(w)) continue;
+      set.add(w);
+    }
+
+    // fallback if stuck
+    while(set.size < 4){
+      const w = Math.max(0, correct + set.size);
+      if(ok(w)) set.add(w);
+      else set.add(correct + set.size);
+    }
+
+    const arr = Array.from(set);
+    // shuffle
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    // ensure correct not same spot as previous
+    let idx = arr.indexOf(correct);
+    if(idx === prevCorrectIdx){
+      const swapWith = (idx + 1) % 4;
+      [arr[idx], arr[swapWith]] = [arr[swapWith], arr[idx]];
+      idx = swapWith;
+    }
+    prevCorrectIdx = idx;
+    return { arr, correctIdx: idx };
   }
 
-  function spawnTask() {
-    task = generateTask();
-    task.spawnedAt = performance.now();
+  function renderTask(){
+    task = makeTask();
+    tileEl.textContent = task.text;
+
+    const { arr } = uniqueWrongs(task.answer);
+    for(let i=0;i<4;i++){
+      ansBtns[i].textContent = fmtNum(arr[i]);
+      ansBtns[i].dataset.val = String(arr[i]);
+    }
+
+    tileX = randomTileX();
+    tileY = -140;
+    tileEl.style.transform = `translate(${tileX}px, ${tileY}px)`;
+  }
+
+  function miss(){
+    const r = rect();
+    score += CONFIG.scoreMiss;
+    lives -= 1;
+    setHUD();
+
+    sfx.splash();
+
+    const ui = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ui")) || 1;
+    const tileCenterX = tileX + (CONFIG.tileWBase * ui)/2;
+    playSheetFx(ASSETS.splashSheet, tileCenterX, waterY(r) + (SPLASH_OFFSET_BASE_PX * Math.pow(r.height / SPLASH_OFFSET_BASELINE_H, SPLASH_OFFSET_EXP)), "bottom");
+    setMascot("shame");
+    setTimeout(()=> setMascot("idle"), 500);
+
+    if(lives <= 0){
+      running = false;
+      sfx.death();
+      overlayEl.style.display = "grid";
+      setMascot("idle");
+      return;
+    }
     renderTask();
   }
 
-  // ===== GAME =====
-  function startGame() {
-    ensureAudio();
-    running = true;
-    paused = false;
-    overlay.style.display = "none";
-    pauseBtn.textContent = "השהה";
-    lastTs = 0;
-    spawnTask();
+  function correct(){
+    score += DIFFS[selected].correct;
     setHUD();
-    loop(performance.now());
+    sfx.correct();
+
+    const r = rect();
+    playSheetFx(ASSETS.burstSheet, tileX + 120, tileY + 30, "center");
+    setMascot("happy");
+    setTimeout(()=> setMascot("idle"), 350);
+
+    renderTask();
   }
 
-  function stopGame(message) {
-    running = false;
-    paused = false;
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = null;
-    overlay.style.display = "grid";
-    overlay.querySelector("h2").textContent = message || "המשחק הסתיים";
-  }
-
-  function resetState() {
-    score = 0;
-    lives = CONFIG.livesStart;
+  function wrong(){
+    score += CONFIG.scoreWrong;
     setHUD();
-    spawnTask();
+    sfx.wrong();
+    // tile keeps falling
   }
 
-  function togglePause() {
-    if (!running) return;
-    paused = !paused;
-    pauseBtn.textContent = paused ? "המשך" : "השהה";
-    if (!paused) { lastTs = 0; loop(performance.now()); }
-  }
-
-  function handleAnswer(idx) {
-    if (!running || paused) return;
-    const now = performance.now();
-    if (now < lockInputUntil) return;
-
-    const val = Number(ansBtns[idx].dataset.value);
-    const isCorrect = (val === task.correct);
-
-    if (isCorrect) {
-      const rtSec = (now - task.spawnedAt) / 1000;
-      score += pointsForCorrect(rtSec);
-
-      playFx("burst", task.x + CONFIG.tileWidth/2, task.y + CONFIG.tileHeight/2);
-      sfx.correct();
-      mascotHappyPulse();
-
-      setHUD();
-      lockInputUntil = now + 120;
-      setTimeout(() => { if (running) spawnTask(); }, 120);
-    } else {
-      score += CONFIG.scoreWrong;
-      sfx.wrong();
-      setHUD();
-    }
-  }
-
-  function loop(ts) {
-    if (!running || paused) return;
-
-    if (!lastTs) lastTs = ts;
-    const dt = (ts - lastTs) / 1000;
+  function loop(ts){
+    if(!running) return;
+    if(!lastTs) lastTs = ts;
+    const dt = Math.min(0.05, (ts - lastTs) / 1000);
     lastTs = ts;
 
-    task.y += getSpeed() * dt;
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    tileY += speedPxPerSec() * dt;
+    tileEl.style.transform = `translate(${tileX}px, ${tileY}px)`;
 
-    const r = gameRect();
-    const wy = waterY(r);
-
-    const DROWN_RATIO = 0.40;
-    if (task.y + CONFIG.tileHeight * DROWN_RATIO >= wy) {
-      score += CONFIG.scoreMiss;
-      lives -= 1;
-      setHUD();
-
-      playFx("splash", task.x + CONFIG.tileWidth/2, wy + 120);
-      sfx.splash();
-      mascotShamePulse(); // <-- add this line
-  
-      if (lives <= 0) {
-        sfx.death();
-        stopGame("סוף המשחק");
-        return;
-      } else {
-        spawnTask();
-      }
+    const r = rect();
+    if(tileY >= waterY(r)){
+      miss();
     }
 
     rafId = requestAnimationFrame(loop);
   }
 
-  // ===== EVENTS =====
-  diffBtns.forEach(btn => btn.addEventListener("click", () => setDifficulty(btn.dataset.diff)));
+  function start(diffKey){
+    selected = diffKey;
+    overlayEl.style.display = "none";
+    stopBtn.textContent = "עצור";
+    score = 0;
+    lives = CONFIG.livesStart;
+    prevCorrectIdx = -1;
+    setMascot("idle");
+    setHUD();
+    renderTask();
+    running = true;
+    lastTs = 0;
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
 
-  startBtn.addEventListener("click", () => {
+  function stopGame(){
+    running = false;
+    task = null;
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    diffLabelEl.textContent = "—";
+    overlayEl.style.display = "flex";
+    stopBtn.textContent = "עצור";
+  }
+
+
+  // stop (back to menu)
+  stopBtn.addEventListener("click", ()=>{ stopGame(); });
+  // difficulty buttons
+  diffsEl.addEventListener("click", (e)=>{
+    const btn = e.target.closest("[data-diff]");
+    if(!btn) return;
     ensureAudio();
-    applyUi();
-    if (!running) { resetState(); startGame(); }
-    else overlay.style.display = "none";
+    start(btn.dataset.diff);
   });
 
-  resetBtn.addEventListener("click", () => { ensureAudio(); score = 0; setHUD(); });
-
-  pauseBtn.addEventListener("click", () => { ensureAudio(); togglePause(); });
-
-  restartBtn.addEventListener("click", () => {
-    ensureAudio();
-    applyUi();
-    score = 0; lives = CONFIG.livesStart; setHUD();
-    if (!running) { overlay.style.display = "grid"; return; }
-    spawnTask();
+  // answer clicks
+  ansBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if(!running || !task) return;
+      ensureAudio();
+      const v = Number(btn.dataset.val);
+      if(v === task.answer) correct();
+      else wrong();
+    });
   });
 
-  answersEl.addEventListener("click", (e) => {
-    ensureAudio();
-    const btn = e.target.closest("button.ans");
-    if (!btn) return;
-    handleAnswer(Number(btn.dataset.idx));
-  });
-
-  window.addEventListener("keydown", (e) => {
-    if (!running) return;
-    if (e.key === "Escape") { ensureAudio(); togglePause(); }
-    if (e.key >= "1" && e.key <= "4") { ensureAudio(); handleAnswer(Number(e.key) - 1); }
-  });
-
-  setDifficulty("medium");
+  // initial HUD
   setHUD();
 })();
 </script>
