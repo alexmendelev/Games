@@ -96,6 +96,11 @@
     .answersPanel { margin-top: 20%; }
 
     .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .panel.bottom .row{ justify-content:space-between; flex-wrap:nowrap; }
+    .panel.bottom .actions{ display:flex; gap:8px; flex:0 0 auto; }
+.panel.bottom .meta{ flex:1 1 auto; min-width:0; overflow:hidden; }
+.panel.bottom .ctrl{ height: calc(44px * var(--ui)); padding: 0 calc(10px * var(--ui)); font-size: calc(16px * var(--ui)); }
+    .panel.bottom .meta{ display:flex; gap:10px; align-items:center; min-width:0; }
 
     .stat { color: var(--muted); font-size: calc(16px * var(--ui)); }
     .stat b {
@@ -236,6 +241,8 @@
     .panel { direction: rtl; text-align: right; }
 
     @media (max-width: 820px){
+      .panel.bottom .actions{ gap:6px; }
+      .panel.bottom .ctrl{ height: calc(40px * var(--ui)); padding: 0 calc(8px * var(--ui)); font-size: calc(14px * var(--ui)); }
       .wrap { flex-direction: column; }
       .game{ flex: 0 0 52dvh; min-height: 52dvh; }
       .side { width: 100%; max-width: 100%; flex:1 1 auto; min-height:0; overflow:hidden; }
@@ -306,9 +313,14 @@
 
     <div class="panel bottom">
       <div class="row">
-        <div class="stat">רמה<b id="level">1</b></div>
-        <div class="stat">קושי<b id="diffLabel">בינוני</b></div>
-        <button id="stopBtn" class="ctrl" type="button">עצור</button>
+        <div class="meta">
+          <div class="stat">רמה<b id="level">1</b></div>
+          <div class="stat">קושי<b id="diffLabel">בינוני</b></div>
+        </div>
+        <div class="actions">
+          <button id="stopBtn" class="ctrl" type="button">עצור</button>
+          <button id="exitBtn" class="ctrl" type="button">יציאה</button>
+        </div>
       </div>
     </div>
   </div>
@@ -371,6 +383,7 @@
   const tileEl   = document.getElementById("tile");
   const overlay  = document.getElementById("overlay");
   const stopBtn = document.getElementById("stopBtn");
+  const exitBtn = document.getElementById("exitBtn");
 
   const scoreEl  = document.getElementById("score");
   const coinEl  = document.getElementById("coins");
@@ -835,6 +848,16 @@ async function loadEmojiTsv() {
     stopBtn.textContent = "עצור";
   }
 
+  function exitGame() {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "exitGame" }, "*");
+        return;
+      }
+    } catch (_) {}
+    window.location.href = "../index.html";
+  }
+
   function resetState() {
     score = 0;
     coins = 0;
@@ -957,6 +980,7 @@ async function loadEmojiTsv() {
   });
 
   stopBtn.addEventListener("click", () => { ensureAudio(); stopGame(); });
+  exitBtn.addEventListener("click", () => { ensureAudio(); exitGame(); });
 
   answersEl.addEventListener("click", (e) => {
     ensureAudio();
@@ -976,4 +1000,5 @@ async function loadEmojiTsv() {
 </script>
 </body>
 </html>
+
 
