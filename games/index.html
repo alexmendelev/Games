@@ -1,412 +1,279 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>מאיה וחברים — משחקים</title>
-
+  <title>מאיה וחברים - משחקים</title>
   <style>
     :root{
       --bg:#06101f;
-      --panel:rgba(10,18,40,0.70);
-      --panel2:rgba(10,18,40,0.55);
-      --border:rgba(255,255,255,0.16);
-      --text:#ffffff;
-      --muted:rgba(255,255,255,0.82);
-      --shadow:0 20px 60px rgba(0,0,0,0.35);
+      --panel:rgba(10,18,40,0.72);
+      --border:rgba(255,255,255,0.18);
+      --text:#fff;
       --r:18px;
+      --shadow:0 20px 60px rgba(0,0,0,.35);
     }
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
     body{
       margin:0;
-      background: radial-gradient(1200px 700px at 20% 0%, rgba(90,120,255,0.18), transparent 55%),
-                  radial-gradient(900px 600px at 80% 20%, rgba(255,170,60,0.14), transparent 55%),
-                  var(--bg);
-      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 0%, rgba(90,120,255,0.18), transparent 55%),
+        radial-gradient(900px 600px at 80% 20%, rgba(255,170,60,0.14), transparent 55%),
+        var(--bg);
+      color:var(--text);
       font-family: Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      overflow-x:hidden;
-    }
-
-    .wrap{
-      min-height: 100dvh;
-      padding: 18px;
-      padding-top: calc(18px + env(safe-area-inset-top));
-      padding-right: calc(18px + env(safe-area-inset-right));
-      padding-bottom: calc(18px + env(safe-area-inset-bottom));
-      padding-left: calc(18px + env(safe-area-inset-left));
-      display:flex;
-      justify-content:center;
-    }
-
-    .container{ width:min(980px, 100%); }
-
-    .hero{
-      display:grid;
-      grid-template-columns: 260px 1fr;
-      gap: 16px;
-      align-items:center;
-      margin-bottom: 14px;
-    }
-    @media (max-width: 760px){
-      .hero{ grid-template-columns: 1fr; text-align:center; }
-    }
-
-    .logoCard{
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(6px);
-      padding: 14px;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      min-height: 180px;
-    }
-
-    .logo{
-      width: 220px;
-      height: auto;
-      display:block;
-      filter: drop-shadow(0 18px 26px rgba(0,0,0,0.35));
-    }
-    @media (max-width: 760px){
-      .logo{ width: 200px; }
-    }
-
-    .heroText{
-      background: var(--panel2);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(6px);
-      padding: 16px;
-    }
-
-    .title{
-      margin: 0;
-      font-size: 34px;
-      font-weight: 900;
-      line-height: 1.1;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 14px;
-    }
-    @media (max-width: 760px){
-      .grid{ grid-template-columns: 1fr; }
-    }
-
-    /* Tile is now a <button> */
-    .tile{
-      width: 100%;
-      display:block;
-      text-decoration:none;
-      color: inherit;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(6px);
       overflow:hidden;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-      transform: translateZ(0);
-      padding: 0;
-      cursor: pointer;
-      text-align: inherit;
-    }
-    .tile:active{ transform: translateY(1px); }
-    @media (hover: hover) and (pointer: fine){
-      .tile:hover{ border-color: rgba(255,255,255,0.26); }
     }
 
-	.thumb{
-	  aspect-ratio: 1 / 1;          /* square */
-	  height: auto;                 /* stop forcing 170px */
-	  
-	  background: #1a2a46 center/contain no-repeat;
-	  border-bottom: 1px solid rgba(255,255,255,0.12);
-	  position: relative;
-	}
-	
-    .thumb::after{
-      content:"";
-      position:absolute; inset:0;
-      background: radial-gradient(600px 220px at 20% 10%, rgba(255,255,255,0.08), transparent 60%),
-                  linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.28));
-      pointer-events:none;
+    .page{
+      height:100dvh;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:14px;
+      padding-top:calc(14px + env(safe-area-inset-top));
+      padding-right:calc(14px + env(safe-area-inset-right));
+      padding-bottom:calc(14px + env(safe-area-inset-bottom));
+      padding-left:calc(14px + env(safe-area-inset-left));
     }
 
-	.thumb.icon{
-	  background-image: url("assets/game_icons.png");
-	  background-repeat: no-repeat;
-	  background-size: 200% auto;   /* split into halves, keep original ratio */
-	  background-position: 0% 50%;
-	}
-	.thumb.icon.math { background-position: 0% 50%; }
-	.thumb.icon.words{ background-position: 100% 50%; }
+    .top{
+      display:flex;
+      justify-content:flex-end;
+      align-items:flex-start;
+      flex:0 0 auto;
+      min-height:0;
+      align-self:stretch;
+      direction:ltr;
+      background:transparent;
+      border-radius:0;
+      box-shadow:none;
+      backdrop-filter:none;
+      padding:0;
+    }
+    .logo{
+      height:clamp(78px, 14vh, 128px);
+      width:auto;
+      display:block;
+      filter: drop-shadow(0 14px 20px rgba(0,0,0,.35));
+    }
 
-    .label{
-      padding: 14px 14px;
+    .games{
+      min-height:0;
+      flex:1 1 auto;
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+      gap:0;
+    }
+    .gameBtn{
+      border:0;
+      border-radius:var(--r);
+      background:transparent;
+      box-shadow:none;
+      backdrop-filter:none;
+      cursor:pointer;
+      padding:0;
+      flex:1 1 0;
+      min-height:0;
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap:10px;
+      justify-content:center;
+      overflow:hidden;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .gameBtn:active{ transform:translateY(1px); }
+    .icon{
+      display:block;
+      width:auto;
+      height:auto;
+      max-width:90%;
+      max-height:90%;
+      object-fit:contain;
+      object-position:center center;
+      transform:none;
+      pointer-events:none;
+      user-select:none;
+      filter:none;
     }
 
-    .name{
-      margin:0;
-      font-size: 22px;
-      font-weight: 900;
-      line-height: 1.1;
+    @media (max-width:760px){
+      .page{ gap:4px; padding:8px; }
+      .logo{ height:clamp(72px, 12vh, 104px); }
+      .games{ gap:0; }
     }
 
-    .chev{
-      width: 34px;
-      height: 34px;
-      border-radius: 999px;
-      display:grid;
-      place-items:center;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.08);
-      flex: 0 0 auto;
+    body.landscape .games{
+      flex-direction: row;
+      gap: 0;
     }
 
-    .footer{
-      margin-top: 14px;
-      color: rgba(255,255,255,0.60);
-      font-size: 12px;
-      text-align: center;
-    }
-
-    /* Loading overlay */
     #loadingOverlay{
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(6,16,31,0.92);
-      backdrop-filter: blur(6px);
-      color: #fff;
-      padding: 24px;
-      text-align: center;
+      position:fixed;
+      inset:0;
+      z-index:30000;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(6,16,31,.92);
+      backdrop-filter:blur(6px);
+      color:#fff;
+      padding:24px;
+      text-align:center;
     }
     #loadingBox{
-      width: min(520px, 92vw);
-      background: rgba(10,18,40,0.75);
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 18px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-      padding: 18px;
+      width:min(520px, 92vw);
+      background:rgba(10,18,40,.75);
+      border:0;
+      border-radius:18px;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      padding:18px;
     }
-    #loadingTitle{ font-size: 22px; font-weight: 900; margin: 0 0 10px 0; }
-    #loadingText{ font-size: 16px; margin: 0 0 12px 0; opacity: 0.88; }
+    #loadingTitle{ font-size:22px; font-weight:900; margin:0 0 10px; }
+    #loadingText{ font-size:16px; margin:0 0 12px; opacity:.88; }
     .bar{
-      height: 10px;
-      border-radius: 999px;
-      overflow: hidden;
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.14);
+      height:10px;
+      border-radius:999px;
+      overflow:hidden;
+      background:rgba(255,255,255,.10);
     }
     .bar > div{
-      height: 100%;
-      width: 0%;
-      background: rgba(255,255,255,0.70);
-      transition: width 120ms linear;
+      height:100%;
+      width:0%;
+      background:rgba(255,255,255,.70);
+      transition:width 120ms linear;
     }
 
-    /* Fullscreen button (visible by default) */
-    #fsFloating{
-      position: fixed;
-      top: 12px;
-      left: 12px;
-      z-index: 20000;
-      border: 1px solid rgba(255,255,255,0.20);
-      border-radius: 14px;
-      background: rgba(10,18,40,0.70);
-      backdrop-filter: blur(6px);
-      color: #fff;
-      font: 800 16px Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      padding: 10px 12px;
-      cursor: pointer;
-      display: block;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-
-    /* -------- Game modal + iframe -------- */
     #gameModal{
-      position: fixed;
-      inset: 0;
-      z-index: 15000;
-      display: none;
-      background: rgba(0,0,0,0.72);
+      position:fixed;
+      inset:0;
+      z-index:15000;
+      display:none;
+      background:rgba(0,0,0,.72);
     }
     #gameFrame{
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #000;
-    }
-    #closeGame{
-      position: fixed;
-      top: calc(12px + env(safe-area-inset-top));
-      right: calc(12px + env(safe-area-inset-right));
-      z-index: 16000;
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 12px;
-      background: rgba(10,18,40,0.75);
-      backdrop-filter: blur(6px);
-      color:#fff;
-      font: 800 14px Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      padding: 10px 12px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      background:#000;
     }
   </style>
 </head>
-
 <body>
-
-  <button id="fsFloating" type="button">מסך מלא</button>
-
-  <!-- Loading overlay -->
   <div id="loadingOverlay" aria-live="polite">
     <div id="loadingBox">
-      <h2 id="loadingTitle">טוען…</h2>
+      <h2 id="loadingTitle">טוען...</h2>
       <p id="loadingText">0/0</p>
       <div class="bar"><div id="loadingBar"></div></div>
     </div>
   </div>
 
-  <div class="wrap">
-    <div class="container">
+  <main class="page">
+    <section class="top">
+      <img class="logo" src="assets/main_logo.png" alt="מאיה וחברים" />
+    </section>
 
-      <div class="hero">
-        <div class="logoCard">
-          <img class="logo" src="assets/main_logo.png" alt="מאיה וחברים" />
-        </div>
-        <div class="heroText">
-          <h1 class="title">משחקים מגניבים</h1>
-        </div>
-      </div>
+    <section class="games">
+      <button class="gameBtn" type="button" data-game="fallingNumbers/falling_math_heb.html" aria-label="תרגילים נופלים">
+        <img class="icon" src="assets/numbers.png" alt="">
+      </button>
+      <button class="gameBtn" type="button" data-game="fallingWords/falling_words_heb.html" aria-label="מילים נופלות">
+        <img class="icon" src="assets/words.png" alt="">
+      </button>
+    </section>
+  </main>
 
-      <div class="grid">
-        <!-- 1) Falling math (opens in iframe modal) -->
-        <button class="tile" type="button" data-game="fallingNumbers/falling_math_heb.html" aria-label="תרגילים נופלים">
-          <div class="thumb icon math"></div>
-          <div class="label">
-            <h2 class="name">תרגילים נופלים</h2>
-            <div class="chev" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M10 6l6 6-6 6" stroke="rgba(255,255,255,0.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
-        </button>
-
-        <!-- 2) Falling words (enable when your file exists) -->
-        <button class="tile" type="button" data-game="fallingWords/falling_words_heb.html" aria-label="מילים נופלות">
-          <div class="thumb icon words"></div>
-          <div class="label">
-            <h2 class="name">מילים נופלות</h2>
-            <div class="chev" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M10 6l6 6-6 6" stroke="rgba(255,255,255,0.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
-        </button>
-      </div>
-
-      <div class="footer">מאיה וחברים</div>
-    </div>
-  </div>
-
-  <!-- Game modal -->
   <div id="gameModal" aria-hidden="true">
-    <button id="closeGame" type="button">סגור</button>
     <iframe id="gameFrame" allow="fullscreen; autoplay" title="Game"></iframe>
   </div>
 
   <script>
-    // ----------------------------
-    // Fullscreen (toggle)
-    // ----------------------------
-    const fsBtn = document.getElementById('fsFloating');
-
-    function isFs() {
-      return !!(document.fullscreenElement || document.webkitFullscreenElement);
-    }
-
-    async function toggleFs() {
-      try {
-        if (isFs()) {
-          await (document.exitFullscreen?.() || document.webkitExitFullscreen?.());
-        } else {
-          const el = document.documentElement;
-          const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-          if (!req) return;
-          await req.call(el, { navigationUI: "hide" });
-        }
-        fsBtn.textContent = isFs() ? '' : 'מסך מלא';
-		
-      } catch (e) {
-        console.error('Fullscreen error:', e);
-        alert((e?.name || 'Error') + ': ' + (e?.message || ''));
+    const GAME_ASSETS = {
+      "fallingNumbers/falling_math_heb.html": {
+        images: [
+          "fallingNumbers/assets/bg.png",
+          "fallingNumbers/assets/tablet.png",
+          "fallingNumbers/assets/btn.png",
+          "fallingNumbers/assets/cat_idle.png",
+          "fallingNumbers/assets/cat_happy.png",
+          "fallingNumbers/assets/cat_shame.png",
+          "fallingNumbers/assets/burst_sheet.png",
+          "fallingNumbers/assets/splash_sheet.png",
+          "fallingNumbers/assets/kittendollar.png",
+          "fallingNumbers/assets/lives.png"
+        ],
+        audio: [
+          "fallingNumbers/assets/splash.mp3",
+          "fallingNumbers/assets/coin_drop.mp3"
+        ]
+      },
+      "fallingWords/falling_words_heb.html": {
+        images: [
+          "fallingWords/assets/bg.png",
+          "fallingWords/assets/tablet.png",
+          "fallingWords/assets/btn.png",
+          "fallingWords/assets/cat_idle.png",
+          "fallingWords/assets/cat_happy.png",
+          "fallingWords/assets/cat_shame.png",
+          "fallingWords/assets/burst_sheet.png",
+          "fallingWords/assets/splash_sheet.png",
+          "fallingNumbers/assets/kittendollar.png",
+          "fallingNumbers/assets/lives.png"
+        ],
+        audio: [
+          "fallingWords/assets/splash.mp3",
+          "fallingWords/assets/coin_drop.mp3"
+        ]
       }
-    }
-
-    fsBtn.addEventListener('click', toggleFs);
-
-    // ----------------------------
-    // Preload (audio capped with timeout)
-    // ----------------------------
-    const ASSETS = {
-      images: [
-        'assets/main_logo.png',
-        'assets/game_icons.png',   // NEW
-        'fallingNumbers/assets/bg.png',
-        'fallingNumbers/assets/tablet.png',
-        'fallingNumbers/assets/btn.png',
-        'fallingNumbers/assets/cat_idle.png',
-        'fallingNumbers/assets/cat_happy.png',
-        'fallingNumbers/assets/burst_sheet.png',
-        'fallingNumbers/assets/splash_sheet.png',
-      ],
-      audio: [
-        'fallingNumbers/assets/sfx_ok.mp3',
-        'fallingNumbers/assets/sfx_wrong.mp3',
-        'fallingNumbers/assets/sfx_splash.mp3',
-        'fallingNumbers/assets/sfx_death.mp3',
-      ]
     };
 
-    const overlay = document.getElementById('loadingOverlay');
-    const textEl = document.getElementById('loadingText');
-    const barEl  = document.getElementById('loadingBar');
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const loadingTitle = document.getElementById("loadingTitle");
+    const loadingText = document.getElementById("loadingText");
+    const loadingBar = document.getElementById("loadingBar");
+
+    const modal = document.getElementById("gameModal");
+    const frame = document.getElementById("gameFrame");
+
+    function applyMenuLayoutMode() {
+      const landscape = window.innerWidth > window.innerHeight;
+      document.body.classList.toggle("landscape", landscape);
+      document.body.classList.toggle("portrait", !landscape);
+      document.body.classList.toggle("wide", window.innerWidth >= 1000);
+    }
+    window.addEventListener("resize", applyMenuLayoutMode);
+    window.addEventListener("orientationchange", applyMenuLayoutMode);
+    applyMenuLayoutMode();
+
+    function showLoading(titleText) {
+      loadingTitle.textContent = titleText || "טוען...";
+      loadingText.textContent = "0/0";
+      loadingBar.style.width = "0%";
+      loadingOverlay.style.display = "flex";
+    }
+
+    function hideLoading() {
+      loadingOverlay.style.display = "none";
+    }
 
     function updateLoading(done, total) {
-      textEl.textContent = `${done}/${total}`;
-      barEl.style.width = total ? `${Math.round((done / total) * 100)}%` : '0%';
+      loadingText.textContent = `${done}/${total}`;
+      loadingBar.style.width = total ? `${Math.round((done / total) * 100)}%` : "0%";
     }
 
     function loadImage(url) {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = async () => {
-          if (img.decode) { try { await img.decode(); } catch(e) {} }
+          if (img.decode) {
+            try { await img.decode(); } catch (_) {}
+          }
           resolve();
         };
-        img.onerror = () => reject(new Error('Failed image: ' + url));
+        img.onerror = () => reject(new Error("Failed image: " + url));
         img.src = url;
       });
     }
@@ -424,75 +291,77 @@
         };
 
         const cleanup = () => {
-          a.removeEventListener('canplaythrough', finish);
-          a.removeEventListener('loadeddata', finish);
-          a.removeEventListener('error', finish);
+          a.removeEventListener("canplaythrough", finish);
+          a.removeEventListener("loadeddata", finish);
+          a.removeEventListener("error", finish);
         };
 
-        a.preload = 'auto';
-        a.addEventListener('canplaythrough', finish, { once: true });
-        a.addEventListener('loadeddata', finish, { once: true });
-        a.addEventListener('error', finish, { once: true });
+        a.preload = "auto";
+        a.addEventListener("canplaythrough", finish, { once: true });
+        a.addEventListener("loadeddata", finish, { once: true });
+        a.addEventListener("error", finish, { once: true });
         a.src = url;
-        try { a.load(); } catch(e) {}
+        try { a.load(); } catch (_) {}
 
         setTimeout(finish, timeoutMs);
       });
     }
 
-    async function preloadAll() {
-      const imgs = ASSETS.images || [];
-      const auds = ASSETS.audio || [];
+    async function preloadForGame(url) {
+      const pack = GAME_ASSETS[url] || { images: [], audio: [] };
+      const imgs = pack.images || [];
+      const auds = pack.audio || [];
       const total = imgs.length + auds.length;
       let done = 0;
 
       updateLoading(done, total);
-      const tick = () => { done++; updateLoading(done, total); };
+      const tick = () => { done += 1; updateLoading(done, total); };
 
-      const imgPromises = imgs.map(u => loadImage(u).then(tick));
-      const audPromises = auds.map(u => loadAudioWithTimeout(u).then(tick));
-
+      const imgPromises = imgs.map((u) => loadImage(u).then(tick));
+      const audPromises = auds.map((u) => loadAudioWithTimeout(u).then(tick));
       await Promise.all([...imgPromises, ...audPromises]);
     }
 
-    window.addEventListener('load', async () => {
+    async function openGame(url) {
       try {
-        await preloadAll();
-        overlay.style.display = 'none';
+        const el = document.documentElement;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (req && !document.fullscreenElement && !document.webkitFullscreenElement) {
+          await req.call(el, { navigationUI: "hide" });
+        }
+      } catch (_) {}
+      showLoading("טוען את המשחק...");
+      try {
+        await preloadForGame(url);
       } catch (e) {
         console.error(e);
-        textEl.textContent = 'טעינה נכשלה. בדוק Console.';
       }
-    });
-
-    // ----------------------------
-    // Iframe modal open/close
-    // ----------------------------
-    const modal = document.getElementById('gameModal');
-    const frame = document.getElementById('gameFrame');
-    const closeBtn = document.getElementById('closeGame');
-
-    function openGame(url) {
       frame.src = url;
-      modal.style.display = 'block';
-      modal.setAttribute('aria-hidden', 'false');
+      modal.style.display = "block";
+      modal.setAttribute("aria-hidden", "false");
+      hideLoading();
     }
 
     function closeGame() {
-      frame.src = 'about:blank';
-      modal.style.display = 'none';
-      modal.setAttribute('aria-hidden', 'true');
+      frame.src = "about:blank";
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
     }
 
-    document.querySelectorAll('[data-game]').forEach(btn => {
-      btn.addEventListener('click', () => openGame(btn.getAttribute('data-game')));
+    document.querySelectorAll("[data-game]").forEach((btn) => {
+      btn.addEventListener("click", () => openGame(btn.getAttribute("data-game")));
     });
 
-    closeBtn.addEventListener('click', closeGame);
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modal.style.display === 'block') closeGame();
+    window.addEventListener("message", (e) => {
+      const data = e.data || {};
+      if (data.type === "exitGame") closeGame();
+    });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.style.display === "block") closeGame();
     });
   </script>
 </body>
 </html>
+
+
+

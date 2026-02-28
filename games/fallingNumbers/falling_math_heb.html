@@ -31,6 +31,11 @@
     .answersPanel{ margin-top: 20%; }
     .panel.bottom{ margin-top: auto; }
     .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .panel.bottom .row{ justify-content:space-between; flex-wrap:nowrap; }
+    .panel.bottom .actions{ display:flex; gap:8px; flex:0 0 auto; }
+.panel.bottom .meta{ flex:1 1 auto; min-width:0; overflow:hidden; }
+.panel.bottom .ctrl{ height: calc(44px * var(--ui)); padding: 0 calc(10px * var(--ui)); font-size: calc(16px * var(--ui)); }
+    .panel.bottom .meta{ display:flex; gap:10px; align-items:center; min-width:0; }
     .stat{ color:var(--muted); font-size: calc(20px * var(--ui)); }
     .stat b{ color:var(--text); font-size: calc(34px * var(--ui)); margin-inline-start:8px; font-weight:900; }
     .answers{ display:grid; grid-template-columns:1fr 1fr; gap: calc(12px * var(--ui)); }
@@ -177,6 +182,8 @@
     }
 
     @media (max-width: 820px){
+      .panel.bottom .actions{ gap:6px; }
+      .panel.bottom .ctrl{ height: calc(40px * var(--ui)); padding: 0 calc(8px * var(--ui)); font-size: calc(14px * var(--ui)); }
       .wrap{ flex-direction:column; }
       .game{ flex: 0 0 52dvh; min-height: 52dvh; }
       .side{ width:100%; flex:1 1 auto; min-height:0; overflow:hidden; }
@@ -242,9 +249,14 @@
 
       <div class="panel bottom">
         <div class="row">
-          <div class="stat">רמה<b id="level">1</b></div>
-          <div class="stat">קושי<b id="diffLabel">—</b></div>
-          <button id="stopBtn" class="ctrl" type="button">עצור</button>
+          <div class="meta">
+            <div class="stat">רמה<b id="level">1</b></div>
+            <div class="stat">קושי<b id="diffLabel">—</b></div>
+          </div>
+          <div class="actions">
+            <button id="stopBtn" class="ctrl" type="button">עצור</button>
+            <button id="exitBtn" class="ctrl" type="button">יציאה</button>
+          </div>
         </div>
       </div>
     </div>
@@ -296,6 +308,7 @@
   const overlayEl = document.getElementById("overlay");
   const diffsEl = document.getElementById("diffs");
   const stopBtn = document.getElementById("stopBtn");
+  const exitBtn = document.getElementById("exitBtn");
   const diffLabelEl = document.getElementById("diffLabel");
 
   const scoreEl = document.getElementById("score");
@@ -764,9 +777,20 @@
     stopBtn.textContent = "עצור";
   }
 
+  function exitGame(){
+    try{
+      if(window.parent && window.parent !== window){
+        window.parent.postMessage({ type: "exitGame" }, "*");
+        return;
+      }
+    }catch(_){}
+    window.location.href = "../index.html";
+  }
+
 
   // stop (back to menu)
   stopBtn.addEventListener("click", ()=>{ stopGame(); });
+  exitBtn.addEventListener("click", ()=>{ exitGame(); });
   // difficulty buttons
   diffsEl.addEventListener("click", (e)=>{
     const btn = e.target.closest("[data-diff]");
@@ -792,4 +816,5 @@
 </script>
 </body>
 </html>
+
 
