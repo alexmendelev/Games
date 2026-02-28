@@ -1,10 +1,11 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>תרגילים נופלים</title>
   <link rel="preload" href="assets/splash.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="assets/coin_drop.mp3" as="audio" type="audio/mpeg">
   <style>
     :root{ --ui:1; --text:#fff; --muted:rgba(255,255,255,.85); }
     *{ box-sizing:border-box; }
@@ -339,7 +340,15 @@
     a.load();
     return a;
   });
+  const coinDropPool = Array.from({length:4}, ()=> {
+    const a = new Audio("assets/coin_drop.mp3");
+    a.preload="auto";
+    a.volume=0.9;
+    a.load();
+    return a;
+  });
   let splashI=0;
+  let coinDropI=0;
 
   function ensureAudio(){
     try{
@@ -388,10 +397,16 @@
     try{ a.currentTime = 0; }catch(_){}
     a.play().catch(()=>{ audioUnlocked=false; ensureAudio(); });
   }
+  function playCoinDrop(){
+    const a = coinDropPool[coinDropI++ % coinDropPool.length];
+    try{ a.currentTime = 0; }catch(_){}
+    a.play().catch(()=>{});
+  }
   const sfx = {
     correct(){ ensureAudio(); beep({freq:880, dur:0.06, type:"triangle", gain:1.0, rampTo:1320}); beep({freq:1320, dur:0.08, type:"sine", gain:0.8, when:0.05}); },
     wrong(){ ensureAudio(); beep({freq:240, dur:0.10, type:"sine", gain:0.9, rampTo:180}); },
     splash(){ ensureAudio(); playSplash(); },
+    coin(){ ensureAudio(); playCoinDrop(); },
     death(){ ensureAudio(); beep({freq:420, rampTo:110, dur:0.75, type:"sawtooth", gain:1.0}); }
   };
 
@@ -481,7 +496,7 @@
 
   function awardCoinFromBurst(startXInGame, startYInGame){
     animateCoinToHud(startXInGame, startYInGame)
-      .then(() => popCoinIcon())
+      .then(() => { sfx.coin(); return popCoinIcon(); })
       .finally(() => {
         coins += 1;
         setHUD();
@@ -644,27 +659,29 @@
 
   function miss(){
     const r = rect();
+    const splashX = tileX;
     score += CONFIG.scoreMiss;
     lives -= 1;
     consecutiveCorrect = 0;
     setHUD();
 
-    sfx.splash();
-
     const ui = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ui")) || 1;
-    const tileCenterX = tileX + (CONFIG.tileWBase * ui)/2;
-    playSheetFx(ASSETS.splashSheet, tileCenterX, waterY(r) + (SPLASH_OFFSET_BASE_PX * Math.pow(r.height / SPLASH_OFFSET_BASELINE_H, SPLASH_OFFSET_EXP)), "bottom");
+    const tileCenterX = splashX + (CONFIG.tileWBase * ui)/2;
     setMascot("shame");
     setTimeout(()=> setMascot("idle"), 500);
 
     if(lives <= 0){
       running = false;
+      sfx.splash();
+      playSheetFx(ASSETS.splashSheet, tileCenterX, waterY(r) + (SPLASH_OFFSET_BASE_PX * Math.pow(r.height / SPLASH_OFFSET_BASELINE_H, SPLASH_OFFSET_EXP)), "bottom");
       sfx.death();
       overlayEl.style.display = "grid";
       setMascot("idle");
       return;
     }
     renderTask();
+    sfx.splash();
+    playSheetFx(ASSETS.splashSheet, tileCenterX, waterY(r) + (SPLASH_OFFSET_BASE_PX * Math.pow(r.height / SPLASH_OFFSET_BASELINE_H, SPLASH_OFFSET_EXP)), "bottom");
   }
 
   function correct(){
@@ -775,3 +792,4 @@
 </script>
 </body>
 </html>
+

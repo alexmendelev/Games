@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>×ž×™×œ×™× × ×•×¤×œ×•×ª</title>
+  <title>מילים נופלות</title>
 
   <link rel="preload" href="assets/splash.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="assets/coin_drop.mp3" as="audio" type="audio/mpeg">
 
   <style>
     :root {
@@ -261,7 +262,7 @@
 <div class="wrap">
   <div id="game" class="game">
     <img id="mascot" class="mascot" src="assets/cat_idle.png" alt="" />
-    <div id="tile" class="tile">×˜×•×¢×Ÿâ€¦</div>
+    <div id="tile" class="tile">טוען...</div>
 
     <div id="overlay" class="overlay">
       <div class="menu">
@@ -399,6 +400,10 @@
 
   // ===== Emoji list =====
   let EMOJIS = []; // {id,en,he,src}
+  let correctDeck = [];
+  let deckPos = 0;
+  let recentCorrectIds = [];
+  const RECENT_CORRECT_LIMIT = 8;
 
 async function loadEmojiTsv() {
   const r = await fetch(ASSETS.emojiTsv, { cache: "no-store" });
@@ -424,6 +429,32 @@ async function loadEmojiTsv() {
       he: x.he,
       src: `${ASSETS.emojiDir}/${x.id}.png`
     }));
+  }
+
+  function refillCorrectDeck() {
+    correctDeck = EMOJIS.slice();
+    shuffleInPlace(correctDeck);
+    deckPos = 0;
+  }
+
+  function nextCorrectEmoji() {
+    if (!EMOJIS.length) return null;
+    if (!correctDeck.length || deckPos >= correctDeck.length) refillCorrectDeck();
+
+    // Prefer an item not used very recently.
+    let candidate = null;
+    let tries = 0;
+    while (tries < correctDeck.length) {
+      if (deckPos >= correctDeck.length) refillCorrectDeck();
+      candidate = correctDeck[deckPos++];
+      if (!recentCorrectIds.includes(candidate.id)) break;
+      tries += 1;
+    }
+
+    if (!candidate) candidate = choice(EMOJIS);
+    recentCorrectIds.push(candidate.id);
+    if (recentCorrectIds.length > RECENT_CORRECT_LIMIT) recentCorrectIds.shift();
+    return candidate;
   }
 
   // ===== Responsive UI scale =====
@@ -540,7 +571,15 @@ async function loadEmojiTsv() {
     a.load();
     return a;
   });
+  const coinDropPool = Array.from({ length: 4 }, () => {
+    const a = new Audio("assets/coin_drop.mp3");
+    a.preload = "auto";
+    a.volume = 0.9;
+    a.load();
+    return a;
+  });
   let splashI = 0;
+  let coinDropI = 0;
   let audioUnlocked = false;
 
   function ensureAudio() {
@@ -579,6 +618,11 @@ async function loadEmojiTsv() {
     try { a.currentTime = 0; } catch (_) {}
     a.play().catch(() => { audioUnlocked = false; ensureAudio(); });
   }
+  function playCoinDrop() {
+    const a = coinDropPool[coinDropI++ % coinDropPool.length];
+    try { a.currentTime = 0; } catch (_) {}
+    a.play().catch(() => {});
+  }
 
   function beep({freq=440, dur=0.12, type="sine", gain=1.0, when=0, rampTo=null}) {
     if (!audioCtx || !masterGain) return;
@@ -607,6 +651,7 @@ async function loadEmojiTsv() {
     correct() { ensureAudio(); beep({freq: 880, dur: 0.06, type: "triangle", gain: 1.0, rampTo: 1320}); beep({freq: 1320, dur: 0.08, type: "sine", gain: 0.8, when: 0.05}); },
     wrong()   { ensureAudio(); beep({freq: 240, dur: 0.10, type: "sine", gain: 0.9, rampTo: 180}); },
     splash()  { ensureAudio(); playSplash(); },
+    coin()    { ensureAudio(); playCoinDrop(); },
     death()   { ensureAudio(); beep({freq: 420, rampTo: 110, dur: 0.75, type: "sawtooth", gain: 1.0}); }
   };
 
@@ -693,7 +738,7 @@ async function loadEmojiTsv() {
 
   function awardCoinFromBurst(startXInGame, startYInGame) {
     animateCoinToHud(startXInGame, startYInGame)
-      .then(() => popCoinIcon())
+      .then(() => { sfx.coin(); return popCoinIcon(); })
       .finally(() => {
         coins += 1;
         setHUD();
@@ -719,8 +764,8 @@ async function loadEmojiTsv() {
 
   // ===== TASKS (word -> image) =====
   function generateTask() {
-    // Pick correct emoji
-    const correct = choice(EMOJIS);
+    // Pick correct emoji from a shuffled deck to reduce immediate repeats
+    const correct = nextCorrectEmoji();
 
     // Pick 3 wrong distinct emojis
     const pool = EMOJIS.filter(e => e.id !== correct.id);
@@ -795,6 +840,9 @@ async function loadEmojiTsv() {
     coins = 0;
     lives = CONFIG.livesStart;
     consecutiveCorrect = 0;
+    correctDeck = [];
+    deckPos = 0;
+    recentCorrectIds = [];
     setHUD();
     spawnTask();
   }
@@ -855,21 +903,23 @@ async function loadEmojiTsv() {
 
     const DROWN_RATIO = 0.40;
     if (task && task.y + CONFIG.tileHeight * DROWN_RATIO >= wy) {
+      const drownX = task.x + CONFIG.tileWidth/2;
       score += CONFIG.scoreMiss;
       lives -= 1;
       consecutiveCorrect = 0;
       setHUD();
-
-      playFx("splash", task.x + CONFIG.tileWidth/2, wy + 120);
-      sfx.splash();
       mascotShamePulse();
 
       if (lives <= 0) {
+        playFx("splash", drownX, wy + 120);
+        sfx.splash();
         sfx.death();
         stopGame();
         return;
       } else {
         spawnTask();
+        playFx("splash", drownX, wy + 120);
+        sfx.splash();
       }
     }
 
@@ -926,3 +976,4 @@ async function loadEmojiTsv() {
 </script>
 </body>
 </html>
+
