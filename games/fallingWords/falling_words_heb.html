@@ -305,6 +305,15 @@
     @media (max-width: 420px){
       .mascot { width: min(calc(200px * var(--ui)), 30vw); }
     }
+    @media (hover: none) and (pointer: coarse){
+      .panel, .ctrl, .overlay { backdrop-filter: none; }
+      .ans {
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.85),
+          0 6px 12px rgba(0,0,0,0.18);
+      }
+      .ans img { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.22)); }
+    }
   </style>
 </head>
 
@@ -454,6 +463,8 @@
   let deckPos = 0;
   let recentCorrectIds = [];
   const RECENT_CORRECT_LIMIT = 8;
+  let waterLineY = 650 * WATER_Y_RATIO;
+  let speedHeightMul = 1;
 
 async function loadEmojiTsv() {
   const r = await fetch(ASSETS.emojiTsv, { cache: "no-store" });
@@ -522,6 +533,7 @@ async function loadEmojiTsv() {
     CONFIG.tileWidth  = Math.round(240 * ui);
     CONFIG.tileHeight = Math.round(78  * ui);
     CONFIG.tileMargin = Math.round(10  * ui);
+    updateGameMetrics();
   }
 
   window.addEventListener("resize", applyUi);
@@ -583,16 +595,16 @@ async function loadEmojiTsv() {
 
   function gameRect() { return gameEl.getBoundingClientRect(); }
   function waterY(r) { return r.height * WATER_Y_RATIO; }
+  function updateGameMetrics() {
+    const r = gameRect();
+    const h = (r && r.height) ? r.height : 650;
+    waterLineY = h * WATER_Y_RATIO;
+    speedHeightMul = Math.max(0.72, Math.min(1.15, h / 650));
+  }
 
   function getSpeed() {
     const base = CONFIG.baseSpeed + (getLevel() - 1) * CONFIG.speedIncPerLevel;
-
-    // Normalize by game area height so phone doesn't feel faster
-    const r = gameRect();
-    const h = (r && r.height) ? r.height : 650;
-    const heightMul = Math.max(0.72, Math.min(1.15, h / 650));
-
-    return base * currentDiffCfg().speedMul * heightMul;
+    return base * currentDiffCfg().speedMul * speedHeightMul;
   }
 
   function setHUD() {
@@ -833,7 +845,10 @@ async function loadEmojiTsv() {
     };
   }
 
+	const warmedEmojiUrls = new Set();
 	function warm(url) {
+	  if (!url || warmedEmojiUrls.has(url)) return;
+	  warmedEmojiUrls.add(url);
 	  const im = new Image();
 	  im.decoding = "async";
 	  im.loading = "eager"; // harmless for JS-created Image
@@ -868,6 +883,7 @@ async function loadEmojiTsv() {
   // ===== GAME =====
   function startGame() {
     ensureAudio();
+    updateGameMetrics();
     running = true;
     paused = false;
     pauseBtn.classList.remove("paused");
@@ -956,17 +972,14 @@ async function loadEmojiTsv() {
     }
 
     if (!lastTs) lastTs = ts;
-    const dt = (ts - lastTs) / 1000;
+    const dt = Math.min(0.05, (ts - lastTs) / 1000);
     lastTs = ts;
 
     task.y += getSpeed() * dt;
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
 
-    const r = gameRect();
-    const wy = waterY(r);
-
     const DROWN_RATIO = 0.40;
-    if (task && task.y + CONFIG.tileHeight * DROWN_RATIO >= wy) {
+    if (task && task.y + CONFIG.tileHeight * DROWN_RATIO >= waterLineY) {
       const drownX = task.x + CONFIG.tileWidth/2;
       score += CONFIG.scoreMiss;
       lives -= 1;
@@ -975,14 +988,14 @@ async function loadEmojiTsv() {
       mascotShamePulse();
 
       if (lives <= 0) {
-        playFx("splash", drownX, wy + 120);
+        playFx("splash", drownX, waterLineY + 120);
         sfx.splash();
         sfx.death();
         stopGame();
         return;
       } else {
         spawnTask();
-        playFx("splash", drownX, wy + 120);
+        playFx("splash", drownX, waterLineY + 120);
         sfx.splash();
       }
     }
