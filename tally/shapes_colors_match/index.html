@@ -400,8 +400,8 @@
     }
 
     function makeSvg(shapeId, color) {
-      const fill = color;
-      const stroke = "#1f2937";
+      const fill = "transparent";
+      const stroke = color || "#1f2937";
 
       if (shapeId === "circle") {
         return `
