@@ -399,9 +399,9 @@
       return shuffle(list).slice(0, count);
     }
 
-    function makeSvg(shapeId, color) {
-      const fill = "transparent";
-      const stroke = color || "#1f2937";
+    function makeSvg(shapeId, color, filled = true) {
+      const fill = filled ? color : "transparent";
+      const stroke = filled ? "#1f2937" : (color || "#1f2937");
 
       if (shapeId === "circle") {
         return `
@@ -615,11 +615,13 @@
     }
 
     function renderTarget(target) {
-      targetDisplay.innerHTML = makeSvg(target.shape, target.color);
+      const filled = activeMode !== "shape";
+      targetDisplay.innerHTML = makeSvg(target.shape, target.color, filled);
     }
 
     function renderChoices(options) {
       choicesEl.innerHTML = "";
+      const filled = activeMode !== "shape";
 
       options.forEach((option) => {
         const button = document.createElement("button");
@@ -628,7 +630,7 @@
         button.dataset.key = option.key;
         button.setAttribute("aria-label", option.label);
         button.innerHTML = `
-          <span class="choice-icon" aria-hidden="true">${makeSvg(option.shape, option.color)}</span>
+          <span class="choice-icon" aria-hidden="true">${makeSvg(option.shape, option.color, filled)}</span>
           <span class="sr-only">Choose ${option.label}</span>
         `;
         button.addEventListener("click", () => handleChoice(button, option.key));
