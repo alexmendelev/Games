@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shapes and Colors Match</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f8fafc;
+      --panel-strong: #eef2f7;
+      --text: #1f2937;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      --radius: 28px;
+      --button-radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+    }
+
+    .app {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 18px;
+      padding: 20px;
+      background:
+        radial-gradient(circle at top left, rgba(147, 197, 253, 0.18), transparent 26%),
+        radial-gradient(circle at top right, rgba(251, 207, 232, 0.16), transparent 24%),
+        linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: center;
+    }
+
+    .mode-switcher {
+      display: inline-grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: min(760px, 100%);
+      padding: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    .mode-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 16px;
+      font: inherit;
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
+      font-weight: 700;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+    }
+
+    .mode-btn.active {
+      color: #ffffff;
+      background: var(--accent);
+    }
+
+    .mode-btn:active {
+      transform: scale(0.98);
+    }
+
+    .instruction-wrap {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(1.3rem, 3vw, 2rem);
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+
+    .instruction {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.3vw, 1.45rem);
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .message {
+      min-height: 1.5em;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      font-weight: 800;
+      color: #16a34a;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .center-stage {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 0;
+    }
+
+    .target-card {
+      width: min(360px, 82vw);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+      border: 3px solid rgba(37, 99, 235, 0.08);
+      position: relative;
+      z-index: 2;
+    }
+
+    .shape-frame {
+      width: min(230px, 54vw);
+      height: min(230px, 54vw);
+      display: grid;
+      place-items: center;
+    }
+
+    .shape-frame svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.12));
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      width: min(920px, 100%);
+      margin: 0 auto;
+      padding-bottom: 4px;
+    }
+
+    .choice-btn {
+      min-height: 160px;
+      border: 0;
+      border-radius: var(--button-radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      position: relative;
+      transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .choice-btn:hover {
+      background: var(--panel-strong);
+    }
+
+    .choice-btn:active {
+      transform: translateY(2px) scale(0.99);
+    }
+
+    .choice-btn.correct {
+      box-shadow: 0 16px 30px rgba(34, 197, 94, 0.22);
+      background: #ecfdf3;
+    }
+
+    .choice-icon {
+      width: min(136px, 30vw);
+      height: min(136px, 30vw);
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+    }
+
+    .choice-icon svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .balloons {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .balloon {
+      position: absolute;
+      bottom: -120px;
+      width: 42px;
+      height: 54px;
+      border-radius: 50% 50% 46% 46%;
+      background: var(--balloon-color);
+      box-shadow: inset -8px -8px 0 rgba(255, 255, 255, 0.22);
+      animation: float-up linear forwards;
+    }
+
+    .balloon::before {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 10px;
+      background: inherit;
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+    }
+
+    .balloon::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 6px);
+      width: 2px;
+      height: 48px;
+      background: rgba(100, 116, 139, 0.6);
+    }
+
+    @keyframes float-up {
+      from {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+        opacity: 0.95;
+      }
+      to {
+        transform: translate3d(var(--drift), -120vh, 0) rotate(var(--tilt));
+        opacity: 0;
+      }
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 780px) {
+      .app {
+        padding: 14px;
+        gap: 14px;
+      }
+
+      .mode-switcher {
+        padding: 8px;
+        gap: 8px;
+      }
+
+      .choices {
+        gap: 10px;
+      }
+
+      .choice-btn {
+        min-height: 128px;
+      }
+    }
+
+    @media (max-width: 520px), (max-height: 760px) {
+      .app {
+        padding: 12px;
+        gap: 12px;
+      }
+
+      .mode-btn {
+        padding: 11px 10px;
+        font-size: 0.9rem;
+      }
+
+      .target-card {
+        width: min(280px, 72vw);
+      }
+
+      .shape-frame {
+        width: min(180px, 46vw);
+        height: min(180px, 46vw);
+      }
+
+      .choice-btn {
+        min-height: 112px;
+      }
+
+      .choice-icon {
+        width: min(96px, 24vw);
+        height: min(96px, 24vw);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="mode-switcher" role="tablist" aria-label="Game mode">
+        <button class="mode-btn active" type="button" data-mode="shape" role="tab" aria-selected="true">Shapes</button>
+        <button class="mode-btn" type="button" data-mode="color" role="tab" aria-selected="false">Colors</button>
+        <button class="mode-btn" type="button" data-mode="combo" role="tab" aria-selected="false">Color + Shape</button>
+      </div>
+    </div>
+
+    <section class="instruction-wrap" aria-live="polite">
+      <h1 class="title">Match the Picture</h1>
+      <p class="instruction" id="instructionText">Choose the shape</p>
+      <div class="message" id="messageText">Well done!</div>
+    </section>
+
+    <section class="center-stage">
+      <div class="balloons" id="balloons"></div>
+      <div class="target-card">
+        <div class="shape-frame" id="targetDisplay" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="choices" id="choices"></section>
+  </main>
+
+  <script>
+    const SHAPES = [
+      { id: "circle", label: "Circle" },
+      { id: "square", label: "Square" },
+      { id: "triangle", label: "Triangle" },
+      { id: "heart", label: "Heart" },
+      { id: "star", label: "Star" }
+    ];
+
+    const COLORS = [
+      { id: "red", label: "Red", hex: "#ef4444" },
+      { id: "blue", label: "Blue", hex: "#3b82f6" },
+      { id: "green", label: "Green", hex: "#22c55e" },
+      { id: "yellow", label: "Yellow", hex: "#facc15" },
+      { id: "purple", label: "Purple", hex: "#a855f7" }
+    ];
+
+    const MODE_TEXT = {
+      shape: "Choose the shape",
+      color: "Choose the color",
+      combo: "Choose the color and shape"
+    };
+
+    const BALLOON_COLORS = ["#fb7185", "#38bdf8", "#fbbf24", "#4ade80", "#c084fc", "#f97316"];
+
+    const instructionText = document.getElementById("instructionText");
+    const messageText = document.getElementById("messageText");
+    const targetDisplay = document.getElementById("targetDisplay");
+    const choicesEl = document.getElementById("choices");
+    const balloonsEl = document.getElementById("balloons");
+    const modeButtons = Array.from(document.querySelectorAll(".mode-btn"));
+
+    let activeMode = "shape";
+    let currentRound = null;
+    let roundLocked = false;
+    let audioContext;
+    let nextRoundTimer = null;
+    let balloonsTimer = null;
+
+    function sampleOne(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function shuffle(list) {
+      const copy = [...list];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function sampleMany(list, count) {
+      return shuffle(list).slice(0, count);
+    }
+
+    function makeSvg(shapeId, color) {
+      const fill = color;
+      const stroke = "#1f2937";
+
+      if (shapeId === "circle") {
+        return `
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="32" fill="${fill}" stroke="${stroke}" stroke-width="4" />
+          </svg>
+        `;
+      }
+
+      if (shapeId === "square") {
+        return `
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="20" y="20" width="60" height="60" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="4" />
+          </svg>
+        `;
+      }
+
+      if (shapeId === "triangle") {
+        return `
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <polygon points="50,18 82,78 18,78" fill="${fill}" stroke="${stroke}" stroke-width="4" stroke-linejoin="round" />
+          </svg>
+        `;
+      }
+
+      if (shapeId === "heart") {
+        return `
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <path d="M50 82 L22 53 C10 41 10 21 25 14 C36 9 46 15 50 25 C54 15 64 9 75 14 C90 21 90 41 78 53 Z" fill="${fill}" stroke="${stroke}" stroke-width="4" stroke-linejoin="round" />
+          </svg>
+        `;
+      }
+
+      return `
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <polygon points="50,14 60,38 86,38 65,54 73,80 50,65 27,80 35,54 14,38 40,38" fill="${fill}" stroke="${stroke}" stroke-width="4" stroke-linejoin="round" />
+        </svg>
+      `;
+    }
+
+    function getAudioContext() {
+      if (!audioContext) {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) {
+          return null;
+        }
+        audioContext = new AudioCtor();
+      }
+      if (audioContext.state === "suspended") {
+        audioContext.resume().catch(() => {});
+      }
+      return audioContext;
+    }
+
+    function playTone(frequency, startTime, duration, gainValue, type) {
+      const ctx = getAudioContext();
+      if (!ctx) {
+        return;
+      }
+
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.linearRampToValueAtTime(gainValue, startTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration + 0.02);
+    }
+
+    function playSuccessSound() {
+      const ctx = getAudioContext();
+      if (!ctx) {
+        return;
+      }
+      const now = ctx.currentTime;
+      playTone(523.25, now, 0.12, 0.045, "sine");
+      playTone(659.25, now + 0.12, 0.14, 0.05, "sine");
+      playTone(783.99, now + 0.26, 0.18, 0.055, "sine");
+    }
+
+    function playErrorSound() {
+      const ctx = getAudioContext();
+      if (!ctx) {
+        return;
+      }
+      const now = ctx.currentTime;
+      playTone(320, now, 0.13, 0.04, "triangle");
+      playTone(220, now + 0.11, 0.2, 0.045, "triangle");
+    }
+
+    function setMessage(text, visible) {
+      messageText.textContent = text;
+      messageText.classList.toggle("show", visible);
+    }
+
+    function showBalloons() {
+      clearTimeout(balloonsTimer);
+      balloonsEl.innerHTML = "";
+
+      for (let i = 0; i < 9; i += 1) {
+        const balloon = document.createElement("span");
+        balloon.className = "balloon";
+        balloon.style.left = `${6 + Math.random() * 88}%`;
+        balloon.style.setProperty("--balloon-color", sampleOne(BALLOON_COLORS));
+        balloon.style.setProperty("--drift", `${-30 + Math.random() * 60}px`);
+        balloon.style.setProperty("--tilt", `${-8 + Math.random() * 16}deg`);
+        balloon.style.animationDuration = `${2.5 + Math.random() * 0.9}s`;
+        balloon.style.animationDelay = `${Math.random() * 0.15}s`;
+        balloonsEl.appendChild(balloon);
+      }
+
+      balloonsTimer = window.setTimeout(() => {
+        balloonsEl.innerHTML = "";
+      }, 3200);
+    }
+
+    function buildShapeRound() {
+      const correctShape = sampleOne(SHAPES);
+      const options = shuffle([
+        { key: correctShape.id, shape: correctShape.id, color: "#334155", label: correctShape.label },
+        ...sampleMany(SHAPES.filter((shape) => shape.id !== correctShape.id), 2).map((shape) => ({
+          key: shape.id,
+          shape: shape.id,
+          color: "#334155",
+          label: shape.label
+        }))
+      ]);
+
+      return {
+        instruction: MODE_TEXT.shape,
+        target: { shape: correctShape.id, color: "#334155", label: correctShape.label },
+        correctKey: correctShape.id,
+        options
+      };
+    }
+
+    function buildColorRound() {
+      const correctColor = sampleOne(COLORS);
+      const options = shuffle([
+        { key: correctColor.id, shape: "circle", color: correctColor.hex, label: correctColor.label },
+        ...sampleMany(COLORS.filter((color) => color.id !== correctColor.id), 2).map((color) => ({
+          key: color.id,
+          shape: "circle",
+          color: color.hex,
+          label: color.label
+        }))
+      ]);
+
+      return {
+        instruction: MODE_TEXT.color,
+        target: { shape: "circle", color: correctColor.hex, label: correctColor.label },
+        correctKey: correctColor.id,
+        options
+      };
+    }
+
+    function buildComboRound() {
+      const correctShape = sampleOne(SHAPES);
+      const correctColor = sampleOne(COLORS);
+      const sameColorShape = sampleOne(SHAPES.filter((shape) => shape.id !== correctShape.id));
+      const sameShapeColor = sampleOne(COLORS.filter((color) => color.id !== correctColor.id));
+
+      const correctKey = `${correctShape.id}:${correctColor.id}`;
+      const options = shuffle([
+        {
+          key: correctKey,
+          shape: correctShape.id,
+          color: correctColor.hex,
+          label: `${correctColor.label} ${correctShape.label}`
+        },
+        {
+          key: `${sameColorShape.id}:${correctColor.id}`,
+          shape: sameColorShape.id,
+          color: correctColor.hex,
+          label: `${correctColor.label} ${sameColorShape.label}`
+        },
+        {
+          key: `${correctShape.id}:${sameShapeColor.id}`,
+          shape: correctShape.id,
+          color: sameShapeColor.hex,
+          label: `${sameShapeColor.label} ${correctShape.label}`
+        }
+      ]);
+
+      return {
+        instruction: MODE_TEXT.combo,
+        target: {
+          shape: correctShape.id,
+          color: correctColor.hex,
+          label: `${correctColor.label} ${correctShape.label}`
+        },
+        correctKey,
+        options
+      };
+    }
+
+    function buildRound(mode) {
+      if (mode === "color") {
+        return buildColorRound();
+      }
+      if (mode === "combo") {
+        return buildComboRound();
+      }
+      return buildShapeRound();
+    }
+
+    function renderTarget(target) {
+      targetDisplay.innerHTML = makeSvg(target.shape, target.color);
+    }
+
+    function renderChoices(options) {
+      choicesEl.innerHTML = "";
+
+      options.forEach((option) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "choice-btn";
+        button.dataset.key = option.key;
+        button.setAttribute("aria-label", option.label);
+        button.innerHTML = `
+          <span class="choice-icon" aria-hidden="true">${makeSvg(option.shape, option.color)}</span>
+          <span class="sr-only">Choose ${option.label}</span>
+        `;
+        button.addEventListener("click", () => handleChoice(button, option.key));
+        choicesEl.appendChild(button);
+      });
+    }
+
+    function startRound() {
+      clearTimeout(nextRoundTimer);
+      roundLocked = false;
+      setMessage("Well done!", false);
+      currentRound = buildRound(activeMode);
+      instructionText.textContent = currentRound.instruction;
+      renderTarget(currentRound.target);
+      renderChoices(currentRound.options);
+    }
+
+    function handleChoice(button, selectedKey) {
+      if (roundLocked || !currentRound) {
+        return;
+      }
+
+      if (selectedKey !== currentRound.correctKey) {
+        playErrorSound();
+        return;
+      }
+
+      roundLocked = true;
+      button.classList.add("correct");
+      setMessage("Well done!", true);
+      playSuccessSound();
+      showBalloons();
+
+      nextRoundTimer = window.setTimeout(() => {
+        startRound();
+      }, 1100);
+    }
+
+    function setMode(mode) {
+      activeMode = mode;
+      modeButtons.forEach((button) => {
+        const isActive = button.dataset.mode === mode;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-selected", String(isActive));
+      });
+      startRound();
+    }
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => setMode(button.dataset.mode));
+    });
+
+    startRound();
+  </script>
+</body>
+</html>
