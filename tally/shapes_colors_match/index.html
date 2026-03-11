@@ -356,8 +356,7 @@
       { id: "red", label: "Red", hex: "#ef4444" },
       { id: "blue", label: "Blue", hex: "#3b82f6" },
       { id: "green", label: "Green", hex: "#22c55e" },
-      { id: "yellow", label: "Yellow", hex: "#facc15" },
-      { id: "purple", label: "Purple", hex: "#a855f7" }
+      { id: "yellow", label: "Yellow", hex: "#facc15" }
     ];
 
     const MODE_TEXT = {
@@ -381,6 +380,75 @@
     let audioContext;
     let nextRoundTimer = null;
     let balloonsTimer = null;
+    const selectionAudioCache = new Map();
+
+    const SHAPE_AUDIO = {
+      circle: "assets/circle.mp3",
+      square: "assets/square.mp3",
+      triangle: "assets/triangle.mp3",
+      heart: "assets/heart.mp3",
+      star: "assets/star.mp3"
+    };
+
+    const COLOR_AUDIO = {
+      red: "assets/red.mp3",
+      blue: "assets/blue.mp3",
+      green: "assets/green.mp3",
+      yellow: "assets/yellow.mp3"
+    };
+
+    const ALL_SELECTION_AUDIO = [
+      ...Object.values(SHAPE_AUDIO),
+      ...Object.values(COLOR_AUDIO),
+      ...SHAPES.flatMap((shape) => COLORS.map((color) => `assets/${shape.id}_${color.id}.mp3`))
+    ];
+
+    function ensureSelectionAudio(src) {
+      if (!src) {
+        return null;
+      }
+
+      let audio = selectionAudioCache.get(src);
+      if (!audio) {
+        audio = new Audio(src);
+        audio.preload = "auto";
+        selectionAudioCache.set(src, audio);
+      }
+
+      return audio;
+    }
+
+    function preloadSelectionSounds() {
+      ALL_SELECTION_AUDIO.forEach((src) => {
+        const audio = ensureSelectionAudio(src);
+        if (audio) {
+          audio.load();
+        }
+      });
+    }
+
+    function getSelectionAudioSrc(option) {
+      if (activeMode === "shape") {
+        return SHAPE_AUDIO[option.shape] || "";
+      }
+
+      if (activeMode === "color") {
+        return COLOR_AUDIO[option.colorId] || "";
+      }
+
+      return option.shape && option.colorId ? `assets/${option.shape}_${option.colorId}.mp3` : "";
+    }
+
+    function playSelectionSound(src) {
+      const audio = ensureSelectionAudio(src);
+      if (!audio) {
+        return;
+      }
+
+      audio.pause();
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
 
     function sampleOne(list) {
       return list[Math.floor(Math.random() * list.length)];
@@ -547,11 +615,12 @@
     function buildColorRound() {
       const correctColor = sampleOne(COLORS);
       const options = shuffle([
-        { key: correctColor.id, shape: "circle", color: correctColor.hex, label: correctColor.label },
+        { key: correctColor.id, shape: "circle", color: correctColor.hex, colorId: correctColor.id, label: correctColor.label },
         ...sampleMany(COLORS.filter((color) => color.id !== correctColor.id), 2).map((color) => ({
           key: color.id,
           shape: "circle",
           color: color.hex,
+          colorId: color.id,
           label: color.label
         }))
       ]);
@@ -576,18 +645,21 @@
           key: correctKey,
           shape: correctShape.id,
           color: correctColor.hex,
+          colorId: correctColor.id,
           label: `${correctColor.label} ${correctShape.label}`
         },
         {
           key: `${sameColorShape.id}:${correctColor.id}`,
           shape: sameColorShape.id,
           color: correctColor.hex,
+          colorId: correctColor.id,
           label: `${correctColor.label} ${sameColorShape.label}`
         },
         {
           key: `${correctShape.id}:${sameShapeColor.id}`,
           shape: correctShape.id,
           color: sameShapeColor.hex,
+          colorId: sameShapeColor.id,
           label: `${sameShapeColor.label} ${correctShape.label}`
         }
       ]);
@@ -628,6 +700,7 @@
         button.type = "button";
         button.className = "choice-btn";
         button.dataset.key = option.key;
+        button.dataset.audioSrc = getSelectionAudioSrc(option);
         button.setAttribute("aria-label", option.label);
         button.innerHTML = `
           <span class="choice-icon" aria-hidden="true">${makeSvg(option.shape, option.color, filled)}</span>
@@ -652,6 +725,8 @@
       if (roundLocked || !currentRound) {
         return;
       }
+
+      playSelectionSound(button.dataset.audioSrc);
 
       if (selectedKey !== currentRound.correctKey) {
         playErrorSound();
@@ -683,6 +758,7 @@
       button.addEventListener("click", () => setMode(button.dataset.mode));
     });
 
+    preloadSelectionSounds();
     startRound();
   </script>
 </body>
