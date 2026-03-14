@@ -1,0 +1,49 @@
+.tile {
+  font-size: calc(36px * var(--ui, 1));
+  transform: translate(20px, -90px);
+  direction: rtl;
+  text-align: center;
+  padding: 0 calc(10px * var(--ui, 1));
+}
+
+.answersPanel {
+  margin-top: 20%;
+}
+
+.ans {
+  height: calc(184px * var(--ui, 1));
+  padding: calc(8px * var(--ui, 1));
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.78);
+}
+
+.ans img {
+  width: 100%;
+  height: 100%;
+  max-width: calc(152px * var(--ui, 1));
+  max-height: calc(152px * var(--ui, 1));
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .12s ease, transform .12s ease;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.25));
+}
+
+.ans img.is-ready {
+  opacity: 1;
+}
+
+.ans img:not([src]),
+.ans img[src=""] {
+  opacity: 0;
+}
+
+.ans:active img {
+  transform: scale(0.985);
+}
+
+.ans:hover img {
+  transform: scale(1.03);
+}
