@@ -129,6 +129,9 @@ window.GAMES_V2_AUDIO = (function () {
       musicEl.preload = "auto";
       musicEl.loop = false;
       musicEl.volume = settings.bgmVolume;
+      musicEl.playsInline = true;
+      musicEl.setAttribute("playsinline", "");
+      musicEl.setAttribute("webkit-playsinline", "");
       musicEl.addEventListener("ended", () => {
         playNextTrack();
       });
@@ -280,9 +283,18 @@ window.GAMES_V2_AUDIO = (function () {
 
     ensureMusicElement();
 
-    window.addEventListener("pointerdown", () => {
+    function startFromGesture() {
       ensureAudio();
-    }, { once: true });
+      window.removeEventListener("pointerdown", startFromGesture, true);
+      window.removeEventListener("touchstart", startFromGesture, true);
+      window.removeEventListener("mousedown", startFromGesture, true);
+      window.removeEventListener("keydown", startFromGesture, true);
+    }
+
+    window.addEventListener("pointerdown", startFromGesture, { once: true, capture: true });
+    window.addEventListener("touchstart", startFromGesture, { once: true, capture: true, passive: true });
+    window.addEventListener("mousedown", startFromGesture, { once: true, capture: true });
+    window.addEventListener("keydown", startFromGesture, { once: true, capture: true });
 
     return {
       ensureAudio,

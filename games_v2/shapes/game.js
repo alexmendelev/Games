@@ -77,6 +77,37 @@
   let lockInputUntil = 0;
   const recentCorrectLimit = 8;
   const spawnYOffsetRatio = 0.35;
+  let assetsReadyPromise = null;
+
+  function preloadImage(url) {
+    return new Promise((resolve) => {
+      if (!url) {
+        resolve();
+        return;
+      }
+      const img = new Image();
+      const finish = () => resolve();
+      img.onload = finish;
+      img.onerror = finish;
+      img.src = url;
+      if (img.complete) {
+        resolve();
+      }
+    });
+  }
+
+  function ensureAssetsReady() {
+    if (!assetsReadyPromise) {
+      const sprayUrls = Object.values(cfg.assets.sprayByColor || {});
+      assetsReadyPromise = Promise.all([
+        preloadImage(cfg.assets.mascotIdle),
+        preloadImage(cfg.assets.mascotHappy),
+        preloadImage(cfg.assets.mascotShame),
+        ...sprayUrls.map((url) => preloadImage(url))
+      ]);
+    }
+    return assetsReadyPromise;
+  }
 
   function currentDiff() {
     return cfg.diffs[selected] || cfg.diffs.medium;
@@ -382,12 +413,13 @@
     rafId = requestAnimationFrame(loop);
   }
 
-  diffsEl.addEventListener("click", (event) => {
+  diffsEl.addEventListener("click", async (event) => {
     const btn = event.target.closest("[data-diff]");
     if (!btn || running) return;
     selected = btn.dataset.diff;
     applyAnswerCount(currentDiff().answerCount);
     audio.ensureAudio();
+    await ensureAssetsReady();
     startGame();
   });
 
@@ -421,6 +453,7 @@
 
   syncGameplayMetrics();
   applyAnswerCount(cfg.diffs.medium.answerCount);
+  ensureAssetsReady();
   setMascot("idle");
   setHUD();
 })();
