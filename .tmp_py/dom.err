@@ -1,0 +1,4 @@
+[0313/194918.635:ERROR:third_party\crashpad\crashpad\util\win\registration_protocol_win.cc:108] CreateFile: Access is denied. (0x5)
+[16848:37996:0313/194919.736:FATAL:mojo\public\cpp\platform\platform_channel.cc:170] Check failed: . : Access is denied. (0x5)
+[0313/194919.738:ERROR:third_party\crashpad\crashpad\client\crashpad_client_win.cc:154] crash server failed to launch
+[16848:28640:0313/194919.738:ERROR:chrome\installer\util\google_update_settings.cc:508] Failed opening key Software\Microsoft\EdgeUpdate\ClientStateMedium\{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062} to set usagestats; result: 5

@@ -1,9 +1,11 @@
 .tile {
-  font-size: calc(36px * var(--ui, 1));
-  transform: translate(20px, -90px);
+  width: calc(360px * var(--ui, 1));
+  height: calc(116px * var(--ui, 1));
+  font-size: calc(50px * var(--ui, 1));
+  transform: translate(20px, -128px);
   direction: rtl;
   text-align: center;
-  padding: 0 calc(10px * var(--ui, 1));
+  padding: 0 calc(16px * var(--ui, 1));
 }
 
 .answersPanel {
@@ -19,10 +21,12 @@
 }
 
 .ans img {
-  width: 100%;
-  height: 100%;
-  max-width: calc(152px * var(--ui, 1));
-  max-height: calc(152px * var(--ui, 1));
+  position: absolute;
+  inset: 0;
+  width: min(91%, calc(182px * var(--ui, 1)));
+  height: min(91%, calc(182px * var(--ui, 1)));
+  display: block;
+  margin: auto;
   object-fit: contain;
   object-position: center;
   pointer-events: none;
@@ -46,4 +50,56 @@
 
 .ans:hover img {
   transform: scale(1.03);
+}
+
+@media (max-width: 820px) and (orientation: portrait) {
+  .answersPanel {
+    margin-top: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+  }
+
+  .answers {
+    width: 100%;
+    height: 100%;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    align-content: stretch;
+  }
+
+  .tile {
+    width: calc(330px * var(--ui, 1));
+    height: calc(106px * var(--ui, 1));
+    font-size: calc(38px * var(--ui, 1));
+    transform: translate(18px, -112px);
+  }
+
+  .ans {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+
+  .ans img {
+    width: 86%;
+    height: 86%;
+  }
+}
+
+@media (max-width: 520px) and (orientation: portrait) {
+  .tile {
+    width: calc(304px * var(--ui, 1));
+    height: calc(98px * var(--ui, 1));
+    font-size: calc(32px * var(--ui, 1));
+  }
+
+  .ans {
+    height: auto;
+    min-height: 0;
+  }
+
+  .ans img {
+    width: 82%;
+    height: 82%;
+  }
 }

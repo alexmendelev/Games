@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
+  <defs>
+    <radialGradient id="starFill" cx="35%" cy="28%" r="78%">
+      <stop offset="0%" stop-color="#fff7bf"/>
+      <stop offset="55%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </radialGradient>
+  </defs>
+  <path
+    d="M64 10 L79 45 L117 49 L88 74 L96 112 L64 92 L32 112 L40 74 L11 49 L49 45 Z"
+    fill="url(#starFill)"
+    stroke="#a16207"
+    stroke-width="6"
+    stroke-linejoin="round"/>
+  <path
+    d="M64 22 L74 48 L102 51 L80 70 L86 96 L64 82 L42 96 L48 70 L26 51 L54 48 Z"
+    fill="none"
+    stroke="rgba(255,255,255,0.55)"
+    stroke-width="3"
+    stroke-linejoin="round"/>
+</svg>

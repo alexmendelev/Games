@@ -58,7 +58,7 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: calc(320px * var(--ui));
+      width: calc(300px * var(--ui));
       height: calc(124px * var(--ui));
       background: url("../fallingWords/assets/tablet.png") center/contain no-repeat;
       background-size:100% 100%;
@@ -91,6 +91,11 @@
       border: 0;
       box-shadow: none;
     }
+    #tileShape {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
 
     .tileLabel {
       position: absolute;
@@ -108,6 +113,17 @@
       width: 78%;
       height: 78%;
       display: block;
+    }
+    .colorSprayImg {
+      width: 98%;
+      height: 98%;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.22));
+    }
+    #tileShape .shapeSvg {
+      width: 68%;
+      height: 68%;
     }
 
     .side {
@@ -363,6 +379,10 @@
         <button class="ans" data-idx="9"></button>
         <button class="ans" data-idx="10"></button>
         <button class="ans" data-idx="11"></button>
+        <button class="ans" data-idx="12"></button>
+        <button class="ans" data-idx="13"></button>
+        <button class="ans" data-idx="14"></button>
+        <button class="ans" data-idx="15"></button>
       </div>
     </div>
 
@@ -418,7 +438,7 @@
     speedIncPerLevel: 15,
     pointsPerLevel: 120,
 
-    tileWidth: 320,
+    tileWidth: 300,
     tileHeight: 124,
     tileMargin: 10,
 
@@ -430,10 +450,10 @@
   };
 
   const DIFFICULTIES = {
-    easy:   { label: "קל",     speedMul: 0.50 },
-    medium: { label: "בינוני", speedMul: 1.00 },
-    hard:   { label: "קשה",    speedMul: 1.20 },
-    super:  { label: "סופר",   speedMul: 1.50 }
+    easy:   { label: "קל",     speedMul: 0.50, answerCount: 4 },
+    medium: { label: "בינוני", speedMul: 1.00, answerCount: 8 },
+    hard:   { label: "קשה",    speedMul: 1.20, answerCount: 12 },
+    super:  { label: "סופר",   speedMul: 1.50, answerCount: 16 }
   };
 
   const gameEl = document.getElementById("game");
@@ -455,6 +475,15 @@
 
   const diffsEl = document.getElementById("diffs");
   const mascotEl = document.getElementById("mascot");
+  const SPRAY_ASSET_URL = "assets/spray.png";
+  const sprayTintCache = new Map();
+  const sprayBaseImg = new Image();
+  sprayBaseImg.decoding = "async";
+  sprayBaseImg.src = SPRAY_ASSET_URL;
+  sprayBaseImg.onload = () => {
+    sprayTintCache.clear();
+    if (task) tileColorEl.innerHTML = colorBadge(task.correct.colorHex);
+  };
 
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
@@ -477,8 +506,36 @@
     return `<svg class="shapeSvg" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 86 C20 62 10 46 10 30 C10 18 20 10 32 10 C40 10 47 14 50 20 C53 14 60 10 68 10 C80 10 90 18 90 30 C90 46 80 62 50 86 Z" fill="${fill}" stroke="${strokeHex}" stroke-width="7" stroke-linejoin="round"/></svg>`;
   }
 
+  function tintedSpraySrc(colorHex) {
+    const key = String(colorHex || "").toLowerCase();
+    if (!key) return SPRAY_ASSET_URL;
+    if (sprayTintCache.has(key)) return sprayTintCache.get(key);
+    if (!sprayBaseImg.complete || !sprayBaseImg.naturalWidth) return SPRAY_ASSET_URL;
+
+    const w = sprayBaseImg.naturalWidth;
+    const h = sprayBaseImg.naturalHeight;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return SPRAY_ASSET_URL;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(sprayBaseImg, 0, 0, w, h);
+    ctx.globalCompositeOperation = "multiply";
+    ctx.fillStyle = key;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.drawImage(sprayBaseImg, 0, 0, w, h);
+    ctx.globalCompositeOperation = "source-over";
+
+    const out = canvas.toDataURL("image/png");
+    sprayTintCache.set(key, out);
+    return out;
+  }
+
   function colorBadge(colorHex) {
-    return `<svg class="shapeSvg" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="36" fill="${colorHex}"/></svg>`;
+    return `<img class="colorSprayImg" src="${tintedSpraySrc(colorHex)}" alt="" aria-hidden="true">`;
   }
 
   function buildPair(shape, color) {
@@ -537,7 +594,7 @@
   function applyUi() {
     const ui = computeUi();
     document.documentElement.style.setProperty("--ui", ui.toFixed(3));
-    CONFIG.tileWidth = Math.round(320 * ui);
+    CONFIG.tileWidth = Math.round(300 * ui);
     CONFIG.tileHeight = Math.round(124 * ui);
     CONFIG.tileMargin = Math.round(10 * ui);
     updateGameMetrics();
@@ -548,6 +605,7 @@
   applyUi();
 
   let selectedDiff = "medium";
+  let activeAnswerCount = 8;
   let running = false;
   let paused = false;
   let rafId = null;
@@ -562,7 +620,19 @@
   let lockInputUntil = 0;
 
   function currentDiffCfg() { return DIFFICULTIES[selectedDiff] || DIFFICULTIES.medium; }
-  function setDifficulty(d) { if (DIFFICULTIES[d]) selectedDiff = d; }
+  function applyAnswerCount(count) {
+    activeAnswerCount = Math.max(4, Math.min(ansBtns.length, Number(count) || 4));
+    ansBtns.forEach((btn, idx) => {
+      const on = idx < activeAnswerCount;
+      btn.style.display = on ? "grid" : "none";
+      btn.disabled = !on;
+    });
+  }
+  function setDifficulty(d) {
+    if (!DIFFICULTIES[d]) return;
+    selectedDiff = d;
+    applyAnswerCount(DIFFICULTIES[d].answerCount);
+  }
   function getLevel() { return Math.max(1, Math.floor(score / CONFIG.pointsPerLevel) + 1); }
   function gameRect() { return gameEl.getBoundingClientRect(); }
 
@@ -737,7 +807,7 @@
 
   function generateTask() {
     const correct = nextCorrectPair();
-    const targetCount = ansBtns.length;
+    const targetCount = activeAnswerCount;
     const sameShapeDiffColor = PAIRS.filter((p) => p.shapeId === correct.shapeId && p.colorId !== correct.colorId);
     const diffShapeSameColor = PAIRS.filter((p) => p.colorId === correct.colorId && p.shapeId !== correct.shapeId);
     const others = PAIRS.filter((p) => p.id !== correct.id && p.shapeId !== correct.shapeId && p.colorId !== correct.colorId);
@@ -780,10 +850,14 @@
     tileColorEl.innerHTML = colorBadge(task.correct.colorHex);
     tileLabelEl.textContent = task.correct.label;
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    for (let i = 0; i < ansBtns.length; i++) {
+    for (let i = 0; i < activeAnswerCount; i++) {
       const option = task.options[i];
       ansBtns[i].dataset.value = option.id;
       ansBtns[i].innerHTML = shapeSvg(option.shapeId, option.colorHex, "#1e293b");
+    }
+    for (let i = activeAnswerCount; i < ansBtns.length; i++) {
+      delete ansBtns[i].dataset.value;
+      ansBtns[i].innerHTML = "";
     }
   }
 
@@ -841,6 +915,7 @@
 
   function handleAnswer(idx) {
     if (!running || paused) return;
+    if (idx < 0 || idx >= activeAnswerCount) return;
     const now = performance.now();
     if (now < lockInputUntil) return;
     const val = String(ansBtns[idx].dataset.value || "");
@@ -934,7 +1009,7 @@
   window.addEventListener("keydown", (e) => {
     if (!running) return;
     const keyNum = Number(e.key);
-    if (Number.isInteger(keyNum) && keyNum >= 1 && keyNum <= Math.min(ansBtns.length, 9)) {
+    if (Number.isInteger(keyNum) && keyNum >= 1 && keyNum <= Math.min(activeAnswerCount, 9)) {
       ensureAudio();
       handleAnswer(keyNum - 1);
     }
