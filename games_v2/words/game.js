@@ -44,6 +44,7 @@
   let lockInputUntil = 0;
   const recentCorrectLimit = 8;
   const warmedEmojiUrls = new Set();
+  const spawnYOffsetRatio = 0.35;
 
   function currentTileMetrics() {
     const rect = tileEl.getBoundingClientRect();
@@ -174,7 +175,7 @@
       width: tileMetrics.width,
       height: tileMetrics.height,
       x: utils.randInt(tileMetrics.margin, Math.floor(maxX)),
-      y: -tileMetrics.height,
+      y: -(tileMetrics.height * spawnYOffsetRatio),
       spawnedAt: performance.now()
     };
   }
@@ -293,7 +294,11 @@
     if (!running) return;
     paused = !paused;
     pauseBtn.classList.toggle("paused", paused);
+    if (paused) {
+      audio.bgm.pause();
+    }
     if (!paused) {
+      audio.bgm.resume();
       lastTs = 0;
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(loop);

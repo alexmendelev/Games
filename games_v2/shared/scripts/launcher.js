@@ -13,6 +13,10 @@
     "shared/assets/ui/title.png",
     ...preloadEls.map((el) => el.getAttribute("data-preload")).filter(Boolean)
   ];
+  const audioUrls = [
+    "shared/assets/music/minuet-g-major.mp3",
+    "shared/assets/music/turkish-march.mp3"
+  ];
 
   function unique(list) {
     return Array.from(new Set(list));
@@ -37,6 +41,35 @@
     });
   }
 
+  function preloadAudio(url) {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      const finish = () => {
+        audio.removeEventListener("loadeddata", finish);
+        audio.removeEventListener("canplaythrough", finish);
+        audio.removeEventListener("error", finish);
+        resolve();
+      };
+      audio.preload = "auto";
+      audio.addEventListener("loadeddata", finish, { once: true });
+      audio.addEventListener("canplaythrough", finish, { once: true });
+      audio.addEventListener("error", finish, { once: true });
+      audio.src = url;
+      try {
+        audio.load();
+      } catch (_) {
+        resolve();
+      }
+      if (audio.readyState >= 2) {
+        resolve();
+      }
+    });
+  }
+
+  function preloadAsset(url) {
+    return /\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(url) ? preloadAudio(url) : preloadImage(url);
+  }
+
   function wait(ms) {
     return new Promise((resolve) => {
       window.setTimeout(resolve, ms);
@@ -55,7 +88,7 @@
   async function boot() {
     const mode = bootMode();
     const minBootMs = mode === "first" ? firstBootMs : returnBootMs;
-    const assets = unique(imageUrls);
+    const assets = unique(imageUrls.concat(audioUrls));
     let done = 0;
     const startedAt = performance.now();
     overlayEl.classList.toggle("returning", mode === "return");
@@ -66,7 +99,7 @@
 
     await Promise.all(
       assets.map((url) =>
-        preloadImage(url).finally(() => {
+        preloadAsset(url).finally(() => {
           done += 1;
           updateProgress(done, assets.length);
         })

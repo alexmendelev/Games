@@ -76,6 +76,7 @@
   let task = null;
   let lockInputUntil = 0;
   const recentCorrectLimit = 8;
+  const spawnYOffsetRatio = 0.35;
 
   function currentDiff() {
     return cfg.diffs[selected] || cfg.diffs.medium;
@@ -227,7 +228,7 @@
       correct,
       options,
       x: utils.randInt(cfg.gameplay.tileMargin, Math.floor(maxX)),
-      y: -cfg.gameplay.tileHeight,
+      y: -(cfg.gameplay.tileHeight * spawnYOffsetRatio),
       spawnedAt: performance.now()
     };
   }
@@ -353,7 +354,11 @@
     if (!running) return;
     paused = !paused;
     pauseBtn.classList.toggle("paused", paused);
+    if (paused) {
+      audio.bgm.pause();
+    }
     if (!paused) {
+      audio.bgm.resume();
       lastTs = 0;
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(loop);
