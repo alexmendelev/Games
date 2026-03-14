@@ -129,8 +129,8 @@ body.booting .menuPage {
 .menuCardImage {
   width: auto;
   height: auto;
-  max-width: 88%;
-  max-height: 90%;
+  max-width: 96%;
+  max-height: 98%;
   object-fit: contain;
 }
 
@@ -190,7 +190,7 @@ body.booting .menuPage {
   }
 
   .menuCardImage {
-    max-width: 78%;
-    max-height: 78%;
+    max-width: 86%;
+    max-height: 86%;
   }
 }

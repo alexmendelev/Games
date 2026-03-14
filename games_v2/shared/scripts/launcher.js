@@ -1,6 +1,9 @@
 (function () {
-  const minBootMs = 3000;
+  const firstBootMs = 3000;
+  const returnBootMs = 1000;
+  const bootSeenKey = "games_v2_boot_seen";
   const overlayEl = document.getElementById("bootOverlay");
+  const metaEl = overlayEl.querySelector(".bootMeta");
   const barEl = document.getElementById("bootBar");
   const textEl = document.getElementById("bootText");
   const preloadEls = Array.from(document.querySelectorAll("[data-preload]"));
@@ -40,10 +43,25 @@
     });
   }
 
+  function bootMode() {
+    try {
+      if (window.sessionStorage.getItem(bootSeenKey) === "1") {
+        return "return";
+      }
+    } catch (_) {}
+    return "first";
+  }
+
   async function boot() {
+    const mode = bootMode();
+    const minBootMs = mode === "first" ? firstBootMs : returnBootMs;
     const assets = unique(imageUrls);
     let done = 0;
     const startedAt = performance.now();
+    overlayEl.classList.toggle("returning", mode === "return");
+    if (metaEl) {
+      metaEl.hidden = mode === "return";
+    }
     updateProgress(done, assets.length);
 
     await Promise.all(
@@ -59,6 +77,10 @@
     if (elapsedMs < minBootMs) {
       await wait(minBootMs - elapsedMs);
     }
+
+    try {
+      window.sessionStorage.setItem(bootSeenKey, "1");
+    } catch (_) {}
 
     document.body.classList.remove("booting");
     overlayEl.style.display = "none";

@@ -50,6 +50,15 @@
   let prevCorrectIdx = -1;
   let task = null;
 
+  function currentTileCenter() {
+    const gameRect = shell.rect();
+    const tileRect = tileEl.getBoundingClientRect();
+    return {
+      x: (tileRect.left - gameRect.left) + (tileRect.width * 0.49),
+      y: (tileRect.top - gameRect.top) + (tileRect.height / 2)
+    };
+  }
+
   function splashOffsetFor(rect) {
     return cfg.splashOffsetBasePx * Math.pow(rect.height / cfg.splashOffsetBaselineHeight, cfg.splashOffsetExponent);
   }
@@ -271,8 +280,9 @@
     setHUD();
     audio.sfx.correct();
 
-    const burstX = tileX + 120;
-    const burstY = tileY + 30;
+    const burstCenter = currentTileCenter();
+    const burstX = burstCenter.x;
+    const burstY = burstCenter.y;
     scoreEl.classList.add("pulse");
     setTimeout(() => scoreEl.classList.remove("pulse"), 350);
 
