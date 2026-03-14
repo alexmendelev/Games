@@ -45,6 +45,25 @@
   const recentCorrectLimit = 8;
   const warmedEmojiUrls = new Set();
 
+  function currentTileMetrics() {
+    const rect = tileEl.getBoundingClientRect();
+    const ui = shell.getUi();
+    return {
+      width: rect.width || cfg.gameplay.tileWidth,
+      height: rect.height || cfg.gameplay.tileHeight,
+      margin: Math.max(6, Math.round(cfg.gameplay.tileMargin * ui))
+    };
+  }
+
+  function currentTileCenter() {
+    const gameRect = shell.rect();
+    const tileRect = tileEl.getBoundingClientRect();
+    return {
+      x: (tileRect.left - gameRect.left) + (tileRect.width * 0.49),
+      y: (tileRect.top - gameRect.top) + (tileRect.height / 2)
+    };
+  }
+
   function preloadImage(url) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -145,9 +164,19 @@
     utils.shuffleInPlace(pool);
     const options = [correct, pool[0], pool[1], pool[2]];
     utils.shuffleInPlace(options);
+    const tileMetrics = currentTileMetrics();
     const rect = shell.rect();
-    const maxX = Math.max(cfg.gameplay.tileMargin, rect.width - cfg.gameplay.tileWidth - cfg.gameplay.tileMargin);
-    return { wordHe: correct.he, correctId: correct.id, options, x: utils.randInt(cfg.gameplay.tileMargin, Math.floor(maxX)), y: -cfg.gameplay.tileHeight, spawnedAt: performance.now() };
+    const maxX = Math.max(tileMetrics.margin, rect.width - tileMetrics.width - tileMetrics.margin);
+    return {
+      wordHe: correct.he,
+      correctId: correct.id,
+      options,
+      width: tileMetrics.width,
+      height: tileMetrics.height,
+      x: utils.randInt(tileMetrics.margin, Math.floor(maxX)),
+      y: -tileMetrics.height,
+      spawnedAt: performance.now()
+    };
   }
 
   function renderTask() {
@@ -177,7 +206,7 @@
   }
 
   function miss() {
-    const drownX = task.x + cfg.gameplay.tileWidth / 2;
+    const drownX = task.x + task.width / 2;
     score += cfg.gameplay.scoreMiss;
     lives -= 1;
     consecutiveCorrect = 0;
@@ -200,8 +229,9 @@
   function correct() {
     const currentTask = task;
     task = null;
-    const burstX = currentTask.x + cfg.gameplay.tileWidth / 2;
-    const burstY = currentTask.y + cfg.gameplay.tileHeight / 2;
+    const burstCenter = currentTileCenter();
+    const burstX = burstCenter.x;
+    const burstY = burstCenter.y;
     const rtSec = (performance.now() - currentTask.spawnedAt) / 1000;
     score += pointsForCorrect(rtSec);
     consecutiveCorrect += 1;
@@ -302,7 +332,7 @@
     lastTs = ts;
     task.y += getSpeed() * dt;
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    if (task.y + cfg.gameplay.tileHeight * 0.4 >= shell.waterY(shell.rect())) {
+    if (task.y + task.height * 0.4 >= shell.waterY(shell.rect())) {
       miss();
     }
     rafId = requestAnimationFrame(loop);
