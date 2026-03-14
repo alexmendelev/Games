@@ -49,6 +49,7 @@
   let tileY = -120;
   let prevCorrectIdx = -1;
   let task = null;
+  const spawnYOffsetRatio = 0.35;
 
   function currentTileCenter() {
     const gameRect = shell.rect();
@@ -138,6 +139,10 @@
     const margin = cfg.gameplay.marginBase * ui;
     const maxX = Math.max(margin, rect.width - tileWidth - margin);
     return utils.randInt(Math.round(margin), Math.round(maxX));
+  }
+
+  function spawnStartY() {
+    return -(cfg.gameplay.tileHBase * shell.getUi() * spawnYOffsetRatio);
   }
 
   function makeTask() {
@@ -233,7 +238,7 @@
     }
 
     tileX = randomTileX();
-    tileY = -140;
+    tileY = spawnStartY();
     tileEl.style.transform = `translate(${tileX}px, ${tileY}px)`;
   }
 
@@ -365,7 +370,11 @@
     }
     paused = !paused;
     pauseBtn.classList.toggle("paused", paused);
+    if (paused) {
+      audio.bgm.pause();
+    }
     if (!paused) {
+      audio.bgm.resume();
       lastTs = 0;
       if (rafId) {
         cancelAnimationFrame(rafId);

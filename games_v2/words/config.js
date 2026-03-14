@@ -40,7 +40,7 @@ window.GAME_V2_WORDS_CONFIG = {
     sfxGain: 0.1
   },
   diffs: {
-    easy: { label: "קל", speedMul: 0.5 },
+    easy: { label: "קל", speedMul: 0.25 },
     medium: { label: "בינוני", speedMul: 1.0 },
     hard: { label: "קשה", speedMul: 1.2 },
     super: { label: "סופר", speedMul: 1.5 }

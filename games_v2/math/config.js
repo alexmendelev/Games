@@ -33,7 +33,7 @@ window.GAME_V2_MATH_CONFIG = {
     coinAudio: "../shared/assets/audio/coin_drop.mp3"
   },
   diffs: {
-    easy:   { label: "קל", speedMul: 0.55, correct: 10, allowNegResult: false, noNegOptions: true, ops: ["+", "-"] },
+    easy:   { label: "קל", speedMul: 0.25, correct: 10, allowNegResult: false, noNegOptions: true, ops: ["+", "-"] },
     medium: { label: "בינוני", speedMul: 1.0, correct: 15, allowNegResult: false, noNegOptions: true, ops: ["+", "-"] },
     hard:   { label: "קשה", speedMul: 1.2, correct: 20, allowNegResult: true, noNegOptions: false, ops: ["+", "-"] },
     mul10:  { label: "כפל 1-10", speedMul: 1.1, correct: 20, allowNegResult: false, noNegOptions: true, ops: ["*"] },

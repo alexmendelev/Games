@@ -2,8 +2,13 @@ window.GAMES_V2_AUDIO = (function () {
   function createArcadeAudio(options) {
     const settings = Object.assign({
       sfxGain: 0.1,
+      bgmVolume: 0.22,
       splashUrl: "",
       coinUrl: "",
+      musicUrls: [
+        "../shared/assets/music/minuet-g-major.mp3",
+        "../shared/assets/music/turkish-march.mp3"
+      ],
       splashPoolSize: 6,
       coinPoolSize: 4
     }, options || {});
@@ -13,6 +18,13 @@ window.GAMES_V2_AUDIO = (function () {
     let audioUnlocked = false;
     let splashIndex = 0;
     let coinIndex = 0;
+    let musicEl = null;
+    let musicStarted = false;
+    let musicQueue = [];
+    let musicQueueIndex = 0;
+    let currentMusicUrl = "";
+
+    const musicUrls = Array.from(new Set((settings.musicUrls || []).filter(Boolean)));
 
     const splashPool = Array.from({ length: settings.splashPoolSize }, () => {
       const el = new Audio(settings.splashUrl);
@@ -30,7 +42,16 @@ window.GAMES_V2_AUDIO = (function () {
       return el;
     });
 
-    function ensureAudio() {
+    function shuffle(list) {
+      const copy = list.slice();
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function unlockAudio() {
       try {
         if (!audioCtx) {
           const Context = window.AudioContext || window.webkitAudioContext;
@@ -72,6 +93,116 @@ window.GAMES_V2_AUDIO = (function () {
       } catch (_) {
         sample.muted = false;
       }
+    }
+
+    function refillMusicQueue() {
+      if (!musicUrls.length) {
+        musicQueue = [];
+        musicQueueIndex = 0;
+        return;
+      }
+      musicQueue = shuffle(musicUrls);
+      if (musicQueue.length > 1 && musicQueue[0] === currentMusicUrl) {
+        musicQueue.push(musicQueue.shift());
+      }
+      musicQueueIndex = 0;
+    }
+
+    function nextMusicUrl() {
+      if (!musicUrls.length) {
+        return "";
+      }
+      if (!musicQueue.length || musicQueueIndex >= musicQueue.length) {
+        refillMusicQueue();
+      }
+      const nextUrl = musicQueue[musicQueueIndex] || "";
+      musicQueueIndex += 1;
+      currentMusicUrl = nextUrl;
+      return nextUrl;
+    }
+
+    function ensureMusicElement() {
+      if (musicEl || !musicUrls.length) {
+        return;
+      }
+      musicEl = new Audio();
+      musicEl.preload = "auto";
+      musicEl.loop = false;
+      musicEl.volume = settings.bgmVolume;
+      musicEl.addEventListener("ended", () => {
+        playNextTrack();
+      });
+      musicEl.addEventListener("error", () => {
+        playNextTrack();
+      });
+      const firstUrl = nextMusicUrl();
+      if (firstUrl) {
+        musicEl.src = firstUrl;
+        try { musicEl.load(); } catch (_) {}
+      }
+    }
+
+    function playNextTrack() {
+      ensureMusicElement();
+      if (!musicEl) {
+        return;
+      }
+      const nextUrl = nextMusicUrl();
+      if (!nextUrl) {
+        return;
+      }
+      if (musicEl.src !== new URL(nextUrl, window.location.href).href) {
+        musicEl.src = nextUrl;
+      }
+      musicEl.currentTime = 0;
+      musicEl.play().catch(() => {});
+    }
+
+    function startMusic() {
+      if (!musicUrls.length) {
+        return;
+      }
+      ensureMusicElement();
+      if (!musicEl) {
+        return;
+      }
+      if (!musicStarted) {
+        musicStarted = true;
+        if (!musicEl.src) {
+          playNextTrack();
+          return;
+        }
+        musicEl.currentTime = 0;
+        musicEl.play().catch(() => {});
+        return;
+      }
+      if (musicEl.paused) {
+        musicEl.play().catch(() => {});
+      }
+    }
+
+    function pauseMusic() {
+      if (!musicEl) {
+        return;
+      }
+      musicEl.pause();
+    }
+
+    function stopMusic() {
+      if (!musicEl) {
+        return;
+      }
+      musicEl.pause();
+      musicEl.currentTime = 0;
+      musicStarted = false;
+      currentMusicUrl = "";
+      musicQueue = [];
+      musicQueueIndex = 0;
+    }
+
+    function ensureAudio() {
+      unlockAudio();
+      startMusic();
     }
 
     function beep(config) {
@@ -147,10 +278,20 @@ window.GAMES_V2_AUDIO = (function () {
       coinIndex += 1;
     }
 
-    window.addEventListener("pointerdown", ensureAudio, { once: true });
+    ensureMusicElement();
+
+    window.addEventListener("pointerdown", () => {
+      ensureAudio();
+    }, { once: true });
 
     return {
       ensureAudio,
+      bgm: {
+        start() { ensureAudio(); },
+        resume() { ensureAudio(); },
+        pause() { pauseMusic(); },
+        stop() { stopMusic(); }
+      },
       sfx: {
         correct() { ensureAudio(); playCorrectChime(); },
         wrong() { ensureAudio(); beep({ freq: 240, dur: 0.1, type: "sine", gain: 0.9, rampTo: 180 }); },
