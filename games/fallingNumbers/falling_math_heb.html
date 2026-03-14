@@ -42,14 +42,77 @@
       font-size: calc(53px * var(--ui));
       font-weight: 900;
       border-radius: calc(22px * var(--ui));
-      border:0;
+      border: 2px solid rgba(33,53,95,.48);
       color:#1b1b1b;
-      text-shadow:0 2px 0 rgba(255,255,255,.25);
-      background: url("assets/btn.png") center/contain no-repeat;
+      text-shadow:0 1px 0 rgba(255,255,255,.3);
+      background:
+        radial-gradient(circle at 30% 24%, rgba(255,255,255,.94), rgba(255,255,255,.88) 46%, rgba(237,244,255,.80) 100%);
       cursor:pointer;
       direction:ltr; unicode-bidi:bidi-override;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.92),
+        0 8px 16px rgba(0,0,0,.14);
+      position: relative;
+      overflow: hidden;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+      padding: 0;
+      text-align: center;
     }
-    .ans:active{ transform: translateY(1px); }
+    .ans:hover{
+      border-color: rgba(44,74,130,.72);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.95),
+        0 10px 18px rgba(0,0,0,.17);
+    }
+    .ans:active,
+    .ans.is-pressed{
+      transform: translateY(calc(4px * var(--ui))) scale(.97);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.82),
+        0 3px 8px rgba(0,0,0,.18);
+    }
+    .ans::after{
+      content: "";
+      position:absolute;
+      right: calc(10px * var(--ui));
+      top: 50%;
+      width: calc(40px * var(--ui));
+      height: calc(40px * var(--ui));
+      line-height: 1;
+      opacity:0;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      transform: translateY(-50%) scale(.6);
+      transition: opacity .12s ease, transform .12s ease;
+      pointer-events:none;
+    }
+    .ans.mark-correct::after{
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='30' fill='%2316a34a'/><path d='M18 33l9 9 19-19' fill='none' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+      opacity:1;
+      transform: translateY(-50%) scale(1);
+    }
+    .ans.mark-correct{
+      border-color: rgba(22,163,74,.95);
+      background:
+        radial-gradient(circle at 30% 24%, rgba(255,255,255,.96), rgba(196,248,218,.98) 42%, rgba(96,226,151,.96) 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.95),
+        0 12px 22px rgba(22,163,74,.42);
+    }
+    .ans.mark-wrong::after{
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='30' fill='%23dc2626'/><path d='M21 21l22 22M43 21L21 43' fill='none' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>");
+      opacity:1;
+      transform: translateY(-50%) scale(1);
+    }
+    .ans.mark-wrong{
+      border-color: rgba(220,38,38,.94);
+      background:
+        radial-gradient(circle at 30% 24%, rgba(255,255,255,.96), rgba(255,214,214,.98) 42%, rgba(247,124,124,.96) 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.95),
+        0 12px 22px rgba(220,38,38,.40);
+    }
 
     .ctrl{
       height: calc(54px * var(--ui));
@@ -133,6 +196,14 @@
       font-variant-numeric: tabular-nums;
     }
     .vitalStats{ display:flex; gap: calc(2px * var(--ui)); flex-wrap:nowrap; }
+    @keyframes lifeSpendPulse{
+      0%{ transform: scale(1); }
+      38%{ transform: scale(.8); }
+      100%{ transform: scale(1); }
+    }
+    #livesIcon.life-hit{
+      animation: lifeSpendPulse 280ms cubic-bezier(.22,.61,.36,1);
+    }
 
     /* quick pulse for score and coin feedback */
     @keyframes scorePulse{ 0%{ transform:scale(1); color:var(--text);} 50%{ transform:scale(1.12); color:#ffd54f;} 100%{ transform:scale(1); color:var(--text);} }
@@ -178,6 +249,99 @@
       background-repeat:no-repeat;
       filter: drop-shadow(0 10px 18px rgba(0,0,0,.25));
       z-index:8;
+    }
+    .fx.burstFx{
+      mix-blend-mode: screen;
+      filter:
+        saturate(1.35)
+        brightness(1.20)
+        drop-shadow(0 0 14px rgba(255,220,120,.80))
+        drop-shadow(0 10px 18px rgba(0,0,0,.25));
+    }
+    .burstFlash{
+      position:absolute;
+      left:0;
+      top:0;
+      width: calc(300px * var(--ui));
+      aspect-ratio: 1 / 1;
+      pointer-events:none;
+      z-index:22;
+      border-radius:50%;
+      mix-blend-mode: screen;
+      opacity:0;
+      background:
+        radial-gradient(circle,
+          rgba(255,255,255,.98) 0%,
+          rgba(255,244,160,.92) 18%,
+          rgba(255,120,200,.55) 42%,
+          rgba(110,190,255,.30) 58%,
+          rgba(110,190,255,0) 78%);
+      transform: translate(-50%, -50%) scale(.25);
+      animation: burstFlashPop 760ms cubic-bezier(.22,.61,.36,1) forwards;
+    }
+    @keyframes burstFlashPop{
+      0%{ opacity:0; transform: translate(-50%, -50%) scale(.25); }
+      18%{ opacity:1; }
+      100%{ opacity:0; transform: translate(-50%, -50%) scale(1.55); }
+    }
+    .fireworkCore{
+      position:absolute;
+      left:0;
+      top:0;
+      width: calc(210px * var(--ui));
+      aspect-ratio:1/1;
+      pointer-events:none;
+      border-radius:50%;
+      z-index:26;
+      mix-blend-mode: screen;
+      background: radial-gradient(circle,
+        rgba(255,255,255,.98) 0%,
+        rgba(255,250,210,.95) 14%,
+        rgba(255,206,86,.78) 30%,
+        rgba(255,206,86,0) 72%);
+      transform: translate(-50%, -50%) scale(.22);
+      opacity:0;
+    }
+    .fireworkRing{
+      position:absolute;
+      left:0;
+      top:0;
+      width: calc(50px * var(--ui));
+      aspect-ratio:1/1;
+      pointer-events:none;
+      border-radius:50%;
+      border: calc(5px * var(--ui)) solid rgba(255,245,180,.95);
+      z-index:25;
+      mix-blend-mode: screen;
+      transform: translate(-50%, -50%) scale(.22);
+      opacity:0;
+    }
+    .fireworkSpark{
+      position:absolute;
+      left:0;
+      top:0;
+      pointer-events:none;
+      border-radius:50%;
+      z-index:27;
+      mix-blend-mode: screen;
+      transform: translate(-50%, -50%) scale(.25);
+      opacity:0;
+      will-change: transform, opacity, filter;
+    }
+    .hitFlash{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:120;
+      mix-blend-mode: screen;
+      opacity:0;
+      background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 70%);
+      animation: hitFlashPulse 680ms cubic-bezier(.2,.62,.22,1) forwards;
+    }
+    @keyframes hitFlashPulse{
+      0%{ opacity:0; }
+      10%{ opacity:1; }
+      100%{ opacity:0; }
     }
     .coinFly{
       position: fixed;
@@ -238,11 +402,11 @@
           </div>
           <div class="vitalStats">
             <div class="block">
-              <img id="coinIcon" src="assets/kittendollar.png" alt="" class="icon">
+              <img id="coinIcon" src="assets/star.svg" alt="" class="icon">
               <div class="stat"><b id="coins">0</b></div>
             </div>
             <div class="block">
-              <img src="assets/lives.png" alt="" class="icon">
+              <img id="livesIcon" src="assets/heart.svg" alt="" class="icon">
               <div class="stat"><b id="lives">10</b></div>
             </div>
           </div>
@@ -310,6 +474,7 @@
     marginBase: 10,
     sfxGain: 0.10
   };
+  const ANSWER_FEEDBACK_MS = 220;
 
   const gameEl = document.getElementById("game");
   const tileEl = document.getElementById("tile");
@@ -319,14 +484,17 @@
   const exitBtn = document.getElementById("exitBtn");
   const scoreEl = document.getElementById("score");
   const livesEl = document.getElementById("lives");
+  const livesIconEl = document.getElementById("livesIcon");
   const coinEl = document.getElementById("coins");
   const coinIconEl = document.getElementById("coinIcon");
+  if(livesIconEl) livesIconEl.src = "assets/heart.svg?v=20260307";
 
   const ansBtns = Array.from(document.querySelectorAll(".ans"));
   const mascotEl = document.getElementById("mascot");
 
   const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
   const randInt = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const randFloat = (a,b)=>Math.random()*(b-a)+a;
   const choice = (arr)=>arr[Math.floor(Math.random()*arr.length)];
 
   function fmtNum(n){
@@ -410,6 +578,22 @@
     osc.connect(g); g.connect(masterGain);
     osc.start(t0); osc.stop(t1 + 0.02);
   }
+  function playCorrectChime(){
+    if(!audioCtx || !masterGain) return;
+    // Magical bell-like chord with airy overtones and a shimmer tail.
+    const notes = [1046.5, 1318.5, 1568.0]; // C6, E6, G6
+    for(let i=0; i<notes.length; i++){
+      const f = notes[i];
+      const t = i * 0.07;
+      const mainGain = 0.56 - i * 0.08;
+      beep({ freq:f, dur:0.34 + i*0.03, type:"sine", gain:mainGain, when:t, rampTo:f*1.02 });
+      beep({ freq:f*2, dur:0.46 + i*0.03, type:"triangle", gain:0.18, when:t + 0.012, rampTo:f*1.94 });
+    }
+    beep({ freq:2093, dur:0.24, type:"sine", gain:0.18, when:0.18, rampTo:2489 });
+    beep({ freq:2637, dur:0.30, type:"sine", gain:0.13, when:0.24, rampTo:3136 });
+    // Long soft resonance.
+    beep({ freq:783.99, dur:0.62, type:"sine", gain:0.11, when:0.20, rampTo:740 });
+  }
   function playSplash(){
     const a = splashPool[splashI++ % splashPool.length];
     try{ a.currentTime = 0; }catch(_){}
@@ -421,7 +605,7 @@
     a.play().catch(()=>{});
   }
   const sfx = {
-    correct(){ ensureAudio(); beep({freq:880, dur:0.06, type:"triangle", gain:1.0, rampTo:1320}); beep({freq:1320, dur:0.08, type:"sine", gain:0.8, when:0.05}); },
+    correct(){ ensureAudio(); playCorrectChime(); },
     wrong(){ ensureAudio(); beep({freq:240, dur:0.10, type:"sine", gain:0.9, rampTo:180}); },
     splash(){ ensureAudio(); playSplash(); },
     coin(){ ensureAudio(); playCoinDrop(); },
@@ -429,24 +613,37 @@
   };
 
   // ===== sprite FX =====
-  function playSheetFx(sheetCfg, x, y, anchor){
+  function playSheetFx(sheetCfg, x, y, anchor, opts = {}){
     const cfg = sheetCfg;
+    const {
+      className = "",
+      scaleMul = 1,
+      fpsMul = 1,
+      filter = "",
+      zIndex = null
+    } = opts;
     const frameW = cfg.sheetW / cfg.cols;
     const frameH = cfg.sheetH / cfg.rows;
+    const scale = cfg.scale * scaleMul;
 
     const el = document.createElement("div");
     el.className = "fx";
+    if(className){
+      className.split(/\s+/).filter(Boolean).forEach(cls => el.classList.add(cls));
+    }
     el.style.left = x + "px";
     el.style.top  = y + "px";
-    el.style.width  = (frameW * cfg.scale) + "px";
-    el.style.height = (frameH * cfg.scale) + "px";
+    el.style.width  = (frameW * scale) + "px";
+    el.style.height = (frameH * scale) + "px";
     el.style.backgroundImage = `url("${cfg.url}")`;
-    el.style.backgroundSize  = (cfg.sheetW * cfg.scale) + "px " + (cfg.sheetH * cfg.scale) + "px";
+    el.style.backgroundSize  = (cfg.sheetW * scale) + "px " + (cfg.sheetH * scale) + "px";
+    if(filter) el.style.filter = filter;
+    if(zIndex !== null) el.style.zIndex = String(zIndex);
     el.style.transform = anchor === "bottom" ? "translate(-50%, -100%)" : "translate(-50%, -50%)";
     gameEl.appendChild(el);
 
     let f = 0;
-    const dt = 1 / cfg.fps;
+    const dt = 1 / Math.max(1, cfg.fps * fpsMul);
     let acc = 0;
     let last = performance.now();
 
@@ -457,7 +654,7 @@
         acc -= dt;
         const col = f % cfg.cols;
         const row = Math.floor(f / cfg.cols);
-        el.style.backgroundPosition = (-col * frameW * cfg.scale) + "px " + (-row * frameH * cfg.scale) + "px";
+        el.style.backgroundPosition = (-col * frameW * scale) + "px " + (-row * frameH * scale) + "px";
         f++;
         if(f >= cfg.frames){
           el.remove();
@@ -467,6 +664,125 @@
       requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
+  }
+
+  function playBurstFlash(x, y, hueDeg = 0){
+    const el = document.createElement("div");
+    el.className = "burstFlash";
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.filter = `hue-rotate(${hueDeg}deg) saturate(2.35) brightness(1.26)`;
+    el.addEventListener("animationend", () => el.remove(), { once: true });
+    gameEl.appendChild(el);
+  }
+
+  function playHitScreenFlash(baseHue = randInt(0, 359)){
+    const el = document.createElement("div");
+    el.className = "hitFlash";
+    const h1 = baseHue;
+    const h2 = (baseHue + 120) % 360;
+    const h3 = (baseHue + 240) % 360;
+    el.style.background = `
+      radial-gradient(circle at 50% 44%, hsla(${h1}, 100%, 66%, .66) 0%, hsla(${h2}, 100%, 62%, .36) 38%, hsla(${h3}, 100%, 56%, 0) 74%),
+      radial-gradient(circle at 54% 48%, hsla(${h2}, 100%, 64%, .42) 0%, hsla(${h3}, 100%, 58%, .28) 44%, hsla(${h1}, 100%, 60%, 0) 78%)
+    `;
+    el.addEventListener("animationend", () => el.remove(), { once: true });
+    gameEl.appendChild(el);
+  }
+
+  function playFireworks(x, y, baseHue = randInt(0, 359)){
+    const ui = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ui")) || 1;
+    const colors = ["#ffd93d", "#ff65d9", "#59c8ff", "#7dff8f", "#ff9e57", "#b783ff"];
+
+    const core = document.createElement("div");
+    core.className = "fireworkCore";
+    core.style.left = x + "px";
+    core.style.top = y + "px";
+    core.style.background = `radial-gradient(circle,
+      hsla(${baseHue}, 100%, 88%, .95) 0%,
+      hsla(${(baseHue + 36) % 360}, 100%, 70%, .88) 18%,
+      hsla(${(baseHue + 95) % 360}, 100%, 62%, .62) 36%,
+      hsla(${(baseHue + 140) % 360}, 100%, 58%, 0) 74%)`;
+    core.style.filter = "saturate(2.35) brightness(1.26)";
+    gameEl.appendChild(core);
+    core.animate(
+      [
+        { opacity: 0, transform: "translate(-50%, -50%) scale(.22)" },
+        { opacity: 1, transform: "translate(-50%, -50%) scale(.95)", offset: 0.22 },
+        { opacity: 0, transform: "translate(-50%, -50%) scale(1.75)" }
+      ],
+      { duration: 980, easing: "cubic-bezier(.2,.68,.2,1)" }
+    ).finished.finally(() => core.remove());
+
+    for(let r=0; r<2; r++){
+      const ring = document.createElement("div");
+      ring.className = "fireworkRing";
+      ring.style.left = x + "px";
+      ring.style.top = y + "px";
+      const hue = (baseHue + (r === 0 ? 20 : 190)) % 360;
+      const ringColor = `hsla(${hue}, 100%, 74%, .95)`;
+      ring.style.borderColor = ringColor;
+      ring.style.filter = `saturate(2.35) brightness(1.28) drop-shadow(0 0 18px ${ringColor})`;
+      gameEl.appendChild(ring);
+      ring.animate(
+        [
+          { opacity: 0, transform: "translate(-50%, -50%) scale(.24)" },
+          { opacity: 0.95, transform: "translate(-50%, -50%) scale(1.15)", offset: 0.2 },
+          { opacity: 0, transform: "translate(-50%, -50%) scale(3.1)" }
+        ],
+        { duration: 1080 + r * 180, easing: "cubic-bezier(.14,.64,.18,1)" }
+      ).finished.finally(() => ring.remove());
+    }
+
+    const sparkCount = 42;
+    for(let i=0; i<sparkCount; i++){
+      const spark = document.createElement("div");
+      spark.className = "fireworkSpark";
+      const color = colors[i % colors.length];
+      const size = randFloat(7, 16) * ui;
+      spark.style.width = size + "px";
+      spark.style.height = size + "px";
+      spark.style.left = x + "px";
+      spark.style.top = y + "px";
+      spark.style.background = `radial-gradient(circle at 35% 35%, rgba(255,255,255,.98), ${color} 52%, rgba(0,0,0,0) 76%)`;
+      spark.style.boxShadow = `0 0 ${10*ui}px ${color}, 0 0 ${22*ui}px ${color}`;
+      spark.style.filter = `hue-rotate(${baseHue}deg) saturate(2.15) brightness(1.14)`;
+      gameEl.appendChild(spark);
+
+      const angle = (Math.PI * 2 * i / sparkCount) + randFloat(-0.12, 0.12);
+      const dist = randFloat(84, 220) * ui;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+      const duration = randInt(900, 1500);
+      const hueShift = randInt(-28, 28);
+
+      spark.animate(
+        [
+          { opacity: 1, transform: "translate(-50%, -50%) scale(.35)", filter: `hue-rotate(${hueShift}deg)` },
+          { opacity: 0.95, transform: `translate(calc(-50% + ${dx*0.35}px), calc(-50% + ${dy*0.35}px)) scale(1)`, offset: 0.22, filter: `hue-rotate(${hueShift+10}deg)` },
+          { opacity: 0, transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.45)`, filter: `hue-rotate(${hueShift+22}deg) blur(1px)` }
+        ],
+        { duration, easing: "cubic-bezier(.08,.64,.22,1)" }
+      ).finished.finally(() => spark.remove());
+    }
+  }
+
+  function playEnhancedBurst(x, y){
+    const baseHue = randInt(0, 359);
+    playHitScreenFlash(baseHue);
+    playBurstFlash(x, y, baseHue);
+    setTimeout(() => playBurstFlash(x, y, (baseHue + 150) % 360), 86);
+    setTimeout(() => playBurstFlash(x, y, (baseHue + 285) % 360), 180);
+    setTimeout(() => playFireworks(x, y, baseHue), 56);
+
+    // Keep a textured sprite layer under the fireworks.
+    playSheetFx(ASSETS.burstSheet, x, y, "center", {
+      className: "burstFx",
+      scaleMul: 1.35,
+      fpsMul: 0.52,
+      filter: `hue-rotate(${(baseHue + 25) % 360}deg) saturate(2.55) brightness(1.36) drop-shadow(0 0 26px hsla(${baseHue}, 100%, 72%, .92))`,
+      zIndex: 24
+    });
   }
 
   function popCoinIcon(){
@@ -561,6 +877,49 @@
     scoreEl.textContent = String(score);
     livesEl.textContent = String(lives);
     coinEl.textContent = String(coins);
+  }
+  function animateLifeSpent(){
+    if(!livesIconEl) return;
+    livesIconEl.classList.remove("life-hit");
+    void livesIconEl.offsetWidth;
+    livesIconEl.classList.add("life-hit");
+  }
+
+  function clearAnswerMarks(){
+    ansBtns.forEach((btn) => {
+      if(btn._markTimer){
+        clearTimeout(btn._markTimer);
+        btn._markTimer = null;
+      }
+      if(btn._pressTimer){
+        clearTimeout(btn._pressTimer);
+        btn._pressTimer = null;
+      }
+      btn.classList.remove("mark-correct", "mark-wrong", "is-pressed");
+    });
+  }
+
+  function showAnswerMark(btn, isCorrect, duration = ANSWER_FEEDBACK_MS){
+    if(!btn) return;
+    if(btn._markTimer){
+      clearTimeout(btn._markTimer);
+      btn._markTimer = null;
+    }
+    if(btn._pressTimer){
+      clearTimeout(btn._pressTimer);
+      btn._pressTimer = null;
+    }
+    btn.classList.add("is-pressed");
+    btn._pressTimer = setTimeout(() => {
+      btn.classList.remove("is-pressed");
+      btn._pressTimer = null;
+    }, 140);
+    btn.classList.remove("mark-correct", "mark-wrong");
+    btn.classList.add(isCorrect ? "mark-correct" : "mark-wrong");
+    btn._markTimer = setTimeout(() => {
+      btn.classList.remove("mark-correct", "mark-wrong");
+      btn._markTimer = null;
+    }, duration);
   }
 
   function setMascot(state){
@@ -663,6 +1022,7 @@
   function renderTask(){
     task = makeTask();
     tileEl.textContent = task.text;
+    clearAnswerMarks();
 
     const { arr } = uniqueWrongs(task.answer);
     for(let i=0;i<4;i++){
@@ -680,6 +1040,7 @@
     const splashX = tileX;
     score += CONFIG.scoreMiss;
     lives -= 1;
+    animateLifeSpent();
     consecutiveCorrect = 0;
     setHUD();
 
@@ -702,9 +1063,10 @@
     playSheetFx(ASSETS.splashSheet, tileCenterX, waterY(r) + (SPLASH_OFFSET_BASE_PX * Math.pow(r.height / SPLASH_OFFSET_BASELINE_H, SPLASH_OFFSET_EXP)), "bottom");
   }
 
-  function correct(){
+  function correct(clickedBtn){
     // Invalidate current tablet immediately so it cannot drown after a correct click.
     task = null;
+    showAnswerMark(clickedBtn, true);
     score += DIFFS[selected].correct;
     setHUD();
     sfx.correct();
@@ -715,21 +1077,24 @@
     scoreEl.classList.add('pulse');
     setTimeout(()=> scoreEl.classList.remove('pulse'), 350);
 
-    // consecutive-correct -> award coins every 10
+    // consecutive-correct -> award stars every 4
     consecutiveCorrect += 1;
     if(consecutiveCorrect >= 4){
       consecutiveCorrect = 0;
       awardCoinFromBurst(burstX, burstY);
     }
 
-    playSheetFx(ASSETS.burstSheet, burstX, burstY, "center");
+    playEnhancedBurst(burstX, burstY);
     setMascot("happy");
     setTimeout(()=> setMascot("idle"), 350);
 
-    renderTask();
+    setTimeout(() => {
+      if(running) renderTask();
+    }, ANSWER_FEEDBACK_MS);
   }
 
-  function wrong(){
+  function wrong(clickedBtn){
+    showAnswerMark(clickedBtn, false, 260);
     score += CONFIG.scoreWrong;
     setHUD();
     sfx.wrong();
@@ -821,8 +1186,8 @@
       if(!running || !task) return;
       ensureAudio();
       const v = Number(btn.dataset.val);
-      if(v === task.answer) correct();
-      else wrong();
+      if(v === task.answer) correct(btn);
+      else wrong(btn);
     });
   });
 
