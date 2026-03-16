@@ -1,5 +1,5 @@
 body.booting .menuPage {
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
 }
 
