@@ -34,10 +34,10 @@ window.GAME_V2_MATH_CONFIG = {
   },
   diffs: {
     easy:   { label: "קל", speedMul: 0.25, correct: 10, allowNegResult: false, noNegOptions: true, ops: ["+", "-"] },
-    medium: { label: "בינוני", speedMul: 1.0, correct: 15, allowNegResult: false, noNegOptions: true, ops: ["+", "-"] },
-    hard:   { label: "קשה", speedMul: 1.2, correct: 20, allowNegResult: true, noNegOptions: false, ops: ["+", "-"] },
-    mul10:  { label: "כפל 1-10", speedMul: 1.1, correct: 20, allowNegResult: false, noNegOptions: true, ops: ["*"] },
-    super:  { label: "סופר", speedMul: 1.5, correct: 25, allowNegResult: true, noNegOptions: false, ops: ["+", "-", "*", "/"] }
+    medium: { label: "בינוני", speedMul: 0.25, correct: 15, allowNegResult: false, noNegOptions: true, ops: ["+", "-"] },
+    hard:   { label: "קשה", speedMul: 0.25, correct: 20, allowNegResult: true, noNegOptions: false, ops: ["+", "-"] },
+    mul10:  { label: "כפל 1-10", speedMul: 0.25, correct: 20, allowNegResult: false, noNegOptions: true, ops: ["*"] },
+    super:  { label: "סופר", speedMul: 0.5, correct: 25, allowNegResult: true, noNegOptions: false, ops: ["+", "-", "*", "/"] }
   },
   gameplay: {
     livesStart: 10,

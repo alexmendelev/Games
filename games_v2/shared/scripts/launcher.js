@@ -7,6 +7,7 @@
   const barEl = document.getElementById("bootBar");
   const textEl = document.getElementById("bootText");
   const preloadEls = Array.from(document.querySelectorAll("[data-preload]"));
+  const menuTitleEl = document.querySelector(".menuTitle");
 
   const imageUrls = [
     "shared/assets/ui/starting.png",
@@ -70,6 +71,31 @@
     return /\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(url) ? preloadAudio(url) : preloadImage(url);
   }
 
+  function waitForImageElement(img) {
+    return new Promise((resolve) => {
+      if (!img) {
+        resolve();
+        return;
+      }
+
+      const finish = () => {
+        if (typeof img.decode === "function") {
+          img.decode().catch(() => {}).finally(resolve);
+          return;
+        }
+        resolve();
+      };
+
+      if (img.complete && img.naturalWidth > 0) {
+        finish();
+        return;
+      }
+
+      img.addEventListener("load", finish, { once: true });
+      img.addEventListener("error", () => resolve(), { once: true });
+    });
+  }
+
   function wait(ms) {
     return new Promise((resolve) => {
       window.setTimeout(resolve, ms);
@@ -105,6 +131,8 @@
         })
       )
     );
+
+    await waitForImageElement(menuTitleEl);
 
     const elapsedMs = performance.now() - startedAt;
     if (elapsedMs < minBootMs) {
