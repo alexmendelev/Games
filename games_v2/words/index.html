@@ -13,7 +13,7 @@
 <body>
   <div class="wrap">
     <div id="game" class="game">
-      <img id="mascot" class="mascot" src="../shared/assets/mascot/cat_idle.png" alt="">
+      <div id="mascot" class="mascot" aria-hidden="true"></div>
       <div id="tile" class="tile">חתול</div>
 
       <div id="overlay" class="overlay">
@@ -32,9 +32,6 @@
     <div class="side">
       <div class="panel">
         <div class="row topStats">
-          <div class="block scoreBlock">
-            <div class="stat scoreOnly pointsPanel"><b id="score">0</b></div>
-          </div>
           <div class="vitalStats">
             <div class="block">
               <img id="coinIcon" src="../shared/assets/ui/star.svg" alt="" class="icon">
@@ -44,6 +41,12 @@
               <img id="livesIcon" src="../shared/assets/ui/heart.svg" alt="" class="icon">
               <div class="stat"><b id="lives">10</b></div>
             </div>
+          </div>
+          <div id="streakMeter" class="streakMeter" aria-hidden="true">
+            <div id="streakFill" class="streakFill"></div>
+          </div>
+          <div class="block scoreBlock">
+            <div class="stat scoreOnly pointsPanel"><b id="score">0</b></div>
           </div>
         </div>
       </div>
@@ -73,6 +76,7 @@
   <script src="../shared/scripts/fx.js?v=20260314l"></script>
   <script src="../shared/scripts/game-shell.js?v=20260314l"></script>
   <script src="config.js?v=20260314l"></script>
-  <script src="game.js?v=20260314l"></script>
+  <script src="data/emoji-easy-oneword-he.js?v=20260317a"></script>
+  <script src="game.js?v=20260317b"></script>
 </body>
 </html>

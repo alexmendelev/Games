@@ -6,9 +6,7 @@ window.GAME_V2_WORDS_CONFIG = {
   assets: {
     splashSheet: { url: "../shared/assets/fx/splash_sheet.png", sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.75 },
     burstSheet: { url: "../shared/assets/fx/burst_sheet.png", sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.65 },
-    mascotIdle: "../shared/assets/mascot/cat_idle.png",
-    mascotHappy: "../shared/assets/mascot/cat_happy.png",
-    mascotShame: "../shared/assets/mascot/cat_shame.png",
+    mascotSheet: { url: "../shared/assets/mascot/kittydance.png", cols: 4, rows: 2, frames: 8, fps: 6 },
     splashAudio: "../shared/assets/audio/splash.mp3",
     coinAudio: "../shared/assets/audio/coin_drop.mp3",
     emojiTsv: "data/emoji-easy-oneword-he.tsv",

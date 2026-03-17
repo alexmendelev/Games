@@ -52,11 +52,16 @@ class SpriteSheetEditor(tk.Tk):
 
         # Per-frame offsets
         self.offsets = []  # list of (dx, dy)
+        self.copied_cell = None  # tuple of (PIL RGBA frame image, (dx, dy))
 
         # Options
         self.show_grid = tk.BooleanVar(value=True)
         self.auto_trim = tk.BooleanVar(value=False)
         self.auto_baseline = tk.BooleanVar(value=False)
+        self.subgrid_divisions = 8
+        self.playback_fps = tk.IntVar(value=8)
+        self.is_playing = False
+        self.playback_job = None
 
         # Drag state
         self.dragging = False
@@ -116,6 +121,17 @@ class SpriteSheetEditor(tk.Tk):
         )
         self.frame_scale.pack(fill=tk.X)
 
+        playback = tk.LabelFrame(right, text="Playback")
+        playback.pack(fill=tk.X, pady=(10, 0))
+
+        playback_row = tk.Frame(playback)
+        playback_row.pack(fill=tk.X, padx=6, pady=6)
+        self.play_button = tk.Button(playback_row, text="Play", command=self.toggle_playback)
+        self.play_button.pack(side=tk.LEFT)
+        tk.Button(playback_row, text="Stop", command=self.stop_playback).pack(side=tk.LEFT, padx=(6, 0))
+        tk.Label(playback_row, text="FPS").pack(side=tk.LEFT, padx=(12, 4))
+        tk.Entry(playback_row, textvariable=self.playback_fps, width=4).pack(side=tk.LEFT)
+
         off_box = tk.LabelFrame(right, text="Offset (current frame)")
         off_box.pack(fill=tk.X, pady=(10, 0))
 
@@ -141,6 +157,11 @@ class SpriteSheetEditor(tk.Tk):
         tools = tk.LabelFrame(right, text="Tools")
         tools.pack(fill=tk.X, pady=(10, 0))
 
+        copy_row = tk.Frame(tools)
+        copy_row.pack(fill=tk.X, padx=6, pady=4)
+        tk.Button(copy_row, text="Copy frame", command=self.copy_current_cell).pack(side=tk.LEFT, fill=tk.X, expand=True)
+        tk.Button(copy_row, text="Paste frame", command=self.paste_into_current_cell).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(6, 0))
+
         tk.Button(tools, text="Auto-baseline (all frames)", command=self.do_auto_baseline_all).pack(fill=tk.X, padx=6, pady=4)
         tk.Button(tools, text="Reset all offsets", command=self.reset_all_offsets).pack(fill=tk.X, padx=6, pady=4)
 
@@ -156,6 +177,10 @@ class SpriteSheetEditor(tk.Tk):
                 "Usage:\n"
                 "- Click a cell to select frame\n"
                 "- Drag inside canvas to move frame content\n"
+                "- Ctrl+C copies the selected frame\n"
+                "- Ctrl+V pastes into the selected frame\n"
+                "- Arrow keys nudge 1 px, Ctrl = 5, Ctrl+Shift = 10\n"
+                "- Play cycles through frames at the chosen FPS\n"
                 "- Export when done\n"
                 "\nTip: enable Auto-baseline align if frames\n"
                 "have vertical drift (bottom line mismatch)."
@@ -168,10 +193,58 @@ class SpriteSheetEditor(tk.Tk):
         self._tk_sheet_img = None
         self._tk_zoom_img = None
 
+        self.bind_all("<Control-c>", self.copy_current_cell)
+        self.bind_all("<Control-v>", self.paste_into_current_cell)
+        self.bind_all("<space>", self.toggle_playback)
+        self.bind_all("<Left>", lambda event: self.nudge_from_shortcut(-1, 0, event))
+        self.bind_all("<Right>", lambda event: self.nudge_from_shortcut(1, 0, event))
+        self.bind_all("<Up>", lambda event: self.nudge_from_shortcut(0, -1, event))
+        self.bind_all("<Down>", lambda event: self.nudge_from_shortcut(0, 1, event))
+        self.bind_all("<Control-Left>", lambda event: self.nudge_from_shortcut(-5, 0, event))
+        self.bind_all("<Control-Right>", lambda event: self.nudge_from_shortcut(5, 0, event))
+        self.bind_all("<Control-Up>", lambda event: self.nudge_from_shortcut(0, -5, event))
+        self.bind_all("<Control-Down>", lambda event: self.nudge_from_shortcut(0, 5, event))
+        self.bind_all("<Control-Shift-Left>", lambda event: self.nudge_from_shortcut(-10, 0, event))
+        self.bind_all("<Control-Shift-Right>", lambda event: self.nudge_from_shortcut(10, 0, event))
+        self.bind_all("<Control-Shift-Up>", lambda event: self.nudge_from_shortcut(0, -10, event))
+        self.bind_all("<Control-Shift-Down>", lambda event: self.nudge_from_shortcut(0, 10, event))
+
+    def _draw_sheet_grid(self, scale, disp_w, disp_h):
+        r = int(self.rows.get())
+        c = int(self.cols.get())
+
+        if self.subgrid_divisions > 1:
+            for col in range(c):
+                for sub in range(1, self.subgrid_divisions):
+                    x = int(round((col * self.cell_w + (self.cell_w * sub / self.subgrid_divisions)) * scale))
+                    self.canvas.create_line(x, 0, x, disp_h, fill="#2f2f2f")
+            for row in range(r):
+                for sub in range(1, self.subgrid_divisions):
+                    y = int(round((row * self.cell_h + (self.cell_h * sub / self.subgrid_divisions)) * scale))
+                    self.canvas.create_line(0, y, disp_w, y, fill="#2f2f2f")
+
+        for i in range(1, c):
+            x = int(round(i * self.cell_w * scale))
+            self.canvas.create_line(x, 0, x, disp_h, fill="#555")
+        for j in range(1, r):
+            y = int(round(j * self.cell_h * scale))
+            self.canvas.create_line(0, y, disp_w, y, fill="#555")
+
+    def _draw_zoom_grid(self, zimg_w, zimg_h):
+        if self.subgrid_divisions > 1:
+            for sub in range(1, self.subgrid_divisions):
+                x = int(round(zimg_w * sub / self.subgrid_divisions))
+                y = int(round(zimg_h * sub / self.subgrid_divisions))
+                self.zoom_canvas.create_line(x, 0, x, zimg_h, fill="#3a3a3a")
+                self.zoom_canvas.create_line(0, y, zimg_w, y, fill="#3a3a3a")
+
+        self.zoom_canvas.create_rectangle(0, 0, zimg_w - 1, zimg_h - 1, outline="#666")
+
     # ----------------------------
     # File ops
     # ----------------------------
     def open_png(self):
+        self.stop_playback()
         path = filedialog.askopenfilename(
             title="Open sprite sheet PNG",
             filetypes=[("PNG images", "*.png")]
@@ -191,6 +264,7 @@ class SpriteSheetEditor(tk.Tk):
         self.apply_grid()
 
     def apply_grid(self):
+        self.stop_playback()
         if self.sheet is None:
             return
 
@@ -308,14 +382,7 @@ class SpriteSheetEditor(tk.Tk):
 
         # Grid and highlight
         if self.show_grid.get():
-            r = int(self.rows.get())
-            c = int(self.cols.get())
-            for i in range(1, c):
-                x = int(i * self.cell_w * scale)
-                self.canvas.create_line(x, 0, x, disp_h, fill="#555")
-            for j in range(1, r):
-                y = int(j * self.cell_h * scale)
-                self.canvas.create_line(0, y, disp_w, y, fill="#555")
+            self._draw_sheet_grid(scale, disp_w, disp_h)
 
         idx = int(self.frame_idx.get())
         x0, y0, x1, y1 = self.frame_rect(idx)
@@ -346,6 +413,9 @@ class SpriteSheetEditor(tk.Tk):
         self._tk_zoom_img = ImageTk.PhotoImage(zimg)
         self.zoom_canvas.create_image(0, 0, anchor="nw", image=self._tk_zoom_img)
 
+        if self.show_grid.get():
+            self._draw_zoom_grid(*zimg.size)
+
         # Baseline marker (bottom line of cell)
         self.zoom_canvas.create_line(0, zimg.size[1]-1, zimg.size[0], zimg.size[1]-1, fill="#888")
 
@@ -369,6 +439,7 @@ class SpriteSheetEditor(tk.Tk):
     def on_click(self, event):
         if self.sheet is None:
             return
+        self.stop_playback()
         mapped = self._canvas_to_sheet_xy(event.x, event.y)
         if not mapped:
             return
@@ -429,6 +500,7 @@ class SpriteSheetEditor(tk.Tk):
     def nudge(self, dx, dy):
         if self.sheet is None:
             return
+        self.stop_playback()
         idx = int(self.frame_idx.get())
         ox, oy = self.offsets[idx]
         self.offsets[idx] = (ox + dx, oy + dy)
@@ -448,6 +520,94 @@ class SpriteSheetEditor(tk.Tk):
         c = int(self.cols.get())
         self.offsets = [(0, 0) for _ in range(r * c)]
         self.redraw()
+
+    def _focus_is_entry(self):
+        widget = self.focus_get()
+        return isinstance(widget, tk.Entry)
+
+    def nudge_from_shortcut(self, dx, dy, event):
+        if self._focus_is_entry():
+            return None
+        self.nudge(dx, dy)
+        return "break"
+
+    def _playback_delay_ms(self):
+        try:
+            fps = int(self.playback_fps.get())
+        except Exception:
+            fps = 0
+        fps = clamp(fps, 1, 60)
+        self.playback_fps.set(fps)
+        return max(1, int(round(1000 / fps)))
+
+    def toggle_playback(self, _event=None):
+        if _event is not None and self._focus_is_entry():
+            return None
+        if self.sheet is None or not self.offsets:
+            return "break"
+        if self.is_playing:
+            self.stop_playback()
+        else:
+            self.start_playback()
+        return "break"
+
+    def start_playback(self):
+        if self.sheet is None or not self.offsets:
+            return
+        self.stop_playback()
+        self.is_playing = True
+        self.play_button.configure(text="Pause")
+        self._schedule_next_frame()
+
+    def stop_playback(self):
+        if self.playback_job is not None:
+            self.after_cancel(self.playback_job)
+            self.playback_job = None
+        self.is_playing = False
+        if hasattr(self, "play_button"):
+            self.play_button.configure(text="Play")
+
+    def _schedule_next_frame(self):
+        if not self.is_playing:
+            return
+        self.playback_job = self.after(self._playback_delay_ms(), self._advance_playback_frame)
+
+    def _advance_playback_frame(self):
+        if not self.is_playing or not self.offsets:
+            return
+        frame_count = len(self.offsets)
+        next_idx = (int(self.frame_idx.get()) + 1) % frame_count
+        self.frame_idx.set(next_idx)
+        self.redraw()
+        self._schedule_next_frame()
+
+    def copy_current_cell(self, _event=None):
+        if _event is not None and self._focus_is_entry():
+            return None
+        if self.sheet is None:
+            return "break"
+
+        idx = int(self.frame_idx.get())
+        self.copied_cell = (self.extract_frame(idx).copy(), self.offsets[idx])
+        return "break"
+
+    def paste_into_current_cell(self, _event=None):
+        if _event is not None and self._focus_is_entry():
+            return None
+        if self.sheet is None or self.copied_cell is None:
+            return "break"
+
+        cell_img, offset = self.copied_cell
+        if cell_img.size != (self.cell_w, self.cell_h):
+            messagebox.showerror("Paste frame", "Copied frame size does not match the current grid cell size.")
+            return "break"
+
+        idx = int(self.frame_idx.get())
+        x0, y0, _, _ = self.frame_rect(idx)
+        self.sheet.paste(cell_img, (x0, y0))
+        self.offsets[idx] = offset
+        self.redraw()
+        return "break"
 
     # ----------------------------
     # Auto-baseline alignment
@@ -494,6 +654,7 @@ class SpriteSheetEditor(tk.Tk):
     # Export
     # ----------------------------
     def export_png(self):
+        self.stop_playback()
         if self.sheet is None:
             return
 
