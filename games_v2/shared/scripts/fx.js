@@ -223,12 +223,86 @@ window.GAMES_V2_FX = (function (utils) {
           { transform: `translate(${ctrlX}px, ${ctrlY}px) translate(-50%, -50%) scale(1.05)`, opacity: 1, offset: 0.72 },
           { transform: `translate(${endX}px, ${endY}px) translate(-50%, -50%) scale(.62)`, opacity: 1, offset: 1 }
         ],
-        { duration: 2480, easing: "cubic-bezier(.17,.67,.27,1)" }
+        { duration: 620, easing: "cubic-bezier(.17,.67,.27,1)" }
       );
 
       return anim.finished.catch(() => {}).then(() => {
         flyEl.remove();
       });
+    }
+
+    function playStarsAroundElement(targetEl, extra) {
+      if (!targetEl || !settings.gameEl || !targetEl.getBoundingClientRect) {
+        return Promise.resolve();
+      }
+
+      const opts = Object.assign({
+        starCount: 14,
+        spreadMul: 1.2,
+        durationMul: 1.08
+      }, extra || {});
+
+      const targetRect = targetEl.getBoundingClientRect();
+      const gameRect = settings.gameEl.getBoundingClientRect();
+      const ui = utils.getUi();
+      const centerX = (targetRect.left - gameRect.left) + (targetRect.width / 2);
+      const centerY = (targetRect.top - gameRect.top) + (targetRect.height * 0.42);
+      const burstRadiusX = targetRect.width * 0.34 * opts.spreadMul;
+      const burstRadiusY = targetRect.height * 0.26 * opts.spreadMul;
+
+      const aura = document.createElement("div");
+      aura.className = "mascotAura";
+      aura.style.left = centerX + "px";
+      aura.style.top = centerY + "px";
+      settings.gameEl.appendChild(aura);
+      const auraAnim = aura.animate(
+        [
+          { opacity: 0, transform: "translate(-50%, -50%) scale(.34)" },
+          { opacity: 1, transform: "translate(-50%, -50%) scale(1.02)", offset: 0.22 },
+          { opacity: 0, transform: "translate(-50%, -50%) scale(1.7)" }
+        ],
+        { duration: 780 * opts.durationMul, easing: "cubic-bezier(.18,.66,.24,1)" }
+      );
+
+      const starPromises = [];
+      for (let i = 0; i < opts.starCount; i += 1) {
+        const star = document.createElement("div");
+        star.className = "mascotStar";
+        const size = utils.randFloat(28, 52) * ui;
+        star.style.width = size + "px";
+        star.style.height = size + "px";
+        star.style.left = centerX + utils.randFloat(-burstRadiusX * 0.2, burstRadiusX * 0.2) + "px";
+        star.style.top = centerY + utils.randFloat(-burstRadiusY * 0.2, burstRadiusY * 0.2) + "px";
+        star.style.backgroundImage = 'url("../shared/assets/ui/star.svg")';
+        settings.gameEl.appendChild(star);
+
+        const angle = (Math.PI * 2 * i / opts.starCount) + utils.randFloat(-0.3, 0.3);
+        const dist = utils.randFloat(72, 158) * ui * opts.spreadMul;
+        const dx = Math.cos(angle) * dist;
+        const dy = Math.sin(angle) * dist - utils.randFloat(10, 42) * ui;
+        const rotStart = utils.randFloat(-35, 35);
+        const rotEnd = rotStart + utils.randFloat(120, 280);
+        const duration = utils.randInt(640, 1040) * opts.durationMul;
+
+        const anim = star.animate(
+          [
+            { opacity: 0, transform: `translate(-50%, -50%) scale(.2) rotate(${rotStart}deg)` },
+            { opacity: 1, transform: `translate(calc(-50% + ${dx * 0.26}px), calc(-50% + ${dy * 0.26}px)) scale(1.02) rotate(${rotStart + 50}deg)`, offset: 0.22 },
+            { opacity: 0, transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.54) rotate(${rotEnd}deg)` }
+          ],
+          { duration, easing: "cubic-bezier(.14,.68,.22,1)" }
+        );
+
+        starPromises.push(anim.finished.catch(() => {}).then(() => {
+          star.remove();
+        }));
+      }
+
+      const auraPromise = auraAnim.finished.catch(() => {}).then(() => {
+        aura.remove();
+      });
+
+      return Promise.all([auraPromise, ...starPromises]);
     }
 
     function awardCoinFromBurst(startXInGame, startYInGame, onAward) {
@@ -244,7 +318,8 @@ window.GAMES_V2_FX = (function (utils) {
     return {
       playSheetFx,
       playEnhancedBurst,
-      awardCoinFromBurst
+      awardCoinFromBurst,
+      playStarsAroundElement
     };
   }
 

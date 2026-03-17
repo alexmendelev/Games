@@ -26,9 +26,7 @@ window.GAME_V2_MATH_CONFIG = {
       fps: 30,
       scale: 0.65
     },
-    mascotIdle: "../shared/assets/mascot/cat_idle.png",
-    mascotHappy: "../shared/assets/mascot/cat_happy.png",
-    mascotShame: "../shared/assets/mascot/cat_shame.png",
+    mascotSheet: { url: "../shared/assets/mascot/kittydance.png", cols: 4, rows: 2, frames: 8, fps: 6 },
     splashAudio: "../shared/assets/audio/splash.mp3",
     coinAudio: "../shared/assets/audio/coin_drop.mp3"
   },

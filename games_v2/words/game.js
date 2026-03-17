@@ -19,6 +19,8 @@
   const coinIconEl = document.getElementById("coinIcon");
   const livesEl = document.getElementById("lives");
   const livesIconEl = document.getElementById("livesIcon");
+  const streakMeterEl = document.getElementById("streakMeter");
+  const streakFillEl = document.getElementById("streakFill");
   const answersEl = document.getElementById("answers");
   const ansBtns = Array.from(answersEl.querySelectorAll(".ans"));
   const ansImgs = ansBtns.map((btn) => btn.querySelector("img"));
@@ -40,11 +42,17 @@
   let coins = 0;
   let lives = cfg.gameplay.livesStart;
   let consecutiveCorrect = 0;
+  let streakCount = 0;
   let task = null;
   let lockInputUntil = 0;
   const recentCorrectLimit = 8;
   const warmedEmojiUrls = new Set();
   const spawnYOffsetRatio = 0.35;
+  let mascotAnimToken = 0;
+  const streakGoal = 10;
+  const streakRewardDelayMs = 650;
+  let streakRewardTimer = null;
+  let streakRewardPending = false;
 
   function currentTileMetrics() {
     const rect = tileEl.getBoundingClientRect();
@@ -92,6 +100,19 @@
       const [id, en, he] = line.split("\t");
       const code = (id || "").trim().toUpperCase();
       return { id: code, en: (en || "").trim(), he: (he || "").trim(), src: `${cfg.assets.emojiDir}/${code}.png` };
+    }).filter((item) => item.id && item.he);
+  }
+
+  function embeddedEmojiList() {
+    const embedded = Array.isArray(window.GAME_V2_WORDS_EMOJI_DATA) ? window.GAME_V2_WORDS_EMOJI_DATA : [];
+    return embedded.map((item) => {
+      const code = String(item.id || "").trim().toUpperCase();
+      return {
+        id: code,
+        en: String(item.en || "").trim(),
+        he: String(item.he || "").trim(),
+        src: `${cfg.assets.emojiDir}/${code}.png`
+      };
     }).filter((item) => item.id && item.he);
   }
 
@@ -143,14 +164,121 @@
     livesEl.textContent = String(lives);
   }
 
+  function updateStreakMeter() {
+    const ratio = Math.max(0, Math.min(1, streakCount / streakGoal));
+    if (streakFillEl) {
+      streakFillEl.style.width = `${ratio * 100}%`;
+    }
+    if (streakMeterEl) {
+      streakMeterEl.classList.toggle("is-full", streakCount >= streakGoal);
+    }
+  }
+
+  function clearPendingStreakReward() {
+    if (streakRewardTimer !== null) {
+      clearTimeout(streakRewardTimer);
+      streakRewardTimer = null;
+    }
+    streakRewardPending = false;
+  }
+
   function animateLifeSpent() {
+    livesIconEl.classList.remove("life-gain");
     livesIconEl.classList.remove("life-hit");
     void livesIconEl.offsetWidth;
     livesIconEl.classList.add("life-hit");
   }
 
-  function setMascot(state) {
-    mascotEl.src = state === "happy" ? cfg.assets.mascotHappy : state === "shame" ? cfg.assets.mascotShame : cfg.assets.mascotIdle;
+  function animateLifeGained() {
+    livesIconEl.classList.remove("life-hit");
+    livesIconEl.classList.remove("life-gain");
+    void livesIconEl.offsetWidth;
+    livesIconEl.classList.add("life-gain");
+  }
+
+  function animateStarGained() {
+    coinIconEl.classList.remove("star-hit");
+    coinIconEl.classList.remove("star-gain");
+    void coinIconEl.offsetWidth;
+    coinIconEl.classList.add("star-gain");
+  }
+
+  function setMascot(_state) {
+    const sprite = cfg.assets.mascotSheet;
+    mascotAnimToken += 1;
+    mascotEl.classList.remove("is-celebrating");
+    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
+    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
+    mascotEl.style.backgroundPosition = "0% 0%";
+  }
+
+  function playMascotDance(repeats, withGlow) {
+    const sprite = cfg.assets.mascotSheet;
+    const token = ++mascotAnimToken;
+    let frame = 0;
+    let loopsLeft = Math.max(1, repeats || 1);
+    const frameDelay = 1000 / Math.max(1, sprite.fps || 10);
+
+    if (withGlow) {
+      mascotEl.classList.add("is-celebrating");
+      fx.playStarsAroundElement(mascotEl, { starCount: 12, spreadMul: 1, durationMul: 1 });
+    }
+
+    function drawFrame() {
+      if (token !== mascotAnimToken) return;
+      const col = frame % sprite.cols;
+      const row = Math.floor(frame / sprite.cols);
+      const x = sprite.cols > 1 ? (col / (sprite.cols - 1)) * 100 : 0;
+      const y = sprite.rows > 1 ? (row / (sprite.rows - 1)) * 100 : 0;
+      mascotEl.style.backgroundPosition = `${x}% ${y}%`;
+      frame += 1;
+      if (frame < sprite.frames) {
+        setTimeout(drawFrame, frameDelay);
+      } else if (loopsLeft > 1) {
+        loopsLeft -= 1;
+        frame = 0;
+        if (withGlow) {
+          fx.playStarsAroundElement(mascotEl, { starCount: 10, spreadMul: 0.92, durationMul: 0.9 });
+        }
+        setTimeout(drawFrame, Math.max(40, Math.round(frameDelay * 0.65)));
+      } else {
+        setMascot("idle");
+      }
+    }
+
+    drawFrame();
+  }
+
+  function rewardLifeFromStreak() {
+    clearPendingStreakReward();
+    if (!running) {
+      return;
+    }
+    streakCount = 0;
+    lives += 1;
+    setHUD();
+    updateStreakMeter();
+    animateLifeGained();
+    playMascotDance(2, true);
+  }
+
+  function registerCorrectProgress() {
+    consecutiveCorrect += 1;
+    streakCount = Math.min(streakGoal, streakCount + 1);
+    updateStreakMeter();
+    if (streakCount >= streakGoal && !streakRewardPending) {
+      streakRewardPending = true;
+      streakRewardTimer = setTimeout(() => {
+        streakRewardTimer = null;
+        rewardLifeFromStreak();
+      }, streakRewardDelayMs);
+    }
+  }
+
+  function resetCorrectProgress() {
+    consecutiveCorrect = 0;
+    streakCount = 0;
+    updateStreakMeter();
   }
 
   function pointsForCorrect(reactionSec) {
@@ -210,7 +338,7 @@
     const drownX = task.x + task.width / 2;
     score += cfg.gameplay.scoreMiss;
     lives -= 1;
-    consecutiveCorrect = 0;
+    resetCorrectProgress();
     setHUD();
     animateLifeSpent();
     setMascot("shame");
@@ -235,7 +363,7 @@
     const burstY = burstCenter.y;
     const rtSec = (performance.now() - currentTask.spawnedAt) / 1000;
     score += pointsForCorrect(rtSec);
-    consecutiveCorrect += 1;
+    registerCorrectProgress();
     setHUD();
     audio.sfx.correct();
     scoreEl.classList.add("pulse");
@@ -245,14 +373,14 @@
       fx.awardCoinFromBurst(burstX, burstY, () => {
         coins += 1;
         setHUD();
+        animateStarGained();
         coinEl.classList.add("pulse");
         setTimeout(() => coinEl.classList.remove("pulse"), 450);
         audio.sfx.coin();
+        playMascotDance();
       });
     }
     fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
-    setMascot("happy");
-    setTimeout(() => setMascot("idle"), 350);
     setTimeout(() => {
       if (running) spawnTask();
     }, cfg.answerLockMs);
@@ -260,7 +388,7 @@
 
   function wrong() {
     score += cfg.gameplay.scoreWrong;
-    consecutiveCorrect = 0;
+    resetCorrectProgress();
     setHUD();
     audio.sfx.wrong();
   }
@@ -270,6 +398,7 @@
     coins = 0;
     lives = cfg.gameplay.livesStart;
     consecutiveCorrect = 0;
+    streakCount = 0;
     paused = false;
     pauseBtn.classList.remove("paused");
     correctDeck = [];
@@ -277,9 +406,11 @@
     recentCorrectIds = [];
     lockInputUntil = 0;
     setHUD();
+    updateStreakMeter();
   }
 
   function startGame() {
+    clearPendingStreakReward();
     running = true;
     paused = false;
     pauseBtn.classList.remove("paused");
@@ -311,6 +442,9 @@
     try {
       emojis = await loadEmojiTsv();
     } catch (_) {
+      emojis = embeddedEmojiList();
+    }
+    if (emojis.length < 8) {
       emojis = fallbackEmojiList();
     }
     if (emojis.length < 8) {
@@ -319,9 +453,7 @@
       return false;
     }
     await Promise.all([
-      preloadImage(cfg.assets.mascotIdle),
-      preloadImage(cfg.assets.mascotHappy),
-      preloadImage(cfg.assets.mascotShame)
+      preloadImage(cfg.assets.mascotSheet.url)
     ]);
     return true;
   }
@@ -393,4 +525,5 @@
 
   setMascot("idle");
   setHUD();
+  updateStreakMeter();
 })();

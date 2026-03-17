@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kitty Celebration Sprite Preview</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #fbbf24;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0b1220, #111827);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .wrap {
+      width: min(980px, 100%);
+      background: rgba(17, 24, 39, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .preview-card,
+    .controls {
+      background: #0b1324;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .preview-area {
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at center, #dbeafe 0%, #93c5fd 50%, #60a5fa 100%);
+      border-radius: 16px;
+      min-height: 420px;
+      overflow: auto;
+      position: relative;
+      padding: 24px;
+    }
+
+    .sprite {
+      width: 256px;
+      height: 256px;
+      background-repeat: no-repeat;
+      image-rendering: auto;
+      transform-origin: center center;
+      filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.2));
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+    }
+
+    .row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      background: #111827;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: #1f2937;
+      color: var(--text);
+      border: 1px solid #475569;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .stat {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--accent);
+      margin-top: 4px;
+      font-size: 18px;
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #111827;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    code {
+      color: #fde68a;
+    }
+
+    @media (max-width: 820px) {
+      .stage {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-area {
+        min-height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Kitty celebration sprite preview</h1>
+    <p>This previews the sprite sheet as an animation. Set the grid size and the page will calculate each frame size from the actual image automatically.</p>
+
+    <div class="stage">
+      <div class="preview-card">
+        <div class="preview-area">
+          <div id="sprite" class="sprite"></div>
+        </div>
+        <div class="note">
+          Change <code>Columns</code> and <code>Rows</code> to match the sheet. The preview reads the image dimensions directly, then derives the correct frame width and height for you.
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="field-grid">
+          <div class="field">
+            <label for="cols">Columns</label>
+            <input id="cols" type="number" min="1" step="1" value="4" />
+          </div>
+          <div class="field">
+            <label for="rows">Rows</label>
+            <input id="rows" type="number" min="1" step="1" value="2" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label for="fps">Speed: <span id="fpsValue">7</span> FPS</label>
+          <input id="fps" type="range" min="1" max="20" value="7" />
+        </div>
+
+        <div class="row">
+          <label for="scale">Scale: <span id="scaleValue">1.00</span>x</label>
+          <input id="scale" type="range" min="50" max="200" value="100" />
+        </div>
+
+        <div class="buttons">
+          <button id="playPauseBtn">Pause</button>
+          <button id="restartBtn">Restart</button>
+          <button id="stepBtn">Step frame</button>
+          <button id="pingPongBtn">Ping-pong: Off</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">Current frame<strong id="frameValue">1 / 8</strong></div>
+          <div class="stat">Mode<strong id="modeValue">Loop</strong></div>
+          <div class="stat">Sheet size<strong id="sheetValue">Loading...</strong></div>
+          <div class="stat">Frame size<strong id="frameSizeValue">Loading...</strong></div>
+        </div>
+
+        <div class="note">
+          Recommended for a celebration effect: start around <code>6-8 FPS</code> and let it play once or ping-pong once, not forever.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_URL = "kittydance.png";
+
+    const sprite = document.getElementById("sprite");
+    const colsInput = document.getElementById("cols");
+    const rowsInput = document.getElementById("rows");
+    const fpsInput = document.getElementById("fps");
+    const fpsValue = document.getElementById("fpsValue");
+    const scaleInput = document.getElementById("scale");
+    const scaleValue = document.getElementById("scaleValue");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const stepBtn = document.getElementById("stepBtn");
+    const pingPongBtn = document.getElementById("pingPongBtn");
+    const frameValue = document.getElementById("frameValue");
+    const modeValue = document.getElementById("modeValue");
+    const sheetValue = document.getElementById("sheetValue");
+    const frameSizeValue = document.getElementById("frameSizeValue");
+
+    const sheetImage = new Image();
+
+    let sheetWidth = 0;
+    let sheetHeight = 0;
+    let cols = 4;
+    let rows = 2;
+    let frameWidth = 1;
+    let frameHeight = 1;
+    let totalFrames = 1;
+
+    let frame = 0;
+    let fps = Number(fpsInput.value);
+    let playing = true;
+    let pingPong = false;
+    let direction = 1;
+    let lastTime = 0;
+    let acc = 0;
+
+    function clampPositiveInt(value, fallback) {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+    }
+
+    function formatDimension(value) {
+      return Number.isInteger(value) ? String(value) : value.toFixed(2);
+    }
+
+    function syncSheetMetrics() {
+      cols = clampPositiveInt(colsInput.value, cols);
+      rows = clampPositiveInt(rowsInput.value, rows);
+      colsInput.value = cols;
+      rowsInput.value = rows;
+
+      if (!sheetWidth || !sheetHeight) {
+        return;
+      }
+
+      frameWidth = sheetWidth / cols;
+      frameHeight = sheetHeight / rows;
+      totalFrames = Math.max(1, cols * rows);
+      frame = Math.min(frame, totalFrames - 1);
+      direction = 1;
+      acc = 0;
+
+      sprite.style.width = `${frameWidth}px`;
+      sprite.style.height = `${frameHeight}px`;
+      sprite.style.backgroundImage = `url("${SHEET_URL}")`;
+      sprite.style.backgroundSize = `${sheetWidth}px ${sheetHeight}px`;
+
+      sheetValue.textContent = `${sheetWidth} x ${sheetHeight}`;
+      frameSizeValue.textContent = `${formatDimension(frameWidth)} x ${formatDimension(frameHeight)}`;
+
+      drawFrame(frame);
+      setScale();
+    }
+
+    function drawFrame(index) {
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      sprite.style.backgroundPosition = `-${col * frameWidth}px -${row * frameHeight}px`;
+      frameValue.textContent = `${index + 1} / ${totalFrames}`;
+    }
+
+    function setScale() {
+      const scale = Number(scaleInput.value) / 100;
+      sprite.style.transform = `scale(${scale})`;
+      scaleValue.textContent = scale.toFixed(2);
+    }
+
+    function tick(ts) {
+      if (!lastTime) {
+        lastTime = ts;
+      }
+
+      const dt = ts - lastTime;
+      lastTime = ts;
+
+      if (playing && totalFrames > 1) {
+        acc += dt;
+        const frameDuration = 1000 / fps;
+
+        while (acc >= frameDuration) {
+          acc -= frameDuration;
+
+          if (!pingPong) {
+            frame = (frame + 1) % totalFrames;
+          } else {
+            frame += direction;
+            if (frame >= totalFrames - 1) {
+              frame = totalFrames - 1;
+              direction = -1;
+            } else if (frame <= 0) {
+              frame = 0;
+              direction = 1;
+            }
+          }
+
+          drawFrame(frame);
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    fpsInput.addEventListener("input", () => {
+      fps = Number(fpsInput.value);
+      fpsValue.textContent = fps;
+    });
+
+    scaleInput.addEventListener("input", setScale);
+
+    colsInput.addEventListener("input", syncSheetMetrics);
+    rowsInput.addEventListener("input", syncSheetMetrics);
+
+    playPauseBtn.addEventListener("click", () => {
+      playing = !playing;
+      playPauseBtn.textContent = playing ? "Pause" : "Play";
+    });
+
+    restartBtn.addEventListener("click", () => {
+      frame = 0;
+      direction = 1;
+      acc = 0;
+      drawFrame(frame);
+    });
+
+    stepBtn.addEventListener("click", () => {
+      playing = false;
+      playPauseBtn.textContent = "Play";
+      frame = (frame + 1) % totalFrames;
+      drawFrame(frame);
+    });
+
+    pingPongBtn.addEventListener("click", () => {
+      pingPong = !pingPong;
+      pingPongBtn.textContent = `Ping-pong: ${pingPong ? "On" : "Off"}`;
+      modeValue.textContent = pingPong ? "Ping-pong" : "Loop";
+      direction = 1;
+    });
+
+    sheetImage.addEventListener("load", () => {
+      sheetWidth = sheetImage.naturalWidth;
+      sheetHeight = sheetImage.naturalHeight;
+      syncSheetMetrics();
+      requestAnimationFrame(tick);
+    });
+
+    sheetImage.addEventListener("error", () => {
+      playing = false;
+      playPauseBtn.textContent = "Play";
+      sheetValue.textContent = "Load failed";
+      frameSizeValue.textContent = "Load failed";
+    });
+
+    sheetImage.src = SHEET_URL;
+  </script>
+</body>
+</html>

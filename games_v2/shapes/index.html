@@ -13,7 +13,7 @@
 <body>
   <div class="wrap">
     <div id="game" class="game">
-      <img id="mascot" class="mascot" src="../shared/assets/mascot/cat_idle.png" alt="">
+      <div id="mascot" class="mascot" aria-hidden="true"></div>
       <div id="tile" class="tile">
         <div id="tileShape" class="tileBadge"></div>
         <div id="tileColor" class="tileBadge"></div>
@@ -36,9 +36,6 @@
     <div class="side">
       <div class="panel">
         <div class="row topStats">
-          <div class="block scoreBlock">
-            <div class="stat scoreOnly pointsPanel"><b id="score">0</b></div>
-          </div>
           <div class="vitalStats">
             <div class="block">
               <img id="coinIcon" src="../shared/assets/ui/star.svg" alt="" class="icon">
@@ -48,6 +45,12 @@
               <img id="livesIcon" src="../shared/assets/ui/heart.svg" alt="" class="icon">
               <div class="stat"><b id="lives">10</b></div>
             </div>
+          </div>
+          <div id="streakMeter" class="streakMeter" aria-hidden="true">
+            <div id="streakFill" class="streakFill"></div>
+          </div>
+          <div class="block scoreBlock">
+            <div class="stat scoreOnly pointsPanel"><b id="score">0</b></div>
           </div>
         </div>
       </div>
