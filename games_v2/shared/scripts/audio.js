@@ -260,6 +260,15 @@ window.GAMES_V2_AUDIO = (function () {
       beep({ freq: 783.99, dur: 0.62, type: "sine", gain: 0.11, when: 0.2, rampTo: 740 });
     }
 
+    function playStreakReadyCue() {
+      if (!audioCtx || !masterGain) {
+        return;
+      }
+      beep({ freq: 988, dur: 0.09, type: "triangle", gain: 0.12, when: 0, rampTo: 1046 });
+      beep({ freq: 1318, dur: 0.12, type: "sine", gain: 0.09, when: 0.05, rampTo: 1396 });
+      beep({ freq: 1975, dur: 0.18, type: "triangle", gain: 0.055, when: 0.06, rampTo: 2093 });
+    }
+
     function playFromPool(pool, index) {
       const item = pool[index % pool.length];
       if (!item) {
@@ -306,6 +315,7 @@ window.GAMES_V2_AUDIO = (function () {
       },
       sfx: {
         correct() { ensureAudio(); playCorrectChime(); },
+        streakReady() { ensureAudio(); playStreakReadyCue(); },
         wrong() { ensureAudio(); beep({ freq: 240, dur: 0.1, type: "sine", gain: 0.9, rampTo: 180 }); },
         splash() { ensureAudio(); playSplash(); },
         coin() { ensureAudio(); playCoinDrop(); },
