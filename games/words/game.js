@@ -12,6 +12,7 @@
   const overlayEl = document.getElementById("overlay");
   const diffsEl = document.getElementById("diffs");
   const pauseBtn = document.getElementById("pauseBtn");
+  const muteBtn = document.getElementById("muteBtn");
   const exitBtn = document.getElementById("exitBtn");
   const mascotEl = document.getElementById("mascot");
   const scoreEl = document.getElementById("score");
@@ -28,6 +29,16 @@
   const shell = shellApi.createFallingShell({ gameEl, menuUrl: cfg.menuUrl, waterYRatio: cfg.waterYRatio });
   const audio = audioApi.createArcadeAudio({ sfxGain: cfg.gameplay.sfxGain, splashUrl: cfg.assets.splashAudio, coinUrl: cfg.assets.coinAudio });
   const fx = fxApi.createFxToolkit({ gameEl, coinIconEl });
+
+  function syncMuteButton() {
+    if (!muteBtn) return;
+    const muted = audio.bgm.isMuted();
+    muteBtn.classList.toggle("muted", muted);
+    muteBtn.setAttribute("aria-label", muted ? "הפעלת קול" : "השתקת קול");
+  }
+
+  audio.onMuteChange(syncMuteButton);
+  syncMuteButton();
 
   let emojis = [];
   let correctDeck = [];
@@ -495,6 +506,10 @@
   pauseBtn.addEventListener("click", () => {
     audio.ensureAudio();
     togglePause();
+  });
+
+  muteBtn.addEventListener("click", () => {
+    audio.bgm.toggleMute();
   });
 
   exitBtn.addEventListener("click", () => {

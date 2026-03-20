@@ -3,6 +3,10 @@ window.GAMES_V2_AUDIO = (function () {
     const settings = Object.assign({
       sfxGain: 0.1,
       bgmVolume: 0.22,
+      bgmFadeOutMs: 1800,
+      bgmFadeInMs: 4200,
+      bgmSwitchGapMs: 260,
+      bgmStartVolume: 0.004,
       splashUrl: "",
       coinUrl: "",
       musicUrls: [
@@ -15,6 +19,7 @@ window.GAMES_V2_AUDIO = (function () {
       coinPoolSize: 4
     }, options || {});
 
+    const muteStorageKey = "games_audio_muted";
     let audioCtx = null;
     let masterGain = null;
     let audioUnlocked = false;
@@ -25,6 +30,11 @@ window.GAMES_V2_AUDIO = (function () {
     let musicQueue = [];
     let musicQueueIndex = 0;
     let currentMusicUrl = "";
+    let muted = false;
+    let musicFadeRaf = 0;
+    let musicSwitchToken = 0;
+
+    const muteListeners = new Set();
 
     const musicUrls = Array.from(new Set((settings.musicUrls || []).filter(Boolean)));
 
@@ -59,7 +69,7 @@ window.GAMES_V2_AUDIO = (function () {
           const Context = window.AudioContext || window.webkitAudioContext;
           audioCtx = new Context();
           masterGain = audioCtx.createGain();
-          masterGain.gain.value = settings.sfxGain;
+          masterGain.gain.value = muted ? 0 : settings.sfxGain;
           masterGain.connect(audioCtx.destination);
         }
         if (audioCtx.state === "suspended") {
@@ -130,15 +140,21 @@ window.GAMES_V2_AUDIO = (function () {
       musicEl = new Audio();
       musicEl.preload = "auto";
       musicEl.loop = false;
-      musicEl.volume = settings.bgmVolume;
+      musicEl.volume = muted ? 0 : settings.bgmStartVolume;
       musicEl.playsInline = true;
       musicEl.setAttribute("playsinline", "");
       musicEl.setAttribute("webkit-playsinline", "");
       musicEl.addEventListener("ended", () => {
-        playNextTrack();
+        const nextUrl = nextMusicUrl();
+        if (nextUrl) {
+          startTrack(nextUrl);
+        }
       });
       musicEl.addEventListener("error", () => {
-        playNextTrack();
+        const nextUrl = nextMusicUrl();
+        if (nextUrl) {
+          startTrack(nextUrl);
+        }
       });
       const firstUrl = nextMusicUrl();
       if (firstUrl) {
@@ -147,20 +163,167 @@ window.GAMES_V2_AUDIO = (function () {
       }
     }
 
-    function playNextTrack() {
-      ensureMusicElement();
-      if (!musicEl) {
+    function persistMuteState() {
+      try {
+        if (window.localStorage) {
+          window.localStorage.setItem(muteStorageKey, muted ? "1" : "0");
+        }
+      } catch (_) {}
+    }
+
+    function notifyMuteChange() {
+      muteListeners.forEach((listener) => {
+        try {
+          listener(muted);
+        } catch (_) {}
+      });
+    }
+
+    function cancelMusicFade() {
+      if (!musicFadeRaf) {
         return;
       }
+      cancelAnimationFrame(musicFadeRaf);
+      musicFadeRaf = 0;
+    }
+
+    function tweenMusicVolume(from, to, duration, onDone) {
+      ensureMusicElement();
+      if (!musicEl) {
+        if (typeof onDone === "function") onDone();
+        return;
+      }
+      cancelMusicFade();
+      if (duration <= 0) {
+        musicEl.volume = to;
+        if (typeof onDone === "function") onDone();
+        return;
+      }
+      const startTs = performance.now();
+      function step(ts) {
+        if (!musicEl) return;
+        const ratio = Math.max(0, Math.min(1, (ts - startTs) / duration));
+        musicEl.volume = from + ((to - from) * ratio);
+        if (ratio < 1) {
+          musicFadeRaf = requestAnimationFrame(step);
+          return;
+        }
+        musicFadeRaf = 0;
+        if (typeof onDone === "function") onDone();
+      }
+      musicFadeRaf = requestAnimationFrame(step);
+    }
+
+    function startTrack(url) {
+      ensureMusicElement();
+      if (!musicEl || !url) {
+        return;
+      }
+      const absoluteUrl = new URL(url, window.location.href).href;
+      cancelMusicFade();
+      if (musicEl.src !== absoluteUrl) {
+        musicEl.src = url;
+        try { musicEl.load(); } catch (_) {}
+      }
+      musicEl.currentTime = 0;
+      musicEl.volume = muted ? 0 : settings.bgmStartVolume;
+      const playAttempt = musicEl.play();
+      const finishStart = () => {
+        if (!musicEl || muted) {
+          return;
+        }
+        tweenMusicVolume(musicEl.volume, settings.bgmVolume, settings.bgmFadeInMs);
+      };
+      if (playAttempt && playAttempt.then) {
+        playAttempt.then(finishStart).catch(() => {});
+      } else {
+        finishStart();
+      }
+    }
+
+    function transitionToTrack(url) {
+      ensureMusicElement();
+      if (!musicEl || !url) {
+        return;
+      }
+      const token = ++musicSwitchToken;
+      const canFadeOut = !musicEl.paused && !musicEl.ended && musicEl.currentTime > 0 && musicEl.volume > 0.001;
+      if (!canFadeOut) {
+        startTrack(url);
+        return;
+      }
+      tweenMusicVolume(musicEl.volume, 0, settings.bgmFadeOutMs, () => {
+        if (token !== musicSwitchToken || !musicEl) {
+          return;
+        }
+        musicEl.pause();
+        window.setTimeout(() => {
+          if (token !== musicSwitchToken || !musicEl) {
+            return;
+          }
+          startTrack(url);
+        }, Math.max(0, settings.bgmSwitchGapMs || 0));
+      });
+    }
+
+    function playNextTrack() {
       const nextUrl = nextMusicUrl();
       if (!nextUrl) {
         return;
       }
-      if (musicEl.src !== new URL(nextUrl, window.location.href).href) {
-        musicEl.src = nextUrl;
+      transitionToTrack(nextUrl);
+    }
+
+    function applyMuteState(options) {
+      const opts = Object.assign({ animate: true }, options || {});
+      splashPool.forEach((el) => { el.muted = muted; });
+      coinPool.forEach((el) => { el.muted = muted; });
+      if (masterGain) {
+        masterGain.gain.value = muted ? 0 : settings.sfxGain;
       }
-      musicEl.currentTime = 0;
-      musicEl.play().catch(() => {});
+      if (musicEl) {
+        if (muted) {
+          if (opts.animate && !musicEl.paused && musicEl.volume > 0.001) {
+            tweenMusicVolume(musicEl.volume, 0, Math.min(360, settings.bgmFadeOutMs));
+          } else {
+            cancelMusicFade();
+            musicEl.volume = 0;
+          }
+        } else if (!musicEl.paused) {
+          musicEl.volume = Math.max(musicEl.volume, settings.bgmStartVolume);
+          if (opts.animate) {
+            tweenMusicVolume(musicEl.volume, settings.bgmVolume, 720);
+          } else {
+            musicEl.volume = settings.bgmVolume;
+          }
+        }
+      }
+      notifyMuteChange();
+    }
+
+    function setMuted(nextMuted) {
+      muted = !!nextMuted;
+      persistMuteState();
+      applyMuteState({ animate: true });
+      return muted;
+    }
+
+    function toggleMuted() {
+      return setMuted(!muted);
+    }
+
+    function isMuted() {
+      return muted;
+    }
+
+    function onMuteChange(listener) {
+      if (typeof listener !== "function") {
+        return function noop() {};
+      }
+      muteListeners.add(listener);
+      return function unsubscribe() {
+        muteListeners.delete(listener);
+      };
     }
 
     function startMusic() {
@@ -177,12 +340,21 @@ window.GAMES_V2_AUDIO = (function () {
           playNextTrack();
           return;
         }
-        musicEl.currentTime = 0;
-        musicEl.play().catch(() => {});
+        startTrack(currentMusicUrl || musicEl.src);
         return;
       }
       if (musicEl.paused) {
-        musicEl.play().catch(() => {});
+        const playAttempt = musicEl.play();
+        if (!muted) {
+          musicEl.volume = Math.max(musicEl.volume, settings.bgmStartVolume);
+          if (playAttempt && playAttempt.then) {
+            playAttempt.then(() => {
+              tweenMusicVolume(musicEl.volume, settings.bgmVolume, 900);
+            }).catch(() => {});
+          } else {
+            tweenMusicVolume(musicEl.volume, settings.bgmVolume, 900);
+          }
+        }
       }
     }
 
@@ -197,8 +369,10 @@ window.GAMES_V2_AUDIO = (function () {
       if (!musicEl) {
         return;
       }
+      cancelMusicFade();
       musicEl.pause();
       musicEl.currentTime = 0;
+      musicEl.volume = muted ? 0 : settings.bgmStartVolume;
       musicStarted = false;
       currentMusicUrl = "";
       musicQueue = [];
@@ -272,6 +446,9 @@ window.GAMES_V2_AUDIO = (function () {
     }
 
     function playFromPool(pool, index) {
+      if (muted) {
+        return;
+      }
       const item = pool[index % pool.length];
       if (!item) {
         return;
@@ -309,9 +486,13 @@ window.GAMES_V2_AUDIO = (function () {
 
     return {
       ensureAudio,
+      onMuteChange,
       bgm: {
         start() { ensureAudio(); },
         next() { ensureAudio(); playNextTrack(); },
+        isMuted,
+        setMuted,
+        toggleMute: toggleMuted,
         resume() { ensureAudio(); },
         pause() { pauseMusic(); },
         stop() { stopMusic(); }
