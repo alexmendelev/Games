@@ -16,7 +16,9 @@
   ];
   const audioUrls = [
     "shared/assets/music/minuet-g-major.mp3",
-    "shared/assets/music/turkish-march.mp3"
+    "shared/assets/music/turkish-march.mp3",
+    "shared/assets/music/entertainer.mp3",
+    "shared/assets/music/wildcatblues.mp3"
   ];
 
   function unique(list) {

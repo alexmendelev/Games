@@ -221,6 +221,7 @@
     setHUD();
     updateStreakMeter();
     animateLifeGained();
+    audio.bgm.next();
     playMascotDance(2, true);
   }
 

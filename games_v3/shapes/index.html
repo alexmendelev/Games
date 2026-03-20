@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>צורות וצבעים נופלים - games_v3</title>
+  <link rel="preload" href="../shared/assets/audio/splash.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="../shared/assets/audio/coin_drop.mp3" as="audio" type="audio/mpeg">
+  <link rel="stylesheet" href="../shared/styles/tokens.css?v=20260314m">
+  <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260314m">
+  <link rel="stylesheet" href="../shared/styles/falling-shapes.css?v=20260314m">
+</head>
+<body>
+  <div class="wrap">
+    <div id="game" class="game">
+      <div id="mascot" class="mascot" aria-hidden="true"></div>
+      <div id="tile" class="tile">
+        <div id="tileShape" class="tileBadge"></div>
+        <div id="tileColor" class="tileBadge"></div>
+        <div id="tileLabel" class="tileLabel"></div>
+      </div>
+
+      <div id="overlay" class="overlay">
+        <div class="card">
+          <h2>בחרו רמה</h2>
+          <div class="diffs" id="diffs">
+            <button class="diffbtn" type="button" data-diff="easy">קל</button>
+            <button class="diffbtn" type="button" data-diff="medium">בינוני</button>
+            <button class="diffbtn" type="button" data-diff="hard">קשה</button>
+            <button class="diffbtn" type="button" data-diff="super">סופר</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <div class="row topStats">
+          <div class="vitalStats">
+            <div class="block">
+              <img id="coinIcon" src="../shared/assets/ui/star.svg" alt="" class="icon">
+              <div class="stat"><b id="coins">0</b></div>
+            </div>
+            <div class="block">
+              <img id="livesIcon" src="../shared/assets/ui/heart.svg" alt="" class="icon">
+              <div class="stat"><b id="lives">10</b></div>
+            </div>
+          </div>
+          <div id="streakMeter" class="streakMeter" aria-hidden="true">
+            <div id="streakFill" class="streakFill"></div>
+          </div>
+          <div class="block scoreBlock">
+            <div class="stat scoreOnly pointsPanel"><b id="score">0</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel answersPanel">
+        <div class="answers" id="answers">
+          <button class="ans" type="button" data-idx="0"></button>
+          <button class="ans" type="button" data-idx="1"></button>
+          <button class="ans" type="button" data-idx="2"></button>
+          <button class="ans" type="button" data-idx="3"></button>
+          <button class="ans" type="button" data-idx="4"></button>
+          <button class="ans" type="button" data-idx="5"></button>
+          <button class="ans" type="button" data-idx="6"></button>
+          <button class="ans" type="button" data-idx="7"></button>
+          <button class="ans" type="button" data-idx="8"></button>
+          <button class="ans" type="button" data-idx="9"></button>
+          <button class="ans" type="button" data-idx="10"></button>
+          <button class="ans" type="button" data-idx="11"></button>
+          <button class="ans" type="button" data-idx="12"></button>
+          <button class="ans" type="button" data-idx="13"></button>
+          <button class="ans" type="button" data-idx="14"></button>
+          <button class="ans" type="button" data-idx="15"></button>
+        </div>
+      </div>
+
+      <div class="panel bottom">
+        <div class="row">
+          <div class="actions">
+            <button id="pauseBtn" class="ctrl iconBtn" type="button" aria-label="השהיה"></button>
+            <button id="exitBtn" class="ctrl iconBtn" type="button" aria-label="יציאה"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/scripts/utils.js?v=20260314m"></script>
+  <script src="../shared/scripts/audio.js?v=20260320a"></script>
+  <script src="../shared/scripts/fx.js?v=20260314m"></script>
+  <script src="../shared/scripts/game-shell.js?v=20260314m"></script>
+  <script src="config.js?v=20260314m"></script>
+  <script src="game.js?v=20260314m"></script>
+</body>
+</html>
