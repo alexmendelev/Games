@@ -39,9 +39,9 @@ window.GAME_V2_SHAPES_CONFIG = {
     livesStart: 10,
     scoreWrong: -5,
     scoreMiss: -10,
-    baseSpeed: 120,
-    speedIncPerLevel: 15,
-    pointsPerLevel: 120,
+    baseSpeed: 90,
+    speedIncPerLevel: 7,
+    pointsPerLevel: 190,
     tileWidth: 300,
     tileHeight: 124,
     tileMargin: 10,
@@ -51,9 +51,9 @@ window.GAME_V2_SHAPES_CONFIG = {
     sfxGain: 0.1
   },
   diffs: {
-    easy: { label: "קל", speedMul: 0.25, answerCount: 4 },
-    medium: { label: "בינוני", speedMul: 1, answerCount: 8 },
-    hard: { label: "קשה", speedMul: 1.2, answerCount: 12 },
-    super: { label: "סופר", speedMul: 1.5, answerCount: 16 }
+    easy: { label: "קל", speedMul: 0.22, answerCount: 4 },
+    medium: { label: "בינוני", speedMul: 0.38, answerCount: 8 },
+    hard: { label: "קשה", speedMul: 0.48, answerCount: 12 },
+    super: { label: "סופר", speedMul: 0.6, answerCount: 16 }
   }
 };
