@@ -12,6 +12,7 @@
   const overlayEl = document.getElementById("overlay");
   const diffsEl = document.getElementById("diffs");
   const pauseBtn = document.getElementById("pauseBtn");
+  const muteBtn = document.getElementById("muteBtn");
   const exitBtn = document.getElementById("exitBtn");
   const scoreEl = document.getElementById("score");
   const livesEl = document.getElementById("lives");
@@ -37,6 +38,16 @@
     gameEl,
     coinIconEl
   });
+
+  function syncMuteButton() {
+    if (!muteBtn) return;
+    const muted = audio.bgm.isMuted();
+    muteBtn.classList.toggle("muted", muted);
+    muteBtn.setAttribute("aria-label", muted ? "הפעלת קול" : "השתקת קול");
+  }
+
+  audio.onMuteChange(syncMuteButton);
+  syncMuteButton();
 
   let selected = null;
   let running = false;
@@ -479,6 +490,10 @@
   pauseBtn.addEventListener("click", () => {
     audio.ensureAudio();
     togglePause();
+  });
+
+  muteBtn.addEventListener("click", () => {
+    audio.bgm.toggleMute();
   });
 
   exitBtn.addEventListener("click", () => {

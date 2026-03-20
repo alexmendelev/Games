@@ -209,6 +209,14 @@ body {
   background-image: url("../assets/ui/resume.png");
 }
 
+#muteBtn {
+  background-image: url("../assets/ui/unmute.png");
+}
+
+#muteBtn.muted {
+  background-image: url("../assets/ui/mute.png");
+}
+
 #exitBtn {
   background-image: url("../assets/ui/exit.png");
 }
