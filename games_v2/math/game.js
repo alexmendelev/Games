@@ -95,6 +95,8 @@
       streakFillEl.style.width = `${ratio * 100}%`;
     }
     if (streakMeterEl) {
+      streakMeterEl.classList.toggle("is-warm", streakCount >= streakGoal - 2);
+      streakMeterEl.classList.toggle("is-imminent", streakCount >= streakGoal - 1 && streakCount < streakGoal);
       streakMeterEl.classList.toggle("is-full", streakCount >= streakGoal);
     }
   }
@@ -219,13 +221,18 @@
     setHUD();
     updateStreakMeter();
     animateLifeGained();
+    audio.bgm.next();
     playMascotDance(2, true);
   }
 
   function registerCorrectProgress() {
     consecutiveCorrect += 1;
+    const prevStreak = streakCount;
     streakCount = Math.min(streakGoal, streakCount + 1);
     updateStreakMeter();
+    if (prevStreak < streakGoal - 1 && streakCount >= streakGoal - 1 && streakCount < streakGoal) {
+      audio.sfx.streakReady();
+    }
     if (streakCount >= streakGoal && !streakRewardPending) {
       streakRewardPending = true;
       streakRewardTimer = setTimeout(() => {
