@@ -11,6 +11,9 @@ window.GAMES_V2_SHELL = (function (utils) {
       uiMax: 1
     }, options || {});
 
+    let cachedRect = null;
+    let cachedWaterY = 0;
+
     function computeUi() {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -23,12 +26,40 @@ window.GAMES_V2_SHELL = (function (utils) {
       document.documentElement.style.setProperty("--ui", computeUi().toFixed(3));
     }
 
+    function captureRect() {
+      if (!settings.gameEl || !settings.gameEl.getBoundingClientRect) {
+        return cachedRect;
+      }
+      const next = settings.gameEl.getBoundingClientRect();
+      cachedRect = {
+        x: next.x,
+        y: next.y,
+        top: next.top,
+        right: next.right,
+        bottom: next.bottom,
+        left: next.left,
+        width: next.width,
+        height: next.height
+      };
+      cachedWaterY = cachedRect.height * settings.waterYRatio;
+      return cachedRect;
+    }
+
+    function refreshLayout() {
+      applyUi();
+      captureRect();
+      window.requestAnimationFrame(captureRect);
+    }
+
     function rect() {
-      return settings.gameEl.getBoundingClientRect();
+      return cachedRect || captureRect();
     }
 
     function waterY(r) {
-      return r.height * settings.waterYRatio;
+      if (r && typeof r.height === "number") {
+        return r.height * settings.waterYRatio;
+      }
+      return cachedWaterY;
     }
 
     function getUi() {
@@ -39,12 +70,19 @@ window.GAMES_V2_SHELL = (function (utils) {
       window.location.href = settings.menuUrl;
     }
 
-    window.addEventListener("resize", applyUi);
-    window.addEventListener("orientationchange", applyUi);
-    applyUi();
+    window.addEventListener("resize", refreshLayout);
+    window.addEventListener("orientationchange", refreshLayout);
+    if (window.ResizeObserver && settings.gameEl) {
+      const observer = new ResizeObserver(() => {
+        captureRect();
+      });
+      observer.observe(settings.gameEl);
+    }
+    refreshLayout();
 
     return {
       applyUi,
+      refreshLayout,
       rect,
       waterY,
       getUi,
