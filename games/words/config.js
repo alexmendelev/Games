@@ -29,6 +29,7 @@ window.GAME_V2_WORDS_CONFIG = {
     baseSpeed: 96,
     speedIncPerLevel: 8,
     pointsPerLevel: 180,
+    correctPerDiffStep: 6,
     tileWidth: 360,
     tileHeight: 116,
     tileMargin: 10,
@@ -38,9 +39,9 @@ window.GAME_V2_WORDS_CONFIG = {
     sfxGain: 0.1
   },
   diffs: {
-    easy: { label: "קל", speedMul: 0.24 },
-    medium: { label: "בינוני", speedMul: 0.42 },
-    hard: { label: "קשה", speedMul: 0.52 },
-    super: { label: "סופר", speedMul: 0.64 }
+    easy: { label: "קל", speedMul: 0.42, maxLetters: 4 },
+    medium: { label: "בינוני", speedMul: 0.42, maxLetters: 5 },
+    hard: { label: "קשה", speedMul: 0.42, maxLetters: 6 },
+    super: { label: "סופר", speedMul: 0.42, maxLetters: Infinity }
   }
 };

@@ -41,7 +41,9 @@
   syncMuteButton();
 
   let emojis = [];
+  let emojiPools = {};
   let correctDeck = [];
+  let correctDeckDiffKey = "";
   let deckPos = 0;
   let recentCorrectIds = [];
   let selected = "medium";
@@ -52,6 +54,7 @@
   let score = 0;
   let coins = 0;
   let lives = cfg.gameplay.livesStart;
+  let correctAnswers = 0;
   let consecutiveCorrect = 0;
   let streakCount = 0;
   let task = null;
@@ -59,6 +62,7 @@
   const recentCorrectLimit = 8;
   const warmedEmojiUrls = new Set();
   const spawnYOffsetRatio = 0.35;
+  const diffOrder = ["easy", "medium", "hard", "super"];
   let mascotAnimToken = 0;
   const streakGoal = 10;
   const streakRewardDelayMs = 650;
@@ -131,31 +135,68 @@
     return cfg.fallbackEmojis.map((item) => ({ id: item.id, en: "", he: item.he, src: `${cfg.assets.emojiDir}/${item.id}.png` }));
   }
 
-  function refillCorrectDeck() {
-    correctDeck = emojis.slice();
+  function normalizeWordForLevel(word) {
+    return String(word || "").replace(/[\s"'`׳״\-־]/g, "");
+  }
+
+  function wordLetterCount(word) {
+    return normalizeWordForLevel(word).length;
+  }
+
+  function rebuildEmojiPools() {
+    emojiPools = {};
+    for (const diffKey of diffOrder) {
+      const diff = cfg.diffs[diffKey];
+      if (!diff) continue;
+      if (!Number.isFinite(diff.maxLetters)) {
+        emojiPools[diffKey] = emojis.slice();
+        continue;
+      }
+      emojiPools[diffKey] = emojis.filter((item) => wordLetterCount(item.he) <= diff.maxLetters);
+    }
+  }
+
+  function currentDiffKey() {
+    const startIndex = Math.max(0, diffOrder.indexOf(selected));
+    const stepSize = Math.max(1, cfg.gameplay.correctPerDiffStep || 1);
+    const unlockedSteps = Math.floor(correctAnswers / stepSize);
+    const diffIndex = Math.min(diffOrder.length - 1, startIndex + unlockedSteps);
+    return diffOrder[diffIndex] || "medium";
+  }
+
+  function activeEmojiPool(diffKey) {
+    const pool = emojiPools[diffKey] || [];
+    return pool.length >= 4 ? pool : emojis;
+  }
+
+  function refillCorrectDeck(diffKey) {
+    correctDeck = activeEmojiPool(diffKey).slice();
     utils.shuffleInPlace(correctDeck);
     deckPos = 0;
+    correctDeckDiffKey = diffKey;
   }
 
   function nextCorrectEmoji() {
     if (!emojis.length) return null;
-    if (!correctDeck.length || deckPos >= correctDeck.length) refillCorrectDeck();
+    const diffKey = currentDiffKey();
+    const pool = activeEmojiPool(diffKey);
+    if (!correctDeck.length || deckPos >= correctDeck.length || correctDeckDiffKey !== diffKey) refillCorrectDeck(diffKey);
     let candidate = null;
     let tries = 0;
-    while (tries < correctDeck.length) {
-      if (deckPos >= correctDeck.length) refillCorrectDeck();
+    while (tries < Math.max(1, correctDeck.length)) {
+      if (deckPos >= correctDeck.length) refillCorrectDeck(diffKey);
       candidate = correctDeck[deckPos++];
       if (!recentCorrectIds.includes(candidate.id)) break;
       tries += 1;
     }
-    if (!candidate) candidate = utils.choice(emojis);
+    if (!candidate) candidate = utils.choice(pool);
     recentCorrectIds.push(candidate.id);
     if (recentCorrectIds.length > recentCorrectLimit) recentCorrectIds.shift();
     return candidate;
   }
 
   function currentDiff() {
-    return cfg.diffs[selected] || cfg.diffs.medium;
+    return cfg.diffs[currentDiffKey()] || cfg.diffs.medium;
   }
 
   function level() {
@@ -307,6 +348,7 @@
 
   function generateTask() {
     const correct = nextCorrectEmoji();
+    if (!correct) return null;
     const pool = emojis.filter((item) => item.id !== correct.id);
     utils.shuffleInPlace(pool);
     const options = [correct, pool[0], pool[1], pool[2]];
@@ -344,6 +386,7 @@
 
   function spawnTask() {
     task = generateTask();
+    if (!task) return;
     renderTask();
   }
 
@@ -381,6 +424,7 @@
     const burstY = burstCenter.y;
     const rtSec = (performance.now() - currentTask.spawnedAt) / 1000;
     score += pointsForCorrect(rtSec);
+    correctAnswers += 1;
     registerCorrectProgress();
     setHUD();
     audio.sfx.correct();
@@ -415,11 +459,13 @@
     score = 0;
     coins = 0;
     lives = cfg.gameplay.livesStart;
+    correctAnswers = 0;
     consecutiveCorrect = 0;
     streakCount = 0;
     paused = false;
     pauseBtn.classList.remove("paused");
     correctDeck = [];
+    correctDeckDiffKey = "";
     deckPos = 0;
     recentCorrectIds = [];
     lockInputUntil = 0;
@@ -470,6 +516,7 @@
       overlayEl.style.display = "grid";
       return false;
     }
+    rebuildEmojiPools();
     await Promise.all([
       preloadImage(cfg.assets.mascotSheet.url)
     ]);
