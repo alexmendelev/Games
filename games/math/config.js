@@ -1,6 +1,6 @@
 window.GAME_V3_MATH_CONFIG = {
   menuUrl: "../index.html",
-  waterYRatio: 0.8,
+  waterYRatio: 0.9,
   splashOffsetBasePx: 150,
   splashOffsetBaselineHeight: 650,
   splashOffsetExponent: 0.5,
@@ -27,6 +27,7 @@ window.GAME_V3_MATH_CONFIG = {
       scale: 0.65
     },
     mascotSheet: { url: "../shared/assets/mascot/kittydance.png", cols: 4, rows: 2, frames: 8, fps: 6 },
+    mascotSadSheet: { url: "../shared/assets/mascot/kittysad.png", cols: 4, rows: 2, frames: 8, fps: 6 },
     splashAudio: "../shared/assets/audio/splash.mp3",
     coinAudio: "../shared/assets/audio/coin_drop.mp3"
   },
