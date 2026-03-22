@@ -13,6 +13,10 @@ window.GAMES_V2_SHELL = (function (utils) {
 
     let cachedRect = null;
     let cachedWaterY = 0;
+    let waterShadowEl = null;
+    let waterReflectionEl = null;
+    let reflectionMarkup = "";
+    let reflectionClassName = "";
 
     function computeUi() {
       const vw = window.innerWidth;
@@ -51,6 +55,150 @@ window.GAMES_V2_SHELL = (function (utils) {
       window.requestAnimationFrame(captureRect);
     }
 
+    function ensureWaterShadow() {
+      if (waterShadowEl || !settings.gameEl || !settings.gameEl.appendChild) {
+        return waterShadowEl;
+      }
+      waterShadowEl = document.createElement("div");
+      waterShadowEl.className = "waterShadow";
+      waterShadowEl.setAttribute("aria-hidden", "true");
+      settings.gameEl.appendChild(waterShadowEl);
+      return waterShadowEl;
+    }
+
+    function hideWaterShadow() {
+      const shadow = ensureWaterShadow();
+      if (!shadow) return;
+      shadow.style.opacity = "0";
+      shadow.style.transform = "translate(-50%, -50%) scale(0.65)";
+    }
+
+    function updateWaterShadow(tileBox, rectArg) {
+      const shadow = ensureWaterShadow();
+      if (!shadow || !tileBox) {
+        hideWaterShadow();
+        return;
+      }
+      const tileX = Number(tileBox.x);
+      const tileY = Number(tileBox.y);
+      const tileWidth = Number(tileBox.width);
+      const tileHeight = Number(tileBox.height);
+      if (![tileX, tileY, tileWidth, tileHeight].every(Number.isFinite) || tileWidth <= 0 || tileHeight <= 0) {
+        hideWaterShadow();
+        return;
+      }
+
+      const r = rectArg || rect();
+      if (!r) {
+        hideWaterShadow();
+        return;
+      }
+
+      const waterLineY = waterY(r);
+      const tileBottom = tileY + tileHeight;
+      const distanceToWater = waterLineY - tileBottom;
+      const fadeRange = Math.max(tileHeight * 2.4, r.height * 0.34);
+      const closeness = utils.clamp(1 - (distanceToWater / fadeRange), 0, 1);
+      if (closeness <= 0) {
+        hideWaterShadow();
+        return;
+      }
+
+      const centerX = tileX + (tileWidth / 2);
+      const shadowY = waterLineY + Math.max(8, tileHeight * 0.08);
+      const width = tileWidth * (0.52 + closeness * 0.34);
+      const height = tileHeight * (0.18 + closeness * 0.11);
+      const scaleX = 0.9 + closeness * 0.18;
+      const scaleY = 0.68 + closeness * 0.2;
+
+      shadow.style.left = `${centerX}px`;
+      shadow.style.top = `${shadowY}px`;
+      shadow.style.width = `${width}px`;
+      shadow.style.height = `${height}px`;
+      shadow.style.opacity = `${0.08 + closeness * 0.34}`;
+      shadow.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
+    }
+
+    function ensureWaterReflection() {
+      if (waterReflectionEl || !settings.gameEl || !settings.gameEl.appendChild) {
+        return waterReflectionEl;
+      }
+      waterReflectionEl = document.createElement("div");
+      waterReflectionEl.className = "waterReflection";
+      waterReflectionEl.setAttribute("aria-hidden", "true");
+      settings.gameEl.appendChild(waterReflectionEl);
+      return waterReflectionEl;
+    }
+
+    function syncWaterReflectionMarkup(sourceEl) {
+      const reflection = ensureWaterReflection();
+      if (!reflection || !sourceEl) {
+        return reflection;
+      }
+      const nextClass = `${sourceEl.className} waterReflection`;
+      const nextMarkup = sourceEl.innerHTML;
+      if (nextClass === reflectionClassName && nextMarkup === reflectionMarkup) {
+        return reflection;
+      }
+      reflectionClassName = nextClass;
+      reflectionMarkup = nextMarkup;
+      reflection.className = nextClass;
+      reflection.innerHTML = nextMarkup;
+      reflection.removeAttribute("id");
+      reflection.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+      return reflection;
+    }
+
+    function hideWaterReflection() {
+      const reflection = ensureWaterReflection();
+      if (!reflection) return;
+      reflection.style.opacity = "0";
+      reflection.style.transform = "scale(1.02, -0.72)";
+    }
+
+    function updateWaterReflection(sourceEl, tileBox, rectArg) {
+      const reflection = syncWaterReflectionMarkup(sourceEl);
+      if (!reflection || !tileBox) {
+        hideWaterReflection();
+        return;
+      }
+      const tileX = Number(tileBox.x);
+      const tileY = Number(tileBox.y);
+      const tileWidth = Number(tileBox.width);
+      const tileHeight = Number(tileBox.height);
+      if (![tileX, tileY, tileWidth, tileHeight].every(Number.isFinite) || tileWidth <= 0 || tileHeight <= 0) {
+        hideWaterReflection();
+        return;
+      }
+
+      const r = rectArg || rect();
+      if (!r) {
+        hideWaterReflection();
+        return;
+      }
+
+      const waterLineY = waterY(r);
+      const tileBottom = tileY + tileHeight;
+      const distanceToWater = waterLineY - tileBottom;
+      const fadeRange = Math.max(tileHeight * 2.8, r.height * 0.42);
+      const closeness = utils.clamp(1 - (distanceToWater / fadeRange), 0, 1);
+      if (closeness <= 0) {
+        hideWaterReflection();
+        return;
+      }
+
+      const reflectionTop = (waterLineY * 2) - tileBottom + Math.max(4, tileHeight * 0.05);
+      const scaleX = 1 + closeness * 0.04;
+      const scaleY = -(0.58 + closeness * 0.18);
+
+      reflection.style.left = `${tileX}px`;
+      reflection.style.top = `${reflectionTop}px`;
+      reflection.style.width = `${tileWidth}px`;
+      reflection.style.height = `${tileHeight}px`;
+      reflection.style.opacity = `${0.16 + closeness * 0.34}`;
+      reflection.style.transform = `scale(${scaleX}, ${scaleY})`;
+    }
+
     function rect() {
       return cachedRect || captureRect();
     }
@@ -60,6 +208,31 @@ window.GAMES_V2_SHELL = (function (utils) {
         return r.height * settings.waterYRatio;
       }
       return cachedWaterY;
+    }
+
+    function fallLane(tileWidth, margin, rectArg) {
+      const r = rectArg || rect();
+      if (!r) {
+        const edge = Math.max(0, Math.round(margin || 0));
+        return { minX: edge, maxX: edge };
+      }
+      const ui = getUi();
+      const rockWidth = Math.min(360 * ui, r.width * 0.54);
+      const leftClear = Math.max(margin, Math.round(rockWidth + Math.max(12, 20 * ui)));
+      const rightClear = Math.max(margin, Math.round(24 * ui));
+      const rawMaxX = Math.max(0, Math.floor(r.width - tileWidth - rightClear));
+      const minX = Math.max(0, Math.min(leftClear, rawMaxX));
+      return {
+        minX,
+        maxX: Math.max(minX, rawMaxX)
+      };
+    }
+
+    function splashContactY(tileHeight, rectArg) {
+      const r = rectArg || rect();
+      const baseWaterY = waterY(r);
+      const shadowTouchOffset = Math.max(12, Number(tileHeight || 0) * 0.16);
+      return baseWaterY + shadowTouchOffset;
     }
 
     function getUi() {
@@ -85,6 +258,12 @@ window.GAMES_V2_SHELL = (function (utils) {
       refreshLayout,
       rect,
       waterY,
+      fallLane,
+      splashContactY,
+      updateWaterShadow,
+      hideWaterShadow,
+      updateWaterReflection,
+      hideWaterReflection,
       getUi,
       exitGame
     };

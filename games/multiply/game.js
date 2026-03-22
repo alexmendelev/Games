@@ -69,6 +69,18 @@
   const streakRewardDelayMs = 650;
   let streakRewardTimer = null;
   let streakRewardPending = false;
+  let assetsReadyPromise = null;
+  let startPending = false;
+
+  function syncWaterReflection(rectArg) {
+    const ui = shell.getUi();
+    shell.updateWaterReflection(tileEl, {
+      x: tileX,
+      y: tileY,
+      width: cfg.gameplay.tileWBase * ui,
+      height: cfg.gameplay.tileHBase * ui
+    }, rectArg);
+  }
 
   function currentTileCenter() {
     const gameRect = shell.rect();
@@ -77,6 +89,33 @@
       x: (tileRect.left - gameRect.left) + (tileRect.width * 0.49),
       y: (tileRect.top - gameRect.top) + (tileRect.height / 2)
     };
+  }
+
+  function preloadImage(url) {
+    return new Promise((resolve) => {
+      if (!url) {
+        resolve();
+        return;
+      }
+      const img = new Image();
+      const finish = () => resolve();
+      img.onload = finish;
+      img.onerror = finish;
+      img.src = url;
+      if (img.complete) {
+        resolve();
+      }
+    });
+  }
+
+  function ensureAssetsReady() {
+    if (!assetsReadyPromise) {
+      assetsReadyPromise = Promise.all([
+        preloadImage(cfg.assets.mascotSheet.url),
+        preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url)
+      ]);
+    }
+    return assetsReadyPromise;
   }
 
   function splashOffsetFor(rect) {
@@ -177,7 +216,7 @@
   }
 
   function setMascot(_state) {
-    const sprite = cfg.assets.mascotSheet;
+    const sprite = _state === "shame" ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet) : cfg.assets.mascotSheet;
     mascotAnimToken += 1;
     mascotEl.classList.remove("is-celebrating");
     mascotEl.style.backgroundImage = `url("${sprite.url}")`;
@@ -185,17 +224,21 @@
     mascotEl.style.backgroundPosition = "0% 0%";
   }
 
-  function playMascotDance(repeats, withGlow) {
-    const sprite = cfg.assets.mascotSheet;
+  function playMascotAnimation(sprite, repeats, withGlow, frameDelayMul) {
     const token = ++mascotAnimToken;
     let frame = 0;
     let loopsLeft = Math.max(1, repeats || 1);
-    const frameDelay = 1000 / Math.max(1, sprite.fps || 10);
+    const frameDelay = (1000 / Math.max(1, sprite.fps || 10)) * Math.max(1, frameDelayMul || 1);
 
     if (withGlow) {
       mascotEl.classList.add("is-celebrating");
       fx.playStarsAroundElement(mascotEl, { starCount: 12, spreadMul: 1, durationMul: 1 });
+    } else {
+      mascotEl.classList.remove("is-celebrating");
     }
+
+    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
+    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
 
     function drawFrame() {
       if (token !== mascotAnimToken) return;
@@ -220,6 +263,14 @@
     }
 
     drawFrame();
+  }
+
+  function playMascotDance(repeats, withGlow) {
+    playMascotAnimation(cfg.assets.mascotSheet, repeats, withGlow, 1);
+  }
+
+  function playMascotShame() {
+    playMascotAnimation(cfg.assets.mascotSadSheet || cfg.assets.mascotSheet, 1, false, 2);
   }
 
   function rewardLifeFromStreak() {
@@ -264,8 +315,8 @@
     const ui = shell.getUi();
     const tileWidth = cfg.gameplay.tileWBase * ui;
     const margin = cfg.gameplay.marginBase * ui;
-    const maxX = Math.max(margin, rect.width - tileWidth - margin);
-    return utils.randInt(Math.round(margin), Math.round(maxX));
+    const lane = shell.fallLane(tileWidth, margin, rect);
+    return utils.randInt(Math.round(lane.minX), Math.round(lane.maxX));
   }
 
   function spawnStartY() {
@@ -341,6 +392,7 @@
     tileX = randomTileX();
     tileY = spawnStartY();
     tileEl.style.transform = `translate(${tileX}px, ${tileY}px)`;
+    syncWaterReflection();
   }
 
   function playSplashAtTile(rect, splashX) {
@@ -348,8 +400,8 @@
     fx.playSheetFx(
       cfg.assets.splashSheet,
       centerX,
-      shell.waterY(rect) + splashOffsetFor(rect),
-      "bottom"
+      shell.waterY(rect),
+      "center"
     );
   }
 
@@ -361,11 +413,11 @@
     animateLifeSpent();
     resetCorrectProgress();
     setHUD();
-    setMascot("shame");
-    setTimeout(() => setMascot("idle"), 500);
+    playMascotShame();
 
     if (lives <= 0) {
       running = false;
+      shell.hideWaterReflection();
       audio.sfx.splash();
       playSplashAtTile(rect, splashX);
       audio.sfx.death();
@@ -381,6 +433,8 @@
 
   function correct(clickedBtn) {
     task = null;
+    shell.hideWaterReflection();
+    setMascot("idle");
     showAnswerMark(clickedBtn, true, cfg.answerFeedbackMs);
     score += cfg.diffs[selected].correct;
     setHUD();
@@ -437,15 +491,18 @@
     tileEl.style.transform = `translate(${tileX}px, ${tileY}px)`;
 
     const rect = shell.rect();
-    if (task && tileY >= shell.waterY(rect)) {
+    syncWaterReflection(rect);
+    const tileBottom = tileY + (cfg.gameplay.tileHBase * shell.getUi());
+    if (task && tileBottom >= shell.splashContactY(cfg.gameplay.tileHBase * shell.getUi(), rect)) {
       miss();
     }
 
     rafId = requestAnimationFrame(loop);
   }
 
-  function start(diffKey) {
+  async function start(diffKey) {
     selected = diffKey;
+    await ensureAssetsReady();
     overlayEl.style.display = "none";
     clearPendingStreakReward();
     paused = false;
@@ -457,6 +514,7 @@
     consecutiveCorrect = 0;
     streakCount = 0;
     setMascot("idle");
+    shell.hideWaterReflection();
     setHUD();
     updateStreakMeter();
     renderTask();
@@ -502,11 +560,14 @@
 
   diffsEl.addEventListener("click", (event) => {
     const btn = event.target.closest("[data-diff]");
-    if (!btn) {
+    if (!btn || startPending) {
       return;
     }
+    startPending = true;
     audio.ensureAudio();
-    start(btn.dataset.diff);
+    start(btn.dataset.diff).finally(() => {
+      startPending = false;
+    });
   });
 
   ansBtns.forEach((btn) => {
@@ -525,6 +586,7 @@
   });
 
   setMascot("idle");
+  ensureAssetsReady();
   setHUD();
   updateStreakMeter();
 })();

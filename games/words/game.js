@@ -68,6 +68,20 @@
   const streakRewardDelayMs = 650;
   let streakRewardTimer = null;
   let streakRewardPending = false;
+  let startPending = false;
+
+  function syncWaterReflection(rectArg) {
+    if (!task) {
+      shell.hideWaterReflection();
+      return;
+    }
+    shell.updateWaterReflection(tileEl, {
+      x: task.x,
+      y: task.y,
+      width: task.width,
+      height: task.height
+    }, rectArg);
+  }
 
   function currentTileMetrics() {
     const rect = tileEl.getBoundingClientRect();
@@ -96,6 +110,11 @@
       img.src = url;
       if (img.complete) resolve();
     });
+  }
+
+  function preloadImages(urls) {
+    const uniqueUrls = Array.from(new Set((urls || []).filter(Boolean)));
+    return Promise.all(uniqueUrls.map((url) => preloadImage(url)));
   }
 
   function warm(url) {
@@ -258,7 +277,7 @@
   }
 
   function setMascot(_state) {
-    const sprite = cfg.assets.mascotSheet;
+    const sprite = _state === "shame" ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet) : cfg.assets.mascotSheet;
     mascotAnimToken += 1;
     mascotEl.classList.remove("is-celebrating");
     mascotEl.style.backgroundImage = `url("${sprite.url}")`;
@@ -266,17 +285,21 @@
     mascotEl.style.backgroundPosition = "0% 0%";
   }
 
-  function playMascotDance(repeats, withGlow) {
-    const sprite = cfg.assets.mascotSheet;
+  function playMascotAnimation(sprite, repeats, withGlow, frameDelayMul) {
     const token = ++mascotAnimToken;
     let frame = 0;
     let loopsLeft = Math.max(1, repeats || 1);
-    const frameDelay = 1000 / Math.max(1, sprite.fps || 10);
+    const frameDelay = (1000 / Math.max(1, sprite.fps || 10)) * Math.max(1, frameDelayMul || 1);
 
     if (withGlow) {
       mascotEl.classList.add("is-celebrating");
       fx.playStarsAroundElement(mascotEl, { starCount: 12, spreadMul: 1, durationMul: 1 });
+    } else {
+      mascotEl.classList.remove("is-celebrating");
     }
+
+    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
+    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
 
     function drawFrame() {
       if (token !== mascotAnimToken) return;
@@ -301,6 +324,14 @@
     }
 
     drawFrame();
+  }
+
+  function playMascotDance(repeats, withGlow) {
+    playMascotAnimation(cfg.assets.mascotSheet, repeats, withGlow, 1);
+  }
+
+  function playMascotShame() {
+    playMascotAnimation(cfg.assets.mascotSadSheet || cfg.assets.mascotSheet, 1, false, 2);
   }
 
   function rewardLifeFromStreak() {
@@ -355,14 +386,14 @@
     utils.shuffleInPlace(options);
     const tileMetrics = currentTileMetrics();
     const rect = shell.rect();
-    const maxX = Math.max(tileMetrics.margin, rect.width - tileMetrics.width - tileMetrics.margin);
+    const lane = shell.fallLane(tileMetrics.width, tileMetrics.margin, rect);
     return {
       wordHe: correct.he,
       correctId: correct.id,
       options,
       width: tileMetrics.width,
       height: tileMetrics.height,
-      x: utils.randInt(tileMetrics.margin, Math.floor(maxX)),
+      x: utils.randInt(Math.round(lane.minX), Math.round(lane.maxX)),
       y: -(tileMetrics.height * spawnYOffsetRatio),
       spawnedAt: performance.now()
     };
@@ -371,6 +402,7 @@
   function renderTask() {
     tileEl.textContent = task.wordHe;
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    syncWaterReflection();
     for (let i = 0; i < ansImgs.length; i += 1) {
       const emoji = task.options[i];
       const img = ansImgs[i];
@@ -392,7 +424,7 @@
 
   function playSplash(x) {
     const rect = shell.rect();
-    fx.playSheetFx(cfg.assets.splashSheet, x, shell.waterY(rect) + cfg.splashYOffset, "bottom");
+    fx.playSheetFx(cfg.assets.splashSheet, x, shell.waterY(rect), "center");
   }
 
   function miss() {
@@ -402,8 +434,7 @@
     resetCorrectProgress();
     setHUD();
     animateLifeSpent();
-    setMascot("shame");
-    setTimeout(() => setMascot("idle"), 700);
+    playMascotShame();
     audio.sfx.splash();
     playSplash(drownX);
     if (lives <= 0) {
@@ -411,6 +442,7 @@
       running = false;
       overlayEl.style.display = "grid";
       task = null;
+      shell.hideWaterReflection();
       return;
     }
     spawnTask();
@@ -419,6 +451,8 @@
   function correct() {
     const currentTask = task;
     task = null;
+    shell.hideWaterReflection();
+    setMascot("idle");
     const burstCenter = currentTileCenter();
     const burstX = burstCenter.x;
     const burstY = burstCenter.y;
@@ -469,19 +503,23 @@
     deckPos = 0;
     recentCorrectIds = [];
     lockInputUntil = 0;
+    shell.hideWaterReflection();
     setHUD();
     updateStreakMeter();
   }
 
-  function startGame() {
+  async function startGame() {
     clearPendingStreakReward();
+    resetState();
+    task = generateTask();
+    if (!task) return;
+    await preloadImages(task.options.map((item) => item.src));
     running = true;
     paused = false;
     pauseBtn.classList.remove("paused");
     overlayEl.style.display = "none";
     lastTs = 0;
-    resetState();
-    spawnTask();
+    renderTask();
     rafId = requestAnimationFrame(loop);
   }
 
@@ -518,7 +556,8 @@
     }
     rebuildEmojiPools();
     await Promise.all([
-      preloadImage(cfg.assets.mascotSheet.url)
+      preloadImage(cfg.assets.mascotSheet.url),
+      preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url)
     ]);
     return true;
   }
@@ -534,7 +573,9 @@
     lastTs = ts;
     task.y += getSpeed() * dt;
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    if (task.y + task.height * 0.4 >= shell.waterY(shell.rect())) {
+    const rect = shell.rect();
+    syncWaterReflection(rect);
+    if (task.y + task.height >= shell.splashContactY(task.height, rect)) {
       miss();
     }
     rafId = requestAnimationFrame(loop);
@@ -542,12 +583,17 @@
 
   diffsEl.addEventListener("click", async (event) => {
     const btn = event.target.closest("[data-diff]");
-    if (!btn || running) return;
+    if (!btn || running || startPending) return;
+    startPending = true;
     selected = btn.dataset.diff;
     audio.ensureAudio();
-    const ok = await ensureEmojiListLoaded();
-    if (!ok) return;
-    startGame();
+    try {
+      const ok = await ensureEmojiListLoaded();
+      if (!ok) return;
+      await startGame();
+    } finally {
+      startPending = false;
+    }
   });
 
   pauseBtn.addEventListener("click", () => {
