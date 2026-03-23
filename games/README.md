@@ -8,6 +8,7 @@ Current status:
 - `games_v3/` is the new replacement candidate.
 - `games_v3/math/` is the staged arithmetic game.
 - `games_v3/multiply/` is the separate multiplication game with `1-5` and `1-10` levels.
+- `games/clocks/` is the live clock-reading game where kids match a digital time to the correct analog clock.
 - `games_v3/words/` and `games_v3/shapes/` are carried forward from v2.
 
 Notes:
