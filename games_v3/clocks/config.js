@@ -1,0 +1,76 @@
+window.GAME_V3_CLOCKS_CONFIG = {
+  menuUrl: "../index.html",
+  waterYRatio: 0.74,
+  splashYOffset: 120,
+  answerLockMs: 160,
+  assets: {
+    splashSheet: {
+      url: "../shared/assets/fx/splash_sheet.png",
+      sheetW: 1024,
+      sheetH: 1024,
+      cols: 4,
+      rows: 4,
+      frames: 16,
+      fps: 30,
+      scale: 0.75
+    },
+    burstSheet: {
+      url: "../shared/assets/fx/burst_sheet.png",
+      sheetW: 1024,
+      sheetH: 1024,
+      cols: 4,
+      rows: 4,
+      frames: 16,
+      fps: 30,
+      scale: 0.65
+    },
+    mascotSheet: { url: "../shared/assets/mascot/kittydance.png", cols: 4, rows: 2, frames: 8, fps: 6 },
+    splashAudio: "../shared/assets/audio/splash.mp3",
+    coinAudio: "../shared/assets/audio/coin_drop.mp3"
+  },
+  gameplay: {
+    livesStart: 10,
+    scoreWrong: -5,
+    scoreMiss: -10,
+    baseSpeed: 92,
+    speedIncPerLevel: 8,
+    pointsPerLevel: 190,
+    tileWidth: 320,
+    tileHeight: 112,
+    tileMargin: 10,
+    correctMin: 10,
+    correctMax: 20,
+    correctTimeCapSec: 2.4,
+    sfxGain: 0.1
+  },
+  diffs: {
+    easy: {
+      label: "Easy",
+      speedMul: 0.24,
+      minuteValues: [0, 30],
+      minuteOffsets: [30],
+      hourOffsets: [1, 2]
+    },
+    medium: {
+      label: "Medium",
+      speedMul: 0.36,
+      minuteValues: [0, 15, 30, 45],
+      minuteOffsets: [15, 30],
+      hourOffsets: [1, 2]
+    },
+    hard: {
+      label: "Hard",
+      speedMul: 0.48,
+      minuteValues: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+      minuteOffsets: [5, 10, 15],
+      hourOffsets: [1, 2, 3]
+    },
+    super: {
+      label: "Super",
+      speedMul: 0.6,
+      minuteValues: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+      minuteOffsets: [5, 10],
+      hourOffsets: [1, 2, 11]
+    }
+  }
+};
