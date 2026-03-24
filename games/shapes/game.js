@@ -80,8 +80,6 @@
   let activeAnswerCount = cfg.diffs.medium.answerCount;
   let running = false;
   let paused = false;
-  let rafId = null;
-  let lastTs = 0;
   let score = 0;
   let coins = 0;
   let lives = cfg.gameplay.livesStart;
@@ -98,18 +96,30 @@
   let streakRewardTimer = null;
   let streakRewardPending = false;
 
-  function syncWaterReflection(rectArg) {
-    if (!task) {
+  function syncWaterReflection(nextTask, rectArg) {
+    if (!nextTask) {
       shell.hideWaterReflection();
       return;
     }
     shell.updateWaterReflection(tileEl, {
-      x: task.x,
-      y: task.y,
+      x: nextTask.x,
+      y: nextTask.y,
       width: cfg.gameplay.tileWidth,
       height: cfg.gameplay.tileHeight
     }, rectArg);
   }
+
+  const falling = shell.createFallingRunner({
+    createItem: generateTask,
+    renderItem: renderTask,
+    getSpeed,
+    isMissed: (item, rect) => item.y + cfg.gameplay.tileHeight >= shell.splashContactY(cfg.gameplay.tileHeight, rect),
+    onMiss: miss,
+    onClear: () => {
+      task = null;
+      shell.hideWaterReflection();
+    }
+  });
 
   function preloadImage(url) {
     return new Promise((resolve) => {
@@ -417,22 +427,28 @@
     };
   }
 
-  function renderTask() {
-    tileShapeEl.innerHTML = shapeSvg(task.correct.shapeId, "#f8fafc", "#1e293b");
-    tileColorEl.innerHTML = colorBadge(task.correct.colorId);
-    tileLabelEl.textContent = task.correct.label;
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    syncWaterReflection();
-    for (let i = 0; i < activeAnswerCount; i += 1) {
-      const option = task.options[i];
-      ansBtns[i].dataset.value = option.id;
-      ansBtns[i].innerHTML = shapeSvg(option.shapeId, option.colorHex, "#1e293b");
+  function renderTask(nextTask, rectArg, phase) {
+    task = nextTask;
+    if (!task) {
+      return;
     }
+    if (phase !== "frame") {
+      tileShapeEl.innerHTML = shapeSvg(task.correct.shapeId, "#f8fafc", "#1e293b");
+      tileColorEl.innerHTML = colorBadge(task.correct.colorId);
+      tileLabelEl.textContent = task.correct.label;
+      for (let i = 0; i < activeAnswerCount; i += 1) {
+        const option = task.options[i];
+        ansBtns[i].dataset.value = option.id;
+        ansBtns[i].innerHTML = shapeSvg(option.shapeId, option.colorHex, "#1e293b");
+      }
+    }
+    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    syncWaterReflection(task, rectArg);
   }
 
   function spawnTask() {
-    task = generateTask();
-    renderTask();
+    task = falling.spawn();
+    return task;
   }
 
   function playSplash(x) {
@@ -440,8 +456,7 @@
     fx.playSheetFx(cfg.assets.splashSheet, x, shell.waterY(rect), "center");
   }
 
-  function miss() {
-    const currentTask = task;
+  function miss(currentTask) {
     if (!currentTask) return;
     const drownX = currentTask.x + cfg.gameplay.tileWidth / 2;
     score += cfg.gameplay.scoreMiss;
@@ -455,8 +470,7 @@
     if (lives <= 0) {
       audio.sfx.death();
       running = false;
-      task = null;
-      shell.hideWaterReflection();
+      falling.stop("game-over");
       overlayEl.style.display = "grid";
       return;
     }
@@ -472,8 +486,7 @@
     const value = String(btn.dataset.value || "");
     if (value === task.correct.id) {
       const currentTask = task;
-      task = null;
-      shell.hideWaterReflection();
+      falling.clear("correct");
       setMascot("idle");
       const burstX = currentTask.x + cfg.gameplay.tileWidth / 2;
       const burstY = currentTask.y + cfg.gameplay.tileHeight / 2;
@@ -523,7 +536,7 @@
     recentCorrectIds = [];
     task = null;
     lockInputUntil = 0;
-    shell.hideWaterReflection();
+    falling.stop("reset");
     setHUD();
     updateStreakMeter();
   }
@@ -531,14 +544,13 @@
   function startGame() {
     clearPendingStreakReward();
     syncGameplayMetrics();
-    running = true;
+    running = false;
     paused = false;
     pauseBtn.classList.remove("paused");
     overlayEl.style.display = "none";
-    lastTs = 0;
     resetState();
-    spawnTask();
-    rafId = requestAnimationFrame(loop);
+    running = true;
+    falling.start();
   }
 
   function togglePause() {
@@ -547,32 +559,12 @@
     pauseBtn.classList.toggle("paused", paused);
     if (paused) {
       audio.bgm.pause();
+      falling.pause();
     }
     if (!paused) {
       audio.bgm.resume();
-      lastTs = 0;
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(loop);
+      falling.resume();
     }
-  }
-
-  function loop(ts) {
-    if (!running || paused) return;
-    if (!task) {
-      rafId = requestAnimationFrame(loop);
-      return;
-    }
-    if (!lastTs) lastTs = ts;
-    const dt = Math.min(0.05, (ts - lastTs) / 1000);
-    lastTs = ts;
-    task.y += getSpeed() * dt;
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    const rect = shell.rect();
-    syncWaterReflection(rect);
-    if (task.y + cfg.gameplay.tileHeight >= shell.splashContactY(cfg.gameplay.tileHeight, rect)) {
-      miss();
-    }
-    rafId = requestAnimationFrame(loop);
   }
 
   diffsEl.addEventListener("click", async (event) => {
