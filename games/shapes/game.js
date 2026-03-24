@@ -174,6 +174,41 @@
     });
   }
 
+  function clearAnswerMarks() {
+    ansBtns.forEach((btn) => {
+      if (btn._markTimer) {
+        clearTimeout(btn._markTimer);
+        btn._markTimer = null;
+      }
+      if (btn._pressTimer) {
+        clearTimeout(btn._pressTimer);
+        btn._pressTimer = null;
+      }
+      btn.classList.remove("mark-correct", "mark-wrong", "is-pressed");
+    });
+  }
+
+  function showAnswerMark(btn, isCorrect, duration) {
+    const markDuration = duration || cfg.answerLockMs;
+    if (btn._markTimer) {
+      clearTimeout(btn._markTimer);
+    }
+    if (btn._pressTimer) {
+      clearTimeout(btn._pressTimer);
+    }
+    btn.classList.add("is-pressed");
+    btn._pressTimer = setTimeout(() => {
+      btn.classList.remove("is-pressed");
+      btn._pressTimer = null;
+    }, 140);
+    btn.classList.remove("mark-correct", "mark-wrong");
+    btn.classList.add(isCorrect ? "mark-correct" : "mark-wrong");
+    btn._markTimer = setTimeout(() => {
+      btn.classList.remove("mark-correct", "mark-wrong");
+      btn._markTimer = null;
+    }, markDuration);
+  }
+
   function refillCorrectDeck() {
     correctDeck = pairs.slice();
     utils.shuffleInPlace(correctDeck);
@@ -433,6 +468,7 @@
       return;
     }
     if (phase !== "frame") {
+      clearAnswerMarks();
       tileShapeEl.innerHTML = shapeSvg(task.correct.shapeId, "#f8fafc", "#1e293b");
       tileColorEl.innerHTML = colorBadge(task.correct.colorId);
       tileLabelEl.textContent = task.correct.label;
@@ -488,6 +524,7 @@
       const currentTask = task;
       falling.clear("correct");
       setMascot("idle");
+      showAnswerMark(btn, true, cfg.answerLockMs + 80);
       const burstX = currentTask.x + cfg.gameplay.tileWidth / 2;
       const burstY = currentTask.y + cfg.gameplay.tileHeight / 2;
       const rtSec = (now - currentTask.spawnedAt) / 1000;
@@ -511,12 +548,15 @@
       }
       fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
       lockInputUntil = now + cfg.answerLockMs;
-      if (running) {
-        spawnTask();
-      }
+      setTimeout(() => {
+        if (running && !falling.getItem()) {
+          spawnTask();
+        }
+      }, cfg.answerLockMs);
       return;
     }
 
+    showAnswerMark(btn, false, 260);
     score += cfg.gameplay.scoreWrong;
     resetCorrectProgress();
     setHUD();
@@ -537,6 +577,7 @@
     task = null;
     lockInputUntil = 0;
     falling.stop("reset");
+    clearAnswerMarks();
     setHUD();
     updateStreakMeter();
   }
