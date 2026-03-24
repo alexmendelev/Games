@@ -49,8 +49,6 @@
   let selected = "medium";
   let running = false;
   let paused = false;
-  let rafId = null;
-  let lastTs = 0;
   let score = 0;
   let coins = 0;
   let lives = cfg.gameplay.livesStart;
@@ -70,18 +68,30 @@
   let streakRewardPending = false;
   let startPending = false;
 
-  function syncWaterReflection(rectArg) {
-    if (!task) {
+  function syncWaterReflection(nextTask, rectArg) {
+    if (!nextTask) {
       shell.hideWaterReflection();
       return;
     }
     shell.updateWaterReflection(tileEl, {
-      x: task.x,
-      y: task.y,
-      width: task.width,
-      height: task.height
+      x: nextTask.x,
+      y: nextTask.y,
+      width: nextTask.width,
+      height: nextTask.height
     }, rectArg);
   }
+
+  const falling = shell.createFallingRunner({
+    createItem: generateTask,
+    renderItem: renderTask,
+    getSpeed,
+    isMissed: (item, rect) => item.y + item.height >= shell.splashContactY(item.height, rect),
+    onMiss: miss,
+    onClear: () => {
+      task = null;
+      shell.hideWaterReflection();
+    }
+  });
 
   function currentTileMetrics() {
     const rect = tileEl.getBoundingClientRect();
@@ -399,27 +409,30 @@
     };
   }
 
-  function renderTask() {
-    tileEl.textContent = task.wordHe;
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    syncWaterReflection();
-    for (let i = 0; i < ansImgs.length; i += 1) {
-      const emoji = task.options[i];
-      const img = ansImgs[i];
-      ansBtns[i].dataset.value = emoji.id;
-      img.classList.remove("is-ready");
-      img.onload = () => img.classList.add("is-ready");
-      img.onerror = () => img.classList.remove("is-ready");
-      img.src = emoji.src;
-      if (img.complete && img.naturalWidth > 0) img.classList.add("is-ready");
-      warm(emoji.src);
+  function renderTask(nextTask, rectArg, phase) {
+    task = nextTask;
+    if (!task) return;
+    if (phase !== "frame") {
+      tileEl.textContent = task.wordHe;
+      for (let i = 0; i < ansImgs.length; i += 1) {
+        const emoji = task.options[i];
+        const img = ansImgs[i];
+        ansBtns[i].dataset.value = emoji.id;
+        img.classList.remove("is-ready");
+        img.onload = () => img.classList.add("is-ready");
+        img.onerror = () => img.classList.remove("is-ready");
+        img.src = emoji.src;
+        if (img.complete && img.naturalWidth > 0) img.classList.add("is-ready");
+        warm(emoji.src);
+      }
     }
+    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    syncWaterReflection(task, rectArg);
   }
 
   function spawnTask() {
-    task = generateTask();
-    if (!task) return;
-    renderTask();
+    task = falling.spawn();
+    return task;
   }
 
   function playSplash(x) {
@@ -427,8 +440,9 @@
     fx.playSheetFx(cfg.assets.splashSheet, x, shell.waterY(rect), "center");
   }
 
-  function miss() {
-    const drownX = task.x + task.width / 2;
+  function miss(currentTask) {
+    if (!currentTask) return;
+    const drownX = currentTask.x + currentTask.width / 2;
     score += cfg.gameplay.scoreMiss;
     lives -= 1;
     resetCorrectProgress();
@@ -440,9 +454,8 @@
     if (lives <= 0) {
       audio.sfx.death();
       running = false;
+      falling.stop("game-over");
       overlayEl.style.display = "grid";
-      task = null;
-      shell.hideWaterReflection();
       return;
     }
     spawnTask();
@@ -450,8 +463,7 @@
 
   function correct() {
     const currentTask = task;
-    task = null;
-    shell.hideWaterReflection();
+    falling.clear("correct");
     setMascot("idle");
     const burstCenter = currentTileCenter();
     const burstX = burstCenter.x;
@@ -478,7 +490,7 @@
     }
     fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
     setTimeout(() => {
-      if (running) spawnTask();
+      if (running && !falling.getItem()) spawnTask();
     }, cfg.answerLockMs);
   }
 
@@ -503,7 +515,7 @@
     deckPos = 0;
     recentCorrectIds = [];
     lockInputUntil = 0;
-    shell.hideWaterReflection();
+    falling.stop("reset");
     setHUD();
     updateStreakMeter();
   }
@@ -511,16 +523,15 @@
   async function startGame() {
     clearPendingStreakReward();
     resetState();
-    task = generateTask();
+    const firstTask = generateTask();
+    task = firstTask;
     if (!task) return;
     await preloadImages(task.options.map((item) => item.src));
     running = true;
     paused = false;
     pauseBtn.classList.remove("paused");
     overlayEl.style.display = "none";
-    lastTs = 0;
-    renderTask();
-    rafId = requestAnimationFrame(loop);
+    falling.start(firstTask);
   }
 
   function togglePause() {
@@ -529,12 +540,11 @@
     pauseBtn.classList.toggle("paused", paused);
     if (paused) {
       audio.bgm.pause();
+      falling.pause();
     }
     if (!paused) {
       audio.bgm.resume();
-      lastTs = 0;
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(loop);
+      falling.resume();
     }
   }
 
@@ -560,25 +570,6 @@
       preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url)
     ]);
     return true;
-  }
-
-  function loop(ts) {
-    if (!running || paused) return;
-    if (!task) {
-      rafId = requestAnimationFrame(loop);
-      return;
-    }
-    if (!lastTs) lastTs = ts;
-    const dt = Math.min(0.05, (ts - lastTs) / 1000);
-    lastTs = ts;
-    task.y += getSpeed() * dt;
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
-    const rect = shell.rect();
-    syncWaterReflection(rect);
-    if (task.y + task.height >= shell.splashContactY(task.height, rect)) {
-      miss();
-    }
-    rafId = requestAnimationFrame(loop);
   }
 
   diffsEl.addEventListener("click", async (event) => {

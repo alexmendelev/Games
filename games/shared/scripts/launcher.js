@@ -7,7 +7,11 @@
   const barEl = document.getElementById("bootBar");
   const textEl = document.getElementById("bootText");
   const preloadEls = Array.from(document.querySelectorAll("[data-preload]"));
+  const menuGridEl = document.getElementById("menuGrid");
+  const menuPageEl = document.querySelector(".menuPage");
   const menuTitleEl = document.querySelector(".menuTitle");
+  const gameStageEl = document.getElementById("gameStage");
+  const gameFrameEl = document.getElementById("gameFrame");
 
   const imageUrls = [
     "shared/assets/ui/starting.png",
@@ -104,6 +108,107 @@
     });
   }
 
+  function canInterceptNav(event) {
+    return !event.defaultPrevented
+      && event.button === 0
+      && !event.metaKey
+      && !event.ctrlKey
+      && !event.shiftKey
+      && !event.altKey;
+  }
+
+  function requestFullscreenForApp() {
+    const el = document.documentElement;
+    if (!el) {
+      return Promise.resolve();
+    }
+    if (document.fullscreenElement) {
+      return Promise.resolve();
+    }
+
+    const fn = el.requestFullscreen
+      || el.webkitRequestFullscreen
+      || el.msRequestFullscreen;
+
+    if (typeof fn !== "function") {
+      return Promise.resolve();
+    }
+
+    try {
+      const result = fn.call(el);
+      if (result && typeof result.then === "function") {
+        return result.catch(() => {});
+      }
+    } catch (_) {
+      return Promise.resolve();
+    }
+
+    return Promise.resolve();
+  }
+
+  function openEmbeddedGame(href) {
+    if (!gameStageEl || !gameFrameEl) {
+      window.location.href = href;
+      return;
+    }
+    if (menuPageEl) {
+      menuPageEl.hidden = true;
+      menuPageEl.setAttribute("aria-hidden", "true");
+    }
+    gameStageEl.hidden = false;
+    gameStageEl.setAttribute("aria-hidden", "false");
+    gameFrameEl.src = href;
+  }
+
+  function closeEmbeddedGame() {
+    if (gameFrameEl) {
+      gameFrameEl.src = "about:blank";
+    }
+    if (gameStageEl) {
+      gameStageEl.hidden = true;
+      gameStageEl.setAttribute("aria-hidden", "true");
+    }
+    if (menuPageEl) {
+      menuPageEl.hidden = false;
+      menuPageEl.setAttribute("aria-hidden", "false");
+    }
+    return true;
+  }
+
+  window.__gamesCloseEmbeddedStage = closeEmbeddedGame;
+
+  function installEmbeddedExitListener() {
+    window.addEventListener("message", (event) => {
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+      if (!event.data || event.data.type !== "games:exit-embedded") {
+        return;
+      }
+      if (gameFrameEl && event.source !== gameFrameEl.contentWindow) {
+        return;
+      }
+      closeEmbeddedGame();
+    });
+  }
+
+  function installMenuLaunchFullscreen() {
+    if (!menuGridEl) {
+      return;
+    }
+
+    menuGridEl.addEventListener("click", async (event) => {
+      const card = event.target.closest("a.menuCard[href]");
+      if (!card || !menuGridEl.contains(card) || !canInterceptNav(event)) {
+        return;
+      }
+
+      event.preventDefault();
+      await requestFullscreenForApp();
+      openEmbeddedGame(card.getAttribute("href"));
+    });
+  }
+
   function bootMode() {
     try {
       if (window.sessionStorage.getItem(bootSeenKey) === "1") {
@@ -150,4 +255,6 @@
   }
 
   boot();
+  installMenuLaunchFullscreen();
+  installEmbeddedExitListener();
 })();

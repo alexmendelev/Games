@@ -97,7 +97,7 @@ window.GAMES_V2_SHELL = (function (utils) {
       const waterLineY = waterY(r);
       const tileBottom = tileY + tileHeight;
       const distanceToWater = waterLineY - tileBottom;
-      const fadeRange = Math.max(tileHeight * 2.4, r.height * 0.34);
+      const fadeRange = Math.max(tileHeight * 3.8, r.height * 0.52);
       const closeness = utils.clamp(1 - (distanceToWater / fadeRange), 0, 1);
       if (closeness <= 0) {
         hideWaterShadow();
@@ -105,7 +105,7 @@ window.GAMES_V2_SHELL = (function (utils) {
       }
 
       const centerX = tileX + (tileWidth / 2);
-      const shadowY = waterLineY + Math.max(8, tileHeight * 0.08);
+      const shadowY = waterLineY + Math.max(12, tileHeight * 0.12);
       const width = tileWidth * (0.52 + closeness * 0.34);
       const height = tileHeight * (0.18 + closeness * 0.11);
       const scaleX = 0.9 + closeness * 0.18;
@@ -115,7 +115,7 @@ window.GAMES_V2_SHELL = (function (utils) {
       shadow.style.top = `${shadowY}px`;
       shadow.style.width = `${width}px`;
       shadow.style.height = `${height}px`;
-      shadow.style.opacity = `${0.08 + closeness * 0.34}`;
+      shadow.style.opacity = `${0.12 + closeness * 0.38}`;
       shadow.style.transform = `translate(-50%, -50%) scale(${scaleX}, ${scaleY})`;
     }
 
@@ -235,11 +235,186 @@ window.GAMES_V2_SHELL = (function (utils) {
       return baseWaterY + shadowTouchOffset;
     }
 
+    function createFallingRunner(options) {
+      const runnerSettings = Object.assign({
+        createItem: null,
+        renderItem: null,
+        getSpeed: null,
+        isMissed: null,
+        onMiss: null,
+        onClear: null
+      }, options || {});
+
+      let currentItem = null;
+      let running = false;
+      let paused = false;
+      let rafId = null;
+      let lastTs = 0;
+
+      function cancelLoop() {
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+      }
+
+      function clear(reason) {
+        currentItem = null;
+        if (typeof runnerSettings.onClear === "function") {
+          runnerSettings.onClear(reason || "clear");
+        }
+      }
+
+      function renderCurrent(phase, rectArg) {
+        if (!currentItem || typeof runnerSettings.renderItem !== "function") {
+          return currentItem;
+        }
+        const r = rectArg || rect();
+        runnerSettings.renderItem(currentItem, r, phase || "frame");
+        return currentItem;
+      }
+
+      function setItem(item, phase) {
+        currentItem = item || null;
+        if (!currentItem) {
+          clear(phase || "clear");
+          return null;
+        }
+        renderCurrent(phase || "spawn");
+        return currentItem;
+      }
+
+      function spawn() {
+        if (typeof runnerSettings.createItem !== "function") {
+          clear("spawn-empty");
+          return null;
+        }
+        return setItem(runnerSettings.createItem(), "spawn");
+      }
+
+      function tick(ts) {
+        if (!running || paused) {
+          rafId = null;
+          return;
+        }
+        if (!currentItem) {
+          rafId = requestAnimationFrame(tick);
+          return;
+        }
+        if (!lastTs) {
+          lastTs = ts;
+        }
+        const dt = Math.min(0.05, (ts - lastTs) / 1000);
+        lastTs = ts;
+
+        const speed = typeof runnerSettings.getSpeed === "function" ? Number(runnerSettings.getSpeed(currentItem)) : 0;
+        currentItem.y += Math.max(0, Number.isFinite(speed) ? speed : 0) * dt;
+
+        const r = rect();
+        renderCurrent("frame", r);
+
+        const missed = typeof runnerSettings.isMissed === "function"
+          ? runnerSettings.isMissed(currentItem, r)
+          : false;
+        if (missed) {
+          const missedItem = currentItem;
+          clear("miss");
+          if (typeof runnerSettings.onMiss === "function") {
+            runnerSettings.onMiss(missedItem, r);
+          }
+        }
+
+        if (running && !paused) {
+          rafId = requestAnimationFrame(tick);
+        } else {
+          rafId = null;
+        }
+      }
+
+      function start(initialItem) {
+        running = true;
+        paused = false;
+        lastTs = 0;
+        cancelLoop();
+        if (initialItem) {
+          setItem(initialItem, "spawn");
+        } else {
+          spawn();
+        }
+        rafId = requestAnimationFrame(tick);
+        return currentItem;
+      }
+
+      function stop(reason) {
+        running = false;
+        paused = false;
+        lastTs = 0;
+        cancelLoop();
+        clear(reason || "stop");
+      }
+
+      function pause() {
+        if (!running) {
+          return;
+        }
+        paused = true;
+        lastTs = 0;
+        cancelLoop();
+      }
+
+      function resume() {
+        if (!running) {
+          return;
+        }
+        paused = false;
+        lastTs = 0;
+        cancelLoop();
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function getItem() {
+        return currentItem;
+      }
+
+      return {
+        start,
+        stop,
+        pause,
+        resume,
+        spawn,
+        clear,
+        setItem,
+        getItem,
+        renderCurrent,
+        isRunning: () => running,
+        isPaused: () => paused
+      };
+    }
+
     function getUi() {
       return utils.getUi();
     }
 
     function exitGame() {
+      if (window.parent && window.parent !== window) {
+        try {
+          if (typeof window.parent.__gamesCloseEmbeddedStage === "function") {
+            const closed = window.parent.__gamesCloseEmbeddedStage();
+            if (closed === true) {
+              return;
+            }
+          }
+        } catch (_) {}
+        try {
+          window.parent.postMessage({ type: "games:exit-embedded" }, "*");
+        } catch (_) {}
+        try {
+          if (window.top && window.top !== window) {
+            window.top.location.href = new URL(settings.menuUrl, window.location.href).href;
+            return;
+          }
+        } catch (_) {}
+      }
       window.location.href = settings.menuUrl;
     }
 
@@ -260,6 +435,7 @@ window.GAMES_V2_SHELL = (function (utils) {
       waterY,
       fallLane,
       splashContactY,
+      createFallingRunner,
       updateWaterShadow,
       hideWaterShadow,
       updateWaterReflection,
