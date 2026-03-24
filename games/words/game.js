@@ -257,6 +257,41 @@
     }
   }
 
+  function clearAnswerMarks() {
+    ansBtns.forEach((btn) => {
+      if (btn._markTimer) {
+        clearTimeout(btn._markTimer);
+        btn._markTimer = null;
+      }
+      if (btn._pressTimer) {
+        clearTimeout(btn._pressTimer);
+        btn._pressTimer = null;
+      }
+      btn.classList.remove("mark-correct", "mark-wrong", "is-pressed");
+    });
+  }
+
+  function showAnswerMark(btn, isCorrect, duration) {
+    const markDuration = duration || cfg.answerLockMs;
+    if (btn._markTimer) {
+      clearTimeout(btn._markTimer);
+    }
+    if (btn._pressTimer) {
+      clearTimeout(btn._pressTimer);
+    }
+    btn.classList.add("is-pressed");
+    btn._pressTimer = setTimeout(() => {
+      btn.classList.remove("is-pressed");
+      btn._pressTimer = null;
+    }, 140);
+    btn.classList.remove("mark-correct", "mark-wrong");
+    btn.classList.add(isCorrect ? "mark-correct" : "mark-wrong");
+    btn._markTimer = setTimeout(() => {
+      btn.classList.remove("mark-correct", "mark-wrong");
+      btn._markTimer = null;
+    }, markDuration);
+  }
+
   function clearPendingStreakReward() {
     if (streakRewardTimer !== null) {
       clearTimeout(streakRewardTimer);
@@ -413,6 +448,7 @@
     task = nextTask;
     if (!task) return;
     if (phase !== "frame") {
+      clearAnswerMarks();
       tileEl.textContent = task.wordHe;
       for (let i = 0; i < ansImgs.length; i += 1) {
         const emoji = task.options[i];
@@ -461,10 +497,11 @@
     spawnTask();
   }
 
-  function correct() {
+  function correct(btn) {
     const currentTask = task;
     falling.clear("correct");
     setMascot("idle");
+    showAnswerMark(btn, true, cfg.answerLockMs + 80);
     const burstCenter = currentTileCenter();
     const burstX = burstCenter.x;
     const burstY = burstCenter.y;
@@ -494,7 +531,8 @@
     }, cfg.answerLockMs);
   }
 
-  function wrong() {
+  function wrong(btn) {
+    showAnswerMark(btn, false, 260);
     score += cfg.gameplay.scoreWrong;
     resetCorrectProgress();
     setHUD();
@@ -516,6 +554,7 @@
     recentCorrectIds = [];
     lockInputUntil = 0;
     falling.stop("reset");
+    clearAnswerMarks();
     setHUD();
     updateStreakMeter();
   }
@@ -607,9 +646,9 @@
     if (performance.now() < lockInputUntil) return;
     if (String(btn.dataset.value || "") === task.correctId) {
       lockInputUntil = performance.now() + cfg.answerLockMs;
-      correct();
+      correct(btn);
     } else {
-      wrong();
+      wrong(btn);
     }
   });
 
@@ -622,9 +661,9 @@
       if (!btn) return;
       if (String(btn.dataset.value || "") === task.correctId) {
         lockInputUntil = performance.now() + cfg.answerLockMs;
-        correct();
+        correct(btn);
       } else {
-        wrong();
+        wrong(btn);
       }
     }
   });
