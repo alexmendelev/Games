@@ -40,7 +40,6 @@ window.GAME_V3_MATH_CONFIG = {
   progression: [
     {
       label: "חיבור עד 5",
-      correct: 10,
       noNegOptions: true,
       wrongNear: 3,
       wrongFar: 6,
@@ -49,7 +48,6 @@ window.GAME_V3_MATH_CONFIG = {
     },
     {
       label: "חיבור וחיסור עד 10",
-      correct: 12,
       allowNegResult: false,
       noNegOptions: true,
       wrongNear: 4,
@@ -60,7 +58,6 @@ window.GAME_V3_MATH_CONFIG = {
     },
     {
       label: "חיבור וחיסור עד 20",
-      correct: 15,
       allowNegResult: false,
       noNegOptions: true,
       wrongNear: 5,
@@ -71,7 +68,6 @@ window.GAME_V3_MATH_CONFIG = {
     },
     {
       label: "חיסור עם תוצאות שליליות",
-      correct: 18,
       allowNegResult: true,
       noNegOptions: false,
       wrongNear: 6,
@@ -82,7 +78,6 @@ window.GAME_V3_MATH_CONFIG = {
     },
     {
       label: "כפל עד 5",
-      correct: 20,
       allowNegResult: false,
       noNegOptions: true,
       wrongNear: 6,
@@ -94,7 +89,6 @@ window.GAME_V3_MATH_CONFIG = {
     },
     {
       label: "כפל וחילוק עד 10",
-      correct: 22,
       allowNegResult: true,
       noNegOptions: false,
       wrongNear: 7,
@@ -108,7 +102,6 @@ window.GAME_V3_MATH_CONFIG = {
     },
     {
       label: "סופר",
-      correct: 25,
       allowNegResult: true,
       noNegOptions: false,
       wrongNear: 8,
@@ -122,13 +115,24 @@ window.GAME_V3_MATH_CONFIG = {
     }
   ],
   gameplay: {
-    livesStart: 10,
-    scoreWrong: -5,
-    scoreMiss: -10,
+    normalAttempts: 2,
+    specialAttempts: 1,
+    specialChance: 1 / 6,
+    specialSilverWeight: 70,
+    specialGoldWeight: 25,
+    specialDiamondWeight: 5,
+    specialSilverCoins: 1,
+    specialGoldCoins: 5,
+    specialDiamondCoins: 20,
     baseSpeed: 80,
     speedIncPerLevel: 6,
-    pointsPerLevel: 200,
-    stageScoreStep: 180,
+    stageLevelStep: 2,
+    levelGoals: {
+      easy: { correctTarget: 8, timeLimitMs: 60000 },
+      medium: { correctTarget: 10, timeLimitMs: 75000 },
+      hard: { correctTarget: 12, timeLimitMs: 90000 },
+      super: { correctTarget: 14, timeLimitMs: 90000 }
+    },
     tileWBase: 240,
     tileHBase: 78,
     marginBase: 10,

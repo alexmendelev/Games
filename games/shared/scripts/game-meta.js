@@ -52,7 +52,7 @@ window.GAMES_V2_META = (function (utils) {
       points: "נקודות",
       coins: "מטבעות",
       lives: "חיים",
-      stars: "כוכבים",
+      bestLevel: "שיא שלב",
       settings: "הגדרות",
       exit: "יציאה",
       sound: "צליל",
@@ -72,6 +72,16 @@ window.GAMES_V2_META = (function (utils) {
       startLevel(levelNumber, difficultyLabel) { return "שלב " + levelNumber + " • " + difficultyLabel; },
       continueLevel(levelNumber, difficultyLabel) { return "המשך לשלב " + levelNumber + " • " + difficultyLabel; },
       resultsTitle(levelNumber) { return "סיכום שלב " + levelNumber; },
+      resultsSummary: "סיכום ביצועים",
+      correct: "נכונות",
+      wrong: "שגויות",
+      missed: "פספוסים",
+      accuracy: "דיוק",
+      bestStreak: "רצף שיא",
+      coinsEarned: "מטבעות שנצברו",
+      time: "זמן",
+      targetReached: "היעד הושלם",
+      timeUp: "הזמן נגמר",
       leaderboard: "טבלת מובילים",
       leaderboardHint: "גם שאר המשתתפים ממשיכים לצבור מטבעות בכל סבב.",
       language: "שפה",
@@ -97,7 +107,7 @@ window.GAMES_V2_META = (function (utils) {
       points: "Points",
       coins: "Coins",
       lives: "Lives",
-      stars: "Stars",
+      bestLevel: "Best level",
       settings: "Settings",
       exit: "Exit",
       sound: "Sound",
@@ -117,6 +127,16 @@ window.GAMES_V2_META = (function (utils) {
       startLevel(levelNumber, difficultyLabel) { return "Level " + levelNumber + " • " + difficultyLabel; },
       continueLevel(levelNumber, difficultyLabel) { return "Continue to Level " + levelNumber + " • " + difficultyLabel; },
       resultsTitle(levelNumber) { return "Level " + levelNumber + " Results"; },
+      resultsSummary: "Round summary",
+      correct: "Correct",
+      wrong: "Wrong",
+      missed: "Missed",
+      accuracy: "Accuracy",
+      bestStreak: "Best streak",
+      coinsEarned: "Coins earned",
+      time: "Time",
+      targetReached: "Goal reached",
+      timeUp: "Time up",
       leaderboard: "Leaderboard",
       leaderboardHint: "Other players also gain a few coins each round.",
       language: "Language",
@@ -224,7 +244,7 @@ window.GAMES_V2_META = (function (utils) {
   }
 
   function createGameProgressMap(defaultLevel) {
-    const safeLevel = Math.max(1, Number(defaultLevel) || 1);
+    const safeLevel = Math.max(0, Number(defaultLevel) || 0);
     const progressByGame = {};
     GAME_KEYS.forEach((gameKey) => {
       progressByGame[gameKey] = {
@@ -244,12 +264,12 @@ window.GAMES_V2_META = (function (utils) {
   }
 
   function getGameProgress(state, gameKey) {
-    const fallbackLevel = Math.max(1, Number(state && state.player && state.player.highestCompletedLevel) || 1);
+    const fallbackLevel = Math.max(0, Number(state && state.player && state.player.highestCompletedLevel) || 0);
     const raw = state && state.player && state.player.progressByGame && gameKey
       ? state.player.progressByGame[gameKey]
       : null;
     return {
-      highestCompletedLevel: Math.max(1, Number(raw && raw.highestCompletedLevel) || fallbackLevel)
+      highestCompletedLevel: Math.max(0, Number(raw && raw.highestCompletedLevel) || fallbackLevel)
     };
   }
 
@@ -288,7 +308,7 @@ window.GAMES_V2_META = (function (utils) {
       return;
     }
     const levels = GAME_KEYS.map((gameKey) => getGameProgress(state, gameKey).highestCompletedLevel);
-    state.player.highestCompletedLevel = levels.length ? Math.max.apply(Math, levels) : Math.max(1, Number(state.player.highestCompletedLevel) || 1);
+    state.player.highestCompletedLevel = levels.length ? Math.max.apply(Math, levels) : Math.max(0, Number(state.player.highestCompletedLevel) || 0);
     if (!state.settings.preferredDiff) {
       state.settings.preferredDiff = getPreferredDiffForGame(state, GAME_KEYS[0]);
     }
@@ -307,9 +327,8 @@ window.GAMES_V2_META = (function (utils) {
   }
 
   function defaultState(defaultLives, initialLanguage, initialSoundEnabled) {
-    const safeLives = Math.max(3, Number(defaultLives) || 5);
     const playerName = defaultPlayerName(initialLanguage);
-    const defaultLevel = 3;
+    const defaultLevel = 0;
     const defaultDiff = "medium";
     return {
       version: 1,
@@ -318,11 +337,10 @@ window.GAMES_V2_META = (function (utils) {
         name: playerName,
         avatar: "lion",
         language: LANGUAGES[initialLanguage] ? initialLanguage : "he",
-        coins: 120,
-        lives: safeLives,
+        coins: 0,
         highestCompletedLevel: defaultLevel,
         progressByGame: createGameProgressMap(defaultLevel),
-        currentRank: 3
+        currentRank: 5
       },
       settings: {
         preferredDiff: defaultDiff,
@@ -332,7 +350,7 @@ window.GAMES_V2_META = (function (utils) {
         diffBoundsByGame: {}
       },
       participants: [
-        { id: "me", name: playerName, avatar: "lion", coins: 120 },
+        { id: "me", name: playerName, avatar: "lion", coins: 0 },
         { id: "p2", name: "Dana", avatar: "tiger", coins: 135 },
         { id: "p3", name: "Noam", avatar: "penguin", coins: 98 },
         { id: "p4", name: "Maya", avatar: "frog", coins: 127 },
@@ -349,6 +367,7 @@ window.GAMES_V2_META = (function (utils) {
     next.player = Object.assign({}, defaults.player, source.player || {});
     next.settings = Object.assign({}, defaults.settings, source.settings || {});
     next.messageCursor = Number.isFinite(source.messageCursor) ? source.messageCursor : defaults.messageCursor;
+    delete next.player.lives;
 
     const rawParticipants = Array.isArray(source.participants) ? source.participants : defaults.participants;
     const mergedParticipants = [];
@@ -375,8 +394,7 @@ window.GAMES_V2_META = (function (utils) {
     next.player.avatar = getAvatar(next.player.avatar).id;
     next.player.language = getLanguage(next.player.language).id;
     next.player.coins = Math.max(0, Number(next.player.coins) || defaults.player.coins);
-    next.player.lives = Math.max(1, Number(next.player.lives) || defaults.player.lives);
-    next.player.highestCompletedLevel = Math.max(1, Number(next.player.highestCompletedLevel) || defaults.player.highestCompletedLevel);
+    next.player.highestCompletedLevel = Math.max(0, Number(next.player.highestCompletedLevel) || defaults.player.highestCompletedLevel);
     next.player.progressByGame = next.player.progressByGame && typeof next.player.progressByGame === "object"
       ? Object.assign({}, next.player.progressByGame)
       : {};
@@ -384,7 +402,7 @@ window.GAMES_V2_META = (function (utils) {
       const rawGameProgress = next.player.progressByGame[gameKey];
       next.player.progressByGame[gameKey] = {
         highestCompletedLevel: Math.max(
-          1,
+          0,
           Number(rawGameProgress && rawGameProgress.highestCompletedLevel) || next.player.highestCompletedLevel
         )
       };
@@ -462,14 +480,15 @@ window.GAMES_V2_META = (function (utils) {
     const ranked = rankParticipants(state.participants);
     const playerRank = ranked.find((participant) => participant.id === "me");
     const gameProgress = getGameProgress(state, gameKey);
+    const bestLevel = Math.max(0, Number(gameProgress.highestCompletedLevel) || 0);
     return {
       player: deepClone(Object.assign({}, state.player, {
         currentRank: playerRank ? playerRank.rank : state.player.currentRank,
-        highestCompletedLevel: gameProgress.highestCompletedLevel
+        highestCompletedLevel: bestLevel
       })),
       participants: ranked,
-      nextLevel: Math.max(1, Number(gameProgress.highestCompletedLevel) + 1),
-      stars: Math.max(0, Number(gameProgress.highestCompletedLevel) || 0)
+      nextLevel: bestLevel + 1,
+      bestLevel
     };
   }
 
@@ -480,8 +499,125 @@ window.GAMES_V2_META = (function (utils) {
     return message;
   }
 
+  function buildPerformanceProfile(context, beforeRanks) {
+    const metrics = context && context.metrics ? context.metrics : {};
+    const accuracy = utils.clamp(Number(metrics.accuracy) || 0, 0, 1);
+    const coinsEarned = Math.max(0, Number(metrics.coinsEarned) || 0);
+    const bestStreak = Math.max(0, Number(metrics.bestStreak) || 0);
+    const playerBefore = Array.isArray(beforeRanks)
+      ? beforeRanks.find((participant) => participant.id === "me")
+      : null;
+    const playerRank = Math.max(1, Number(playerBefore && playerBefore.rank) || 1);
+    let score = 0;
+    score += accuracy * 0.55;
+    score += utils.clamp(coinsEarned / 3, 0, 1) * 0.2;
+    score += utils.clamp(bestStreak / 10, 0, 1) * 0.15;
+    if ((metrics.endedBy || "target") !== "time") {
+      score += 0.1;
+    }
+    score = utils.clamp(score, 0, 1);
+
+    let playerBonus = 1;
+    if (score >= 0.92) {
+      playerBonus += 3;
+    } else if (score >= 0.78) {
+      playerBonus += 2;
+    } else if (score >= 0.6) {
+      playerBonus += 1;
+    }
+    if (playerRank >= 4) {
+      playerBonus += 1;
+    }
+    if (accuracy >= 0.98 && coinsEarned >= 2) {
+      playerBonus += 1;
+    }
+
+    return {
+      metrics,
+      accuracy,
+      coinsEarned,
+      bestStreak,
+      playerRank,
+      score,
+      playerBonus: utils.clamp(playerBonus, 1, 6)
+    };
+  }
+
+  function competitorGapRange(context, direction) {
+    const performanceScore = utils.clamp(Number(context.performanceScore) || 0, 0, 1);
+    const coinsEarned = Math.max(0, Number(context.coinsEarned) || 0);
+    const hotRun = performanceScore >= 0.9 || coinsEarned >= 5;
+    const strongRun = performanceScore >= 0.76 || coinsEarned >= 3;
+    if (direction === "ahead") {
+      if (hotRun) {
+        return { min: 1, max: 4 };
+      }
+      if (strongRun) {
+        return { min: 2, max: 6 };
+      }
+      return { min: 3, max: 9 };
+    }
+    if (hotRun) {
+      return { min: 1, max: 5 };
+    }
+    if (strongRun) {
+      return { min: 2, max: 7 };
+    }
+    return { min: 3, max: 10 };
+  }
+
+  function tightenCompetitionAroundPlayer(participants, context) {
+    const ranked = rankParticipants(participants);
+    const playerIndex = ranked.findIndex((participant) => participant.id === "me");
+    if (playerIndex < 0) {
+      return ranked;
+    }
+
+    const adjusted = ranked.map((participant) => Object.assign({}, participant));
+    const player = adjusted[playerIndex];
+
+    function seededGap(participantId, direction, minGap, maxGap) {
+      const rng = seededRandom(hashString([
+        context.gameKey,
+        context.completedLevel,
+        participantId,
+        direction,
+        player.coins,
+        context.coinsEarned,
+        context.performanceScore
+      ].join("|")));
+      return randomInt(rng, minGap, maxGap);
+    }
+
+    const ahead = adjusted[playerIndex - 1];
+    if (ahead) {
+      const range = competitorGapRange(context, "ahead");
+      const targetGap = seededGap(ahead.id, "ahead", range.min, range.max);
+      let desiredCoins = player.coins + targetGap;
+      const hardCeiling = playerIndex >= 2 ? adjusted[playerIndex - 2].coins - 1 : desiredCoins;
+      desiredCoins = Math.min(desiredCoins, hardCeiling);
+      if (desiredCoins > player.coins) {
+        ahead.coins = desiredCoins;
+      }
+    }
+
+    const behind = adjusted[playerIndex + 1];
+    if (behind) {
+      const range = competitorGapRange(context, "behind");
+      const targetGap = seededGap(behind.id, "behind", range.min, range.max);
+      let desiredCoins = Math.max(0, player.coins - targetGap);
+      const floor = playerIndex + 2 < adjusted.length ? adjusted[playerIndex + 2].coins + 1 : 0;
+      desiredCoins = Math.max(desiredCoins, floor);
+      if (desiredCoins < player.coins) {
+        behind.coins = desiredCoins;
+      }
+    }
+
+    return adjusted;
+  }
+
   function simulateCompetitorProgress(participants, context) {
-    return participants.map((participant, index) => {
+    const progressed = participants.map((participant, index) => {
       if (participant.id === "me") {
         return Object.assign({}, participant);
       }
@@ -494,22 +630,51 @@ window.GAMES_V2_META = (function (utils) {
         index
       ].join("|"));
       const rng = seededRandom(seed);
-      const baseGain = 3 + Math.floor(context.completedLevel / 3);
-      const smallSwing = randomInt(rng, -1, 4);
-      const momentum = randomInt(rng, 0, 3);
-      const closeRaceBonus = Math.abs(participant.coins - context.playerCoins) <= 18 ? 2 : 0;
-      const delta = utils.clamp(baseGain + smallSwing + momentum + closeRaceBonus, 1, 12);
+      const gapToPlayer = participant.coins - context.playerCoins;
+      const aheadOfPlayer = gapToPlayer >= 0;
+      let minGain = 1;
+      let maxGain = 3;
+
+      if (context.performanceScore >= 0.92) {
+        minGain = aheadOfPlayer ? 0 : 1;
+        maxGain = aheadOfPlayer ? 1 : 2;
+      } else if (context.performanceScore >= 0.78) {
+        minGain = aheadOfPlayer ? 0 : 1;
+        maxGain = aheadOfPlayer ? 2 : 2;
+      } else if (context.performanceScore >= 0.6) {
+        minGain = aheadOfPlayer ? 1 : 1;
+        maxGain = aheadOfPlayer ? 2 : 3;
+      } else {
+        minGain = aheadOfPlayer ? 2 : 1;
+        maxGain = aheadOfPlayer ? 4 : 3;
+      }
+
+      if (context.playerRank >= 4 && aheadOfPlayer) {
+        maxGain = Math.max(0, maxGain - 1);
+        minGain = Math.min(minGain, maxGain);
+      }
+      if (gapToPlayer > 120) {
+        maxGain = Math.min(maxGain, context.performanceScore >= 0.78 ? 0 : 1);
+        minGain = Math.min(minGain, maxGain);
+      } else if (gapToPlayer > 45 && context.performanceScore >= 0.78) {
+        maxGain = Math.min(maxGain, 1);
+        minGain = Math.min(minGain, maxGain);
+      }
+
+      const delta = randomInt(rng, minGain, maxGain);
       return Object.assign({}, participant, {
         coins: participant.coins + delta
       });
     });
+    return tightenCompetitionAroundPlayer(progressed, context);
   }
 
   function applyRoundResult(state, context) {
     const beforeRanks = rankParticipants(state.participants);
     const nextState = deepClone(state);
-    nextState.player.coins = Math.max(0, Number(context.playerCoins) || nextState.player.coins);
-    nextState.player.lives = Math.max(1, Number(context.playerLives) || nextState.player.lives);
+    const performance = buildPerformanceProfile(context, beforeRanks);
+    const totalPlayerCoins = Math.max(0, Number(context.playerCoins) || nextState.player.coins) + performance.playerBonus;
+    nextState.player.coins = totalPlayerCoins;
     setGameCompletedLevel(nextState, context.gameKey, context.completedLevel);
     syncLegacyProgressFields(nextState);
     nextState.participants = nextState.participants.map((participant) => {
@@ -519,13 +684,16 @@ window.GAMES_V2_META = (function (utils) {
       return Object.assign({}, participant, {
         name: nextState.player.name,
         avatar: nextState.player.avatar,
-        coins: nextState.player.coins
+        coins: totalPlayerCoins
       });
     });
     nextState.participants = simulateCompetitorProgress(nextState.participants, {
       gameKey: context.gameKey,
       completedLevel: getGameProgress(nextState, context.gameKey).highestCompletedLevel,
-      playerCoins: nextState.player.coins
+      playerCoins: totalPlayerCoins,
+      playerRank: performance.playerRank,
+      performanceScore: performance.score,
+      coinsEarned: performance.coinsEarned
     });
 
     const afterRanks = rankParticipants(nextState.participants);
@@ -542,7 +710,8 @@ window.GAMES_V2_META = (function (utils) {
       state: nextState,
       beforeRanks,
       afterRanks,
-      message: nextMessage(nextState)
+      message: nextMessage(nextState),
+      playerBonus: performance.playerBonus
     };
   }
 
@@ -576,31 +745,9 @@ window.GAMES_V2_META = (function (utils) {
     if (!diffOptions.length) {
       return "medium";
     }
-    const snapshot = getStatusSnapshot(state, extra && extra.gameKey);
-    const nextLevel = snapshot.nextLevel;
-    let score = Math.max(0, nextLevel - 1);
-    if (snapshot.player.currentRank <= 2) {
-      score += 2;
-    } else if (snapshot.player.currentRank === 3) {
-      score += 1;
-    }
-    if (snapshot.player.lives >= 6) {
-      score += 1;
-    } else if (snapshot.player.lives <= 2) {
-      score -= 2;
-    } else if (snapshot.player.lives <= 4) {
-      score -= 1;
-    }
-    if ((extra && extra.gameOver) || snapshot.player.lives <= 1) {
-      score -= 2;
-    }
-    if (snapshot.player.coins >= 180) {
-      score += 1;
-    }
-    const divisor = diffOptions.length === 2 ? 4 : 3;
-    const index = utils.clamp(Math.floor(Math.max(0, score) / divisor), 0, diffOptions.length - 1);
     const bounds = getDifficultyBounds(state, extra && extra.gameKey, diffOptions);
-    return diffOptions[utils.clamp(index, bounds.minIndex, bounds.maxIndex)].key;
+    const index = randomInt(Math.random, bounds.minIndex, bounds.maxIndex);
+    return diffOptions[index] ? diffOptions[index].key : "medium";
   }
 
   function getDifficultyBounds(state, gameKey, diffOptions) {
@@ -642,21 +789,27 @@ window.GAMES_V2_META = (function (utils) {
 
   function buildStatusPills(snapshot, languageId) {
     const copy = getCopy(languageId);
-    const stars = Math.max(0, Number(snapshot.stars) || 0);
-    return [
-      "<div class=\"metaStatusChip\">" +
-        iconMarkup("../shared/assets/ui/coin.svg", copy.points, "metaStatusIcon") +
-        "<div class=\"metaStatusValueWrap\"><strong class=\"metaStatusValue\">" + escapeHtml(snapshot.player.coins) + "</strong></div>" +
-      "</div>",
-      "<div class=\"metaStatusChip\">" +
-        heartIconMarkup(copy.lives, "metaStatusIcon metaStatusIcon--heart") +
-        "<div class=\"metaStatusValueWrap\"><strong class=\"metaStatusValue\">" + escapeHtml(snapshot.player.lives) + "</strong></div>" +
-      "</div>",
-      "<div class=\"metaStatusChip\">" +
-        iconMarkup("../shared/assets/ui/star.svg", copy.stars, "metaStatusIcon") +
-        "<div class=\"metaStatusValueWrap\"><strong class=\"metaStatusValue\">" + escapeHtml(stars) + "</strong></div>" +
-      "</div>"
-    ].join("");
+    const items = [];
+    if (snapshot.player.coins > 0) {
+      items.unshift(
+        "<div class=\"metaStatusChip\">" +
+          iconMarkup("../shared/assets/ui/coin.svg", copy.coins, "metaStatusIcon") +
+          "<div class=\"metaStatusValueWrap\"><span class=\"metaStatusLabel\">" + escapeHtml(copy.coins) + "</span><strong class=\"metaStatusValue\">" + escapeHtml(snapshot.player.coins) + "</strong></div>" +
+        "</div>"
+      );
+    }
+    if (snapshot.bestLevel > 0) {
+      items.push(
+        "<div class=\"metaStatusChip\">" +
+        iconMarkup("../shared/assets/ui/star.svg", copy.bestLevel, "metaStatusIcon") +
+        "<div class=\"metaStatusValueWrap\"><span class=\"metaStatusLabel\">" + escapeHtml(copy.bestLevel) + "</span><strong class=\"metaStatusValue\">" + escapeHtml(snapshot.bestLevel) + "</strong></div>" +
+        "</div>"
+      );
+    }
+    return {
+      count: items.length,
+      markup: items.join("")
+    };
   }
 
   function buildAvatarButtons(state, languageId, actionName, avatarOptions) {
@@ -731,8 +884,14 @@ window.GAMES_V2_META = (function (utils) {
     const copy = getCopy(languageId);
     const language = getLanguage(languageId);
     const snapshot = getStatusSnapshot(state, options.gameKey);
+    const statusPills = buildStatusPills(snapshot, languageId);
     const difficultyText = diffLabel(selectedDiff, languageId);
     const playerName = String(state.player.name || "").replace(/\s+/g, " ").trim() || defaultPlayerName(languageId);
+    const statusSection = statusPills.markup
+      ? "<div class=\"metaSection metaSection--start\">" +
+          "<div class=\"metaStatusGrid metaStatusGrid--" + escapeHtml(statusPills.count) + "\">" + statusPills.markup + "</div>" +
+        "</div>"
+      : "";
 
     return "<div class=\"metaCard metaCard--start\" dir=\"" + escapeHtml(language.dir) + "\">" +
       "<div class=\"metaStartBrand metaStartBrand--top\">" +
@@ -746,9 +905,7 @@ window.GAMES_V2_META = (function (utils) {
             "</span>" +
           "</button>" +
       "</div>" +
-      "<div class=\"metaSection metaSection--start\">" +
-        "<div class=\"metaStatusGrid metaStatusGrid--three\">" + buildStatusPills(snapshot, languageId) + "</div>" +
-      "</div>" +
+      statusSection +
       "<div class=\"metaStartFooter\">" +
         "<div class=\"metaStartToolbar\">" +
           "<div class=\"metaStartActions\">" +
@@ -844,6 +1001,36 @@ window.GAMES_V2_META = (function (utils) {
     return { text: copy.holdingRank(afterRank), kind: "flat" };
   }
 
+  function formatDuration(ms) {
+    const totalSeconds = Math.max(0, Math.round((Number(ms) || 0) / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return minutes + ":" + String(seconds).padStart(2, "0");
+  }
+
+  function formatPercent(value) {
+    return Math.round(Math.max(0, Number(value) || 0) * 100) + "%";
+  }
+
+  function buildResultsSummaryMarkup(resultContext, copy) {
+    const metrics = resultContext && resultContext.metrics;
+    if (!metrics) {
+      return "";
+    }
+    const outcomeLabel = metrics.endedBy === "time" ? copy.timeUp : copy.targetReached;
+    const summaryBadges = [
+      outcomeLabel,
+      copy.accuracy + " " + formatPercent(metrics.accuracy),
+      copy.coinsEarned + " +" + Math.max(0, Number(metrics.coinsEarned) || 0),
+      copy.time + " " + formatDuration(metrics.elapsedMs)
+    ].map((label) => {
+      return "<span class=\"metaResultBadge\">" + escapeHtml(label) + "</span>";
+    }).join("");
+    return "<div class=\"metaResultsSummary\">" +
+      "<div class=\"metaResultMetaRow\">" + summaryBadges + "</div>" +
+    "</div>";
+  }
+
   function getVisibleResultRows(rows, expanded, pinnedId) {
     const rankedRows = Array.isArray(rows) ? rows.slice() : [];
     if (expanded || rankedRows.length <= MAX_VISIBLE_RESULT_ROWS) {
@@ -855,10 +1042,25 @@ window.GAMES_V2_META = (function (utils) {
     }
     const pinnedIndex = rankedRows.findIndex((participant) => participant.id === pinnedId);
     if (pinnedIndex >= MAX_VISIBLE_RESULT_ROWS) {
+      const focusIndexes = new Set([0, pinnedIndex - 1, pinnedIndex, pinnedIndex + 1].filter((index) => index >= 0 && index < rankedRows.length));
+      let backfillOffset = 2;
+      while (focusIndexes.size < Math.min(MAX_VISIBLE_RESULT_ROWS, rankedRows.length)) {
+        const candidate = pinnedIndex - backfillOffset;
+        if (candidate >= 0) {
+          focusIndexes.add(candidate);
+        }
+        backfillOffset += 1;
+        if (candidate < 0 && pinnedIndex + backfillOffset >= rankedRows.length) {
+          break;
+        }
+      }
+      const uniqueIndexes = Array.from(focusIndexes)
+        .sort((left, right) => left - right)
+        .slice(0, MAX_VISIBLE_RESULT_ROWS);
       return {
-        rows: rankedRows.slice(0, MAX_VISIBLE_RESULT_ROWS - 1).concat(rankedRows[pinnedIndex]),
+        rows: uniqueIndexes.map((index) => rankedRows[index]),
         hasHiddenRows: true,
-        hiddenCount: rankedRows.length - MAX_VISIBLE_RESULT_ROWS
+        hiddenCount: rankedRows.length - uniqueIndexes.length
       };
     }
     return {
@@ -875,13 +1077,11 @@ window.GAMES_V2_META = (function (utils) {
     const snapshot = getStatusSnapshot(state, gameKey);
     const afterRankMap = {};
     const beforeRankMap = {};
-    const beforeCoinMap = {};
     resultContext.afterRanks.forEach((participant) => {
       afterRankMap[participant.id] = participant.rank;
     });
     resultContext.beforeRanks.forEach((participant) => {
       beforeRankMap[participant.id] = participant.rank;
-      beforeCoinMap[participant.id] = participant.coins;
     });
     const playerRank = afterRankMap.me || state.player.currentRank;
     const rankDelta = buildRankDelta(copy, beforeRankMap.me || playerRank, playerRank);
@@ -890,20 +1090,17 @@ window.GAMES_V2_META = (function (utils) {
     const visibleRows = getVisibleResultRows(resultContext.afterRanks, expandedRows, "me");
     const rowsMarkup = visibleRows.rows.map((participant) => {
       const avatar = getAvatar(participant.avatar);
-      const beforeCoins = beforeCoinMap[participant.id] || participant.coins;
-      const coinDelta = participant.coins - beforeCoins;
       const isCurrent = participant.id === "me";
       return "<div class=\"metaLeaderboardRow" + (isCurrent ? " is-current" : "") + "\" data-participant-id=\"" + escapeHtml(participant.id) + "\" data-after-rank=\"" + escapeHtml(participant.rank) + "\">" +
         "<div class=\"metaLeaderboardRank\">#" + escapeHtml(participant.rank) + "</div>" +
         "<div class=\"metaLeaderboardPlayer\">" +
           avatarTokenMarkup(avatar.id, languageId, "metaLeaderboardAvatar") +
           "<div class=\"metaLeaderboardIdentity\">" +
-            "<strong class=\"metaLeaderboardName\">" + escapeHtml(participant.name) + "</strong>" +
+            "<div class=\"metaLeaderboardTitleRow\">" +
+              "<strong class=\"metaLeaderboardName\">" + escapeHtml(participant.name) + "</strong>" +
+              "<span class=\"metaLeaderboardCoins metaLeaderboardCoins--inline\">" + iconMarkup("../shared/assets/ui/coin.svg", copy.coins, "metaInlineIcon") + "<strong>" + escapeHtml(participant.coins) + "</strong></span>" +
+            "</div>" +
           "</div>" +
-        "</div>" +
-        "<div class=\"metaLeaderboardScore\">" +
-          "<span class=\"metaLeaderboardCoins\">" + iconMarkup("../shared/assets/ui/coin.svg", copy.coins, "metaInlineIcon") + "<strong>" + escapeHtml(participant.coins) + "</strong></span>" +
-          "<span class=\"metaLeaderboardDelta" + (coinDelta > 0 ? " is-positive" : "") + "\">" + (coinDelta > 0 ? "+" : "") + escapeHtml(coinDelta) + "</span>" +
         "</div>" +
       "</div>";
     }).join("");
@@ -916,13 +1113,9 @@ window.GAMES_V2_META = (function (utils) {
         "</div>" +
         "<span class=\"metaRankBadge metaRankBadge--" + escapeHtml(rankDelta.kind) + "\">#" + escapeHtml(playerRank) + "</span>" +
       "</div>" +
-      "<div class=\"metaMessageCard\" dir=\"rtl\">" +
-        "<span class=\"metaMessageLabel\">" + escapeHtml(copy.messageTitle) + "</span>" +
-        "<strong class=\"metaMessageText\">" + escapeHtml(resultContext.message) + "</strong>" +
-      "</div>" +
+      buildResultsSummaryMarkup(resultContext, copy) +
       "<div class=\"metaLeaderboardWrap\">" +
         "<div class=\"metaSectionTitle\">" + escapeHtml(copy.leaderboard) + "</div>" +
-        "<p class=\"metaLeaderboardHint\">" + escapeHtml(copy.leaderboardHint) + "</p>" +
         "<div class=\"metaLeaderboardList\">" + rowsMarkup + "</div>" +
         (!expandedRows && resultContext.afterRanks.length > visibleRows.rows.length
           ? "<button class=\"metaGhostButton metaLeaderboardMoreButton\" type=\"button\" data-action=\"toggle-results-rows\">" + escapeHtml(copy.showMore) + "</button>"
@@ -974,10 +1167,27 @@ window.GAMES_V2_META = (function (utils) {
     let pendingStart = false;
     let draftProfile = null;
 
-    function resolveSelectedDiff(extra) {
-      return autoDifficultyForState(diffOptions, state, Object.assign({
+    function isSelectedDiffWithinBounds(extra) {
+      if (!diffOptions.length) {
+        return false;
+      }
+      const bounds = getDifficultyBounds(state, settings.gameKey, diffOptions);
+      const selectedIndex = diffOptions.findIndex((option) => option.key === selectedDiff);
+      return selectedIndex >= bounds.minIndex && selectedIndex <= bounds.maxIndex;
+    }
+
+    function rerollSelectedDiff(extra) {
+      selectedDiff = autoDifficultyForState(diffOptions, state, Object.assign({
         gameKey: settings.gameKey
       }, currentStartOptions, extra || {}));
+      return selectedDiff;
+    }
+
+    function resolveSelectedDiff(extra) {
+      if (!isSelectedDiffWithinBounds(extra)) {
+        return rerollSelectedDiff(extra);
+      }
+      return selectedDiff;
     }
 
     function persistDifficultyBounds(minKey, maxKey) {
@@ -1013,6 +1223,7 @@ window.GAMES_V2_META = (function (utils) {
         }
       }
       persistDifficultyBounds(diffOptions[minIndex].key, diffOptions[maxIndex].key);
+      rerollSelectedDiff();
     }
 
     function syncAudioSetting() {
@@ -1182,10 +1393,10 @@ window.GAMES_V2_META = (function (utils) {
         gameKey: settings.gameKey,
         completedLevel: context.completedLevel,
         playerCoins: context.coins,
-        playerLives: context.lives
+        metrics: context && context.metrics ? deepClone(context.metrics) : null
       });
       state = round.state;
-      selectedDiff = resolveSelectedDiff();
+      selectedDiff = rerollSelectedDiff();
       persist();
       currentScreen = "results";
       currentStartOptions = {};
@@ -1194,7 +1405,10 @@ window.GAMES_V2_META = (function (utils) {
       resultContext = {
         beforeRanks: round.beforeRanks,
         afterRanks: round.afterRanks,
-        message: round.message
+        message: round.message,
+        metrics: context && context.metrics ? Object.assign({}, deepClone(context.metrics), {
+          coinsEarned: Math.max(0, Number(context.metrics.coinsEarned) || 0) + Math.max(0, Number(round.playerBonus) || 0)
+        }) : null
       };
       render();
       return new Promise((resolve) => {
@@ -1332,6 +1546,7 @@ window.GAMES_V2_META = (function (utils) {
     if (diffOptions.length) {
       const currentBounds = getDifficultyBounds(state, settings.gameKey, diffOptions);
       persistDifficultyBounds(currentBounds.minKey, currentBounds.maxKey);
+      rerollSelectedDiff();
     }
     syncAudioSetting();
     if (settings.audio && typeof settings.audio.onMuteChange === "function") {

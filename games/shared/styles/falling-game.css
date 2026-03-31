@@ -268,6 +268,27 @@ html[data-meta-overlay="open"] .game {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 22px rgba(220, 38, 38, 0.4);
 }
 
+.ans:disabled {
+  cursor: default;
+  opacity: 0.55;
+  border-color: rgba(148, 163, 184, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ans:disabled:hover,
+.ans:disabled:active {
+  transform: none;
+  border-color: rgba(148, 163, 184, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ans:disabled.mark-wrong {
+  opacity: 0.95;
+  border-color: rgba(220, 38, 38, 0.94);
+  background: radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.96), rgba(255, 214, 214, 0.98) 42%, rgba(247, 124, 124, 0.96) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 22px rgba(220, 38, 38, 0.4);
+}
+
 .ctrl {
   height: calc(54px * var(--ui, 1));
   padding: 0 calc(16px * var(--ui, 1));
@@ -330,7 +351,7 @@ html[data-meta-overlay="open"] .game {
   top: 0;
   width: calc(240px * var(--ui, 1));
   height: calc(78px * var(--ui, 1));
-  background: url("../assets/ui/tablet.png") center/contain no-repeat;
+  background: url("../assets/ui/tablet-simple.png") center/contain no-repeat;
   background-size: 100% 100%;
   display: grid;
   place-items: center;
@@ -344,6 +365,109 @@ html[data-meta-overlay="open"] .game {
   unicode-bidi: bidi-override;
   z-index: 30;
   transform: translate(20px, -120px);
+  isolation: isolate;
+}
+
+.tile.tile--special {
+  animation: specialTabletPulse 760ms ease-in-out infinite alternate;
+}
+
+.tile.tile--silver {
+  background-image: url("../assets/ui/tablet-silver.png");
+  box-shadow:
+    0 0 calc(16px * var(--ui, 1)) rgba(214, 231, 255, 0.62),
+    0 calc(8px * var(--ui, 1)) calc(18px * var(--ui, 1)) rgba(91, 112, 153, 0.22);
+}
+
+.tile.tile--gold {
+  background-image: url("../assets/ui/tablet-gold.png");
+  box-shadow:
+    0 0 calc(18px * var(--ui, 1)) rgba(255, 214, 84, 0.74),
+    0 calc(8px * var(--ui, 1)) calc(18px * var(--ui, 1)) rgba(156, 95, 8, 0.28);
+}
+
+.tile.tile--diamond {
+  background-image: url("../assets/ui/tablet-diamond.png");
+  box-shadow:
+    0 0 calc(18px * var(--ui, 1)) rgba(129, 226, 255, 0.82),
+    0 0 calc(30px * var(--ui, 1)) rgba(138, 148, 255, 0.34),
+    0 calc(8px * var(--ui, 1)) calc(18px * var(--ui, 1)) rgba(56, 88, 160, 0.24);
+}
+
+.tile.tile--special::before {
+  content: "";
+  position: absolute;
+  inset: calc(-5px * var(--ui, 1));
+  border-radius: calc(30px * var(--ui, 1));
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tile.tile--silver::before {
+  border: calc(3px * var(--ui, 1)) solid rgba(232, 243, 255, 0.94);
+  box-shadow: 0 0 calc(16px * var(--ui, 1)) rgba(214, 231, 255, 0.74);
+}
+
+.tile.tile--gold::before {
+  border: calc(3px * var(--ui, 1)) solid rgba(255, 240, 176, 0.96);
+  box-shadow: 0 0 calc(18px * var(--ui, 1)) rgba(255, 214, 84, 0.82);
+}
+
+.tile.tile--diamond::before {
+  border: calc(3px * var(--ui, 1)) solid rgba(222, 250, 255, 0.98);
+  box-shadow:
+    0 0 calc(18px * var(--ui, 1)) rgba(129, 226, 255, 0.9),
+    0 0 calc(28px * var(--ui, 1)) rgba(138, 148, 255, 0.36);
+}
+
+.tile.tile--special::after {
+  content: "+" attr(data-reward);
+  position: absolute;
+  right: calc(-10px * var(--ui, 1));
+  top: calc(-12px * var(--ui, 1));
+  min-width: calc(60px * var(--ui, 1));
+  height: calc(40px * var(--ui, 1));
+  padding: 0 calc(12px * var(--ui, 1));
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: calc(22px * var(--ui, 1));
+  font-weight: 1000;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #102040;
+  box-shadow:
+    0 0 calc(10px * var(--ui, 1)) rgba(255, 255, 255, 0.56),
+    0 calc(6px * var(--ui, 1)) calc(12px * var(--ui, 1)) rgba(37, 53, 95, 0.22);
+  transform: rotate(10deg);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tile.tile--silver::after {
+  background: linear-gradient(180deg, rgba(250, 253, 255, 0.98), rgba(208, 226, 244, 0.98));
+  border: calc(2px * var(--ui, 1)) solid rgba(165, 191, 219, 0.96);
+}
+
+.tile.tile--gold::after {
+  background: linear-gradient(180deg, rgba(255, 248, 196, 0.98), rgba(255, 205, 92, 0.98));
+  border: calc(2px * var(--ui, 1)) solid rgba(211, 151, 18, 0.94);
+  color: #5a3200;
+}
+
+.tile.tile--diamond::after {
+  background: linear-gradient(180deg, rgba(239, 252, 255, 0.99), rgba(150, 234, 255, 0.98));
+  border: calc(2px * var(--ui, 1)) solid rgba(56, 145, 199, 0.94);
+  color: #11406d;
+}
+
+@keyframes specialTabletPulse {
+  from {
+    filter: brightness(1.02) saturate(1.02);
+  }
+  to {
+    filter: brightness(1.12) saturate(1.08);
+  }
 }
 
 .mascot {
@@ -403,11 +527,10 @@ html[data-meta-overlay="open"] .game {
 
 .topStats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "score score"
-    "coins lives"
-    "meter meter";
+    "coins"
+    "meter";
   align-items: stretch;
   width: 100%;
   column-gap: calc(14px * var(--ui, 1));
@@ -502,20 +625,12 @@ html[lang="en"] .hudLabel--streak::before {
   content: "Streak";
 }
 
-.scoreBlock {
-  grid-area: score;
+.coinsBlock {
+  grid-area: coins;
   width: auto;
   justify-self: stretch;
   min-height: calc(142px * var(--ui, 1));
   background: linear-gradient(180deg, rgba(41, 55, 101, 0.94), rgba(19, 30, 62, 0.96));
-}
-
-.coinsBlock {
-  grid-area: coins;
-}
-
-.livesBlock {
-  grid-area: lives;
 }
 
 .topStats .stat {
@@ -573,6 +688,7 @@ html[lang="en"] .hudLabel--streak::before {
 
 .streakMeter {
   position: relative;
+  --segments: 10;
   width: 100%;
   min-width: 0;
   height: calc(28px * var(--ui, 1));
@@ -595,9 +711,9 @@ html[lang="en"] .hudLabel--streak::before {
     repeating-linear-gradient(
       90deg,
       rgba(255, 255, 255, 0.14) 0,
-      rgba(255, 255, 255, 0.14) calc(5% - 1px),
-      rgba(255, 255, 255, 0.32) calc(5% - 1px),
-      rgba(255, 255, 255, 0.32) 5%
+      rgba(255, 255, 255, 0.14) calc((100% / var(--segments)) - 1px),
+      rgba(255, 255, 255, 0.32) calc((100% / var(--segments)) - 1px),
+      rgba(255, 255, 255, 0.32) calc(100% / var(--segments))
     );
   pointer-events: none;
 }
@@ -693,26 +809,6 @@ html[lang="en"] .hudLabel--streak::before {
   display: contents;
 }
 
-@keyframes lifeSpendPulse {
-  0% { transform: scale(1); }
-  38% { transform: scale(0.8); }
-  100% { transform: scale(1); }
-}
-
-#livesIcon.life-hit {
-  animation: lifeSpendPulse 280ms cubic-bezier(.22, .61, .36, 1);
-}
-
-@keyframes lifeGainPulse {
-  0% { transform: scale(1); }
-  42% { transform: scale(1.22); }
-  100% { transform: scale(1); }
-}
-
-#livesIcon.life-gain {
-  animation: lifeGainPulse 320ms cubic-bezier(.22, .61, .36, 1);
-}
-
 @keyframes starSpendPulse {
   0% { transform: scale(1); }
   38% { transform: scale(0.8); }
@@ -739,7 +835,6 @@ html[lang="en"] .hudLabel--streak::before {
   100% { transform: scale(1); color: var(--v2-text); }
 }
 
-#score.pulse,
 #coins.pulse {
   animation: scorePulse 320ms ease;
 }
@@ -948,11 +1043,10 @@ html[lang="en"] .hudLabel--streak::before {
   .answersPanel { margin-top: 1%; }
   .panel.bottom { margin-top: 10px; }
   .topStats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "score score"
-      "coins lives"
-      "meter meter";
+      "coins"
+      "meter";
     column-gap: calc(10px * var(--ui, 1));
     row-gap: calc(10px * var(--ui, 1));
   }
@@ -972,8 +1066,7 @@ html[lang="en"] .hudLabel--streak::before {
   .hudLabel {
     font-size: calc(15px * var(--ui, 1));
   }
-  .topStats .stat b,
-  .pointsPanel b {
+  .topStats .stat b {
     font-size: calc(36px * var(--ui, 1)) !important;
   }
 }
@@ -1019,11 +1112,10 @@ html[lang="en"] .hudLabel--streak::before {
   }
 
   .topStats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "score score"
-      "coins lives"
-      "meter meter";
+      "coins"
+      "meter";
     column-gap: calc(6px * var(--ui, 1));
     row-gap: calc(6px * var(--ui, 1));
   }
@@ -1053,13 +1145,8 @@ html[lang="en"] .hudLabel--streak::before {
     font-size: calc(16px * var(--ui, 1));
   }
 
-  .stat b,
-  .pointsPanel b {
+  .stat b {
     font-size: calc(30px * var(--ui, 1)) !important;
-  }
-
-  .pointsPanel {
-    min-height: 0;
   }
 
   .streakMeter {
@@ -1177,7 +1264,6 @@ html[lang="en"] .hudLabel--streak::before {
     font-size: calc(14px * var(--ui, 1));
   }
 
-  .pointsPanel b,
   .topStats .stat b {
     font-size: calc(34px * var(--ui, 1)) !important;
   }
@@ -1227,8 +1313,7 @@ html[lang="en"] .hudLabel--streak::before {
     font-size: calc(12px * var(--ui, 1));
   }
 
-  .stat b,
-  .pointsPanel b {
+  .stat b {
     font-size: calc(28px * var(--ui, 1)) !important;
   }
 

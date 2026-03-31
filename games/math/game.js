@@ -6,6 +6,7 @@
   const audioApi = window.GAMES_V2_AUDIO;
   const fxApi = window.GAMES_V2_FX;
   const metaApi = window.GAMES_V2_META;
+  const sessionApi = window.GAMES_V2_SESSION;
   const cfg = window.GAME_V3_MATH_CONFIG;
 
   const gameEl = document.getElementById("game");
@@ -15,11 +16,8 @@
   const pauseBtn = document.getElementById("pauseBtn");
   const muteBtn = document.getElementById("muteBtn");
   const exitBtn = document.getElementById("exitBtn");
-  const scoreEl = document.getElementById("score");
-  const livesEl = document.getElementById("lives");
   const coinEl = document.getElementById("coins");
   const coinIconEl = document.getElementById("coinIcon");
-  const livesIconEl = document.getElementById("livesIcon");
   const mascotEl = document.getElementById("mascot");
   const streakMeterEl = document.getElementById("streakMeter");
   const streakFillEl = document.getElementById("streakFill");
@@ -46,7 +44,6 @@
   const meta = metaApi.createGameMeta({
     overlayEl,
     diffOptions,
-    defaultLives: cfg.gameplay.livesStart,
     initialLanguage: document.documentElement.lang || "he",
     onStartRequested: handleStartRequested,
     onExitRequested: () => shell.exitGame(),
@@ -55,6 +52,16 @@
     gameKey: "math"
   });
   const initialSnapshot = meta.getSnapshot();
+  const gameplayRules = {
+    normalAttempts: Math.max(1, Number(cfg.gameplay.normalAttempts) || 2),
+    specialAttempts: Math.max(1, Number(cfg.gameplay.specialAttempts) || 1),
+    specialChance: Math.max(0, Math.min(1, Number(cfg.gameplay.specialChance) || (1 / 6))),
+    specialTablets: [
+      { tabletType: "silver", rewardCoins: Math.max(1, Number(cfg.gameplay.specialSilverCoins) || 1), weight: Math.max(0, Number(cfg.gameplay.specialSilverWeight) || 70) },
+      { tabletType: "gold", rewardCoins: Math.max(1, Number(cfg.gameplay.specialGoldCoins) || 5), weight: Math.max(0, Number(cfg.gameplay.specialGoldWeight) || 25) },
+      { tabletType: "diamond", rewardCoins: Math.max(1, Number(cfg.gameplay.specialDiamondCoins) || 20), weight: Math.max(0, Number(cfg.gameplay.specialDiamondWeight) || 5) }
+    ]
+  };
 
   function syncMuteButton() {
     if (!muteBtn) return;
@@ -67,26 +74,27 @@
   syncMuteButton();
 
   let selected = meta.getSelectedDiff();
+  const session = sessionApi.createArcadeSession({
+    getLevelRules: () => {
+      const goals = cfg.gameplay.levelGoals || {};
+      return goals[selected] || goals.easy || { correctTarget: 10, timeLimitMs: 75000 };
+    },
+    onStateChange: syncSessionUi
+  });
   let running = false;
   let paused = false;
-  let score = 0;
-  let lives = initialSnapshot.player.lives;
   let coins = initialSnapshot.player.coins;
-  let consecutiveCorrect = 0;
-  let streakCount = 0;
+  let correctAnswers = 0;
+  let levelProgressCurrent = 0;
+  let levelProgressTarget = 1;
   let prevCorrectIdx = -1;
   let task = null;
   const spawnYOffsetRatio = 0.35;
   let mascotAnimToken = 0;
-const streakGoal = 20;
-  const streakRewardDelayMs = 650;
-  let streakRewardTimer = null;
-  let streakRewardPending = false;
   let assetsReadyPromise = null;
-  let runBaseLevel = initialSnapshot.nextLevel;
-  let lastCheckpointLevel = runBaseLevel - 1;
   let levelPausePending = false;
   let coinAwardPending = false;
+  session.loadCheckpoint(initialSnapshot, selected);
 
   function syncWaterReflection(tile, rectArg) {
     if (!tile) {
@@ -109,6 +117,8 @@ const streakGoal = 20;
     onMiss: miss,
     onClear: () => {
       task = null;
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
+      tileEl.removeAttribute("data-reward");
       shell.hideWaterReflection();
     }
   });
@@ -154,7 +164,7 @@ const streakGoal = 20;
   }
 
   function level() {
-    return Math.max(runBaseLevel, runBaseLevel + Math.floor(Math.max(0, score) / cfg.gameplay.pointsPerLevel));
+    return session.getState().levelNumber;
   }
 
   function currentPreset() {
@@ -163,8 +173,10 @@ const streakGoal = 20;
 
   function currentStageIndex() {
     const startStage = currentPreset().startStage || 0;
-    const scoreStage = Math.floor(Math.max(0, score) / cfg.gameplay.stageScoreStep);
-    return Math.min(cfg.progression.length - 1, startStage + scoreStage);
+    const stageLevelStep = Math.max(1, Number(cfg.gameplay.stageLevelStep) || 2);
+    const levelStage = Math.floor(Math.max(0, level() - 1) / stageLevelStep);
+    const correctStage = Math.floor(Math.max(0, correctAnswers) / Math.max(1, levelProgressTarget));
+    return Math.min(cfg.progression.length - 1, startStage + levelStage + correctStage);
   }
 
   function currentStage() {
@@ -179,28 +191,24 @@ const streakGoal = 20;
   }
 
   function setHUD() {
-    scoreEl.textContent = String(score);
-    livesEl.textContent = String(lives);
     coinEl.textContent = String(coins);
   }
 
-  function syncCheckpointState(resetScore) {
-    const snapshot = meta.getSnapshot();
+  function syncSessionUi(state) {
+    coins = state.coins;
+    correctAnswers = state.correctCount;
+    levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
+    levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
+    setHUD();
+    updateStreakMeter();
+  }
+
+  function syncCheckpointState() {
     selected = meta.getSelectedDiff() || selected;
-    runBaseLevel = snapshot.nextLevel;
-    lastCheckpointLevel = runBaseLevel - 1;
-    lives = snapshot.player.lives;
-    coins = snapshot.player.coins;
-    if (resetScore) {
-      score = 0;
-    }
+    session.loadCheckpoint(meta.getSnapshot(), selected);
   }
 
-  function levelCompletedSinceCheckpoint() {
-    return level() - 1;
-  }
-
-  async function showLevelResults(completedLevel) {
+  async function showLevelResults() {
     if (levelPausePending) {
       return;
     }
@@ -208,13 +216,10 @@ const streakGoal = 20;
     running = false;
     paused = false;
     pauseBtn.classList.remove("paused");
-    clearPendingStreakReward();
-    await meta.showResults({
-      completedLevel,
-      coins,
-      lives,
-      score
-    });
+    session.finishLevel();
+    await meta.showResults(session.buildResultsPayload());
+    syncCheckpointState();
+    session.beginLevel();
     running = true;
     paused = false;
     levelPausePending = false;
@@ -224,37 +229,16 @@ const streakGoal = 20;
   }
 
   function updateStreakMeter() {
-    const ratio = Math.max(0, Math.min(1, streakCount / streakGoal));
+    const ratio = Math.max(0, Math.min(1, levelProgressCurrent / Math.max(1, levelProgressTarget)));
     if (streakFillEl) {
       streakFillEl.style.width = `${ratio * 100}%`;
     }
     if (streakMeterEl) {
-      streakMeterEl.classList.toggle("is-warm", streakCount >= streakGoal - 2);
-      streakMeterEl.classList.toggle("is-imminent", streakCount >= streakGoal - 1 && streakCount < streakGoal);
-      streakMeterEl.classList.toggle("is-full", streakCount >= streakGoal);
+      streakMeterEl.style.setProperty("--segments", String(Math.max(1, levelProgressTarget)));
+      streakMeterEl.classList.toggle("is-warm", ratio >= 0.6 && ratio < 1);
+      streakMeterEl.classList.toggle("is-imminent", ratio >= 0.85 && ratio < 1);
+      streakMeterEl.classList.toggle("is-full", ratio >= 1);
     }
-  }
-
-  function clearPendingStreakReward() {
-    if (streakRewardTimer !== null) {
-      clearTimeout(streakRewardTimer);
-      streakRewardTimer = null;
-    }
-    streakRewardPending = false;
-  }
-
-  function animateLifeSpent() {
-    livesIconEl.classList.remove("life-gain");
-    livesIconEl.classList.remove("life-hit");
-    void livesIconEl.offsetWidth;
-    livesIconEl.classList.add("life-hit");
-  }
-
-  function animateLifeGained() {
-    livesIconEl.classList.remove("life-hit");
-    livesIconEl.classList.remove("life-gain");
-    void livesIconEl.offsetWidth;
-    livesIconEl.classList.add("life-gain");
   }
 
   function animateStarGained() {
@@ -275,6 +259,7 @@ const streakGoal = 20;
         btn._pressTimer = null;
       }
       btn.classList.remove("mark-correct", "mark-wrong", "is-pressed");
+      btn.disabled = false;
     });
   }
 
@@ -297,6 +282,71 @@ const streakGoal = 20;
       btn.classList.remove("mark-correct", "mark-wrong");
       btn._markTimer = null;
     }, markDuration);
+  }
+
+  function rollSpecialTablet() {
+    if (Math.random() >= gameplayRules.specialChance) {
+      return { tabletType: "simple", rewardCoins: 0 };
+    }
+    const totalWeight = gameplayRules.specialTablets.reduce((sum, tabletType) => sum + tabletType.weight, 0);
+    let roll = Math.random() * totalWeight;
+    for (const tabletType of gameplayRules.specialTablets) {
+      roll -= tabletType.weight;
+      if (roll <= 0) {
+        return tabletType;
+      }
+    }
+    return gameplayRules.specialTablets[0];
+  }
+
+  function awardTabletBonus(burstX, burstY, rewardCoins) {
+    if (rewardCoins <= 0) {
+      return;
+    }
+    coinAwardPending = true;
+    fx.awardCoinFromBurst(burstX, burstY).then(() => {
+      const pulseDurationMs = 220;
+      const stepDelayMs = rewardCoins >= 10 ? 60 : 110;
+      let awarded = 0;
+      audio.sfx.coin();
+      playMascotDance();
+      return new Promise((resolve) => {
+        function addNextCoin() {
+          awarded += 1;
+          session.addCoins(1);
+          animateStarGained();
+          coinEl.classList.remove("pulse");
+          void coinEl.offsetWidth;
+          coinEl.classList.add("pulse");
+          setTimeout(() => coinEl.classList.remove("pulse"), pulseDurationMs);
+          if (awarded >= rewardCoins) {
+            resolve();
+            return;
+          }
+          setTimeout(addNextCoin, stepDelayMs);
+        }
+        addNextCoin();
+      });
+    }).finally(() => {
+      coinAwardPending = false;
+    });
+  }
+
+  function sinkCurrentTask(currentTask, rectArg) {
+    if (!currentTask) {
+      return;
+    }
+    const rect = rectArg || shell.rect();
+    const sinkOutcome = session.handleSink();
+    falling.clear("attempt-limit");
+    audio.sfx.splash();
+    playSplashAtTile(rect, currentTask);
+    playMascotShame();
+    if (sinkOutcome.levelComplete) {
+      showLevelResults();
+      return;
+    }
+    falling.spawn();
   }
 
   function setMascot(_state) {
@@ -355,43 +405,6 @@ const streakGoal = 20;
 
   function playMascotShame() {
     playMascotAnimation(cfg.assets.mascotSadSheet || cfg.assets.mascotSheet, 1, false, 2);
-  }
-
-  function rewardLifeFromStreak() {
-    clearPendingStreakReward();
-    if (!running) {
-      return;
-    }
-    streakCount = 0;
-    lives += 1;
-    setHUD();
-    updateStreakMeter();
-    animateLifeGained();
-    audio.bgm.next();
-    playMascotDance(2, true);
-  }
-
-  function registerCorrectProgress() {
-    consecutiveCorrect += 1;
-    const prevStreak = streakCount;
-    streakCount = Math.min(streakGoal, streakCount + 1);
-    updateStreakMeter();
-    if (prevStreak < streakGoal - 1 && streakCount >= streakGoal - 1 && streakCount < streakGoal) {
-      audio.sfx.streakReady();
-    }
-    if (streakCount >= streakGoal && !streakRewardPending) {
-      streakRewardPending = true;
-      streakRewardTimer = setTimeout(() => {
-        streakRewardTimer = null;
-        rewardLifeFromStreak();
-      }, streakRewardDelayMs);
-    }
-  }
-
-  function resetCorrectProgress() {
-    consecutiveCorrect = 0;
-    streakCount = 0;
-    updateStreakMeter();
   }
 
   function randomTileX() {
@@ -496,11 +509,15 @@ const streakGoal = 20;
 
   function createTask() {
     const ui = shell.getUi();
+    const tabletReward = rollSpecialTablet();
     return Object.assign(makeTask(), {
       width: cfg.gameplay.tileWBase * ui,
       height: cfg.gameplay.tileHBase * ui,
       x: randomTileX(),
-      y: spawnStartY()
+      y: spawnStartY(),
+      tabletType: tabletReward.tabletType,
+      rewardCoins: tabletReward.rewardCoins,
+      attemptsRemaining: tabletReward.rewardCoins > 0 ? gameplayRules.specialAttempts : gameplayRules.normalAttempts
     });
   }
 
@@ -511,6 +528,13 @@ const streakGoal = 20;
     }
     if (phase !== "frame") {
       tileEl.textContent = task.text;
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
+      if (task.rewardCoins > 0) {
+        tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
+        tileEl.setAttribute("data-reward", String(task.rewardCoins));
+      } else {
+        tileEl.removeAttribute("data-reward");
+      }
       clearAnswerMarks();
 
       const answers = uniqueWrongs(task.answer);
@@ -539,60 +563,32 @@ const streakGoal = 20;
     if (!currentTask) {
       return;
     }
-    score += cfg.gameplay.scoreMiss;
-    lives -= 1;
-    animateLifeSpent();
-    resetCorrectProgress();
-    setHUD();
+    const missOutcome = session.handleMiss();
     playMascotShame();
-
-    if (lives <= 0) {
-      running = false;
-      falling.stop("game-over");
-      audio.sfx.splash();
-      playSplashAtTile(rect, currentTask);
-      audio.sfx.death();
-      syncCheckpointState(true);
-      setHUD();
-      meta.showStart({ gameOver: true });
-      setMascot("idle");
-      return;
-    }
 
     audio.sfx.splash();
     playSplashAtTile(rect, currentTask);
+    if (missOutcome.levelComplete) {
+      showLevelResults();
+      return;
+    }
     falling.spawn();
   }
 
   function correct(clickedBtn) {
+    const currentTask = task;
+    session.handleCorrect();
     falling.clear("correct");
     setMascot("idle");
     showAnswerMark(clickedBtn, true, cfg.answerFeedbackMs);
-    score += currentStage().correct;
-    setHUD();
     audio.sfx.correct();
 
     const burstCenter = currentTileCenter();
     const burstX = burstCenter.x;
     const burstY = burstCenter.y;
-    scoreEl.classList.add("pulse");
-    setTimeout(() => scoreEl.classList.remove("pulse"), 350);
 
-    registerCorrectProgress();
-    if (consecutiveCorrect >= 4) {
-      consecutiveCorrect = 0;
-      coinAwardPending = true;
-      fx.awardCoinFromBurst(burstX, burstY, () => {
-        coins += 1;
-        setHUD();
-        animateStarGained();
-        coinEl.classList.add("pulse");
-        setTimeout(() => coinEl.classList.remove("pulse"), 450);
-        audio.sfx.coin();
-        playMascotDance();
-      }).finally(() => {
-        coinAwardPending = false;
-      });
+    if (currentTask && currentTask.rewardCoins > 0) {
+      awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
     }
 
     fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
@@ -601,51 +597,53 @@ const streakGoal = 20;
       if (!running || falling.getItem() || levelPausePending) {
         return;
       }
-      const completedLevel = levelCompletedSinceCheckpoint();
-      if (completedLevel > lastCheckpointLevel) {
-        const proceedToResults = () => {
-          if (!running || falling.getItem() || levelPausePending) {
-            return;
-          }
-          if (coinAwardPending) {
-            setTimeout(proceedToResults, 80);
-            return;
-          }
-          lastCheckpointLevel = completedLevel;
-          showLevelResults(completedLevel);
-        };
-        proceedToResults();
-        return;
-      }
-      falling.spawn();
+      const proceedAfterReward = () => {
+        if (!running || falling.getItem() || levelPausePending) {
+          return;
+        }
+        if (coinAwardPending) {
+          setTimeout(proceedAfterReward, 80);
+          return;
+        }
+        if (session.shouldCompleteLevel()) {
+          showLevelResults();
+          return;
+        }
+        falling.spawn();
+      };
+      proceedAfterReward();
     }, cfg.answerFeedbackMs);
   }
 
   function wrong(clickedBtn) {
-    showAnswerMark(clickedBtn, false, 260);
-    score += cfg.gameplay.scoreWrong;
-    setHUD();
+    if (!task || clickedBtn.disabled) {
+      return;
+    }
+    const currentTask = task;
+    currentTask.attemptsRemaining = Math.max(0, Number(currentTask.attemptsRemaining) - 1);
+    clickedBtn.disabled = true;
+    session.handleWrong();
     audio.sfx.wrong();
-    resetCorrectProgress();
+    if (currentTask.attemptsRemaining <= 0) {
+      sinkCurrentTask(currentTask, shell.rect());
+      return;
+    }
+    showAnswerMark(clickedBtn, false, 260);
   }
 
   async function start(diffKey) {
     selected = diffKey;
     await ensureAssetsReady();
     meta.hideOverlay();
-    clearPendingStreakReward();
     paused = false;
     levelPausePending = false;
     coinAwardPending = false;
     pauseBtn.classList.remove("paused");
-    syncCheckpointState(true);
+    syncCheckpointState();
+    session.beginLevel();
     prevCorrectIdx = -1;
-    consecutiveCorrect = 0;
-    streakCount = 0;
     setMascot("idle");
     falling.stop("start-reset");
-    setHUD();
-    updateStreakMeter();
     running = true;
     falling.start();
   }
@@ -662,10 +660,12 @@ const streakGoal = 20;
     paused = !paused;
     pauseBtn.classList.toggle("paused", paused);
     if (paused) {
+      session.pause();
       audio.bgm.pause();
       falling.pause();
     }
     if (!paused) {
+      session.resume();
       audio.bgm.resume();
       falling.resume();
     }
@@ -686,7 +686,7 @@ const streakGoal = 20;
 
   ansBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
-      if (!running || !task) {
+      if (!running || !task || btn.disabled) {
         return;
       }
       audio.ensureAudio();
@@ -701,6 +701,5 @@ const streakGoal = 20;
 
   setMascot("idle");
   ensureAssetsReady();
-  setHUD();
-  updateStreakMeter();
+  syncSessionUi(session.getState());
 })();

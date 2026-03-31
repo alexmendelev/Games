@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8">
@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>צורות וצבעים נופלים - games_v3</title>
+  <title>×¦×•×¨×•×ª ×•×¦×‘×¢×™× × ×•×¤×œ×™× - Games</title>
   <link rel="preload" href="../shared/assets/ui/background.png" as="image">
   <link rel="preload" href="../shared/assets/ui/rock.png" as="image">
   <link rel="preload" href="../shared/assets/ui/tablet.png" as="image">
@@ -16,7 +16,6 @@
   <link rel="preload" href="../shared/assets/ui/mute.png" as="image">
   <link rel="preload" href="../shared/assets/ui/exit.png" as="image">
   <link rel="preload" href="../shared/assets/ui/coin.svg" as="image">
-  <link rel="preload" href="../shared/assets/ui/heart.svg" as="image">
   <link rel="preload" href="../shared/assets/ui/star.svg" as="image">
   <link rel="preload" href="../shared/assets/mascot/kittydance.png" as="image">
   <link rel="preload" href="../shared/assets/mascot/kittysad.png" as="image">
@@ -39,12 +38,12 @@
 
       <div id="overlay" class="overlay">
         <div class="card">
-          <h2>בחרו רמה</h2>
+          <h2>×‘×—×¨×• ×¨×ž×”</h2>
           <div class="diffs" id="diffs">
-            <button class="diffbtn" type="button" data-diff="easy">קל</button>
-            <button class="diffbtn" type="button" data-diff="medium">בינוני</button>
-            <button class="diffbtn" type="button" data-diff="hard">קשה</button>
-            <button class="diffbtn" type="button" data-diff="super">סופר</button>
+            <button class="diffbtn" type="button" data-diff="easy">×§×œ</button>
+            <button class="diffbtn" type="button" data-diff="medium">×‘×™× ×•× ×™</button>
+            <button class="diffbtn" type="button" data-diff="hard">×§×©×”</button>
+            <button class="diffbtn" type="button" data-diff="super">×¡×•×¤×¨</button>
           </div>
         </div>
       </div>
@@ -53,25 +52,12 @@
     <div class="side">
       <div class="panel">
         <div class="row topStats">
-          <div class="block scoreBlock">
-            <span class="hudLabel hudLabel--score" aria-hidden="true"></span>
-            <div class="stat scoreOnly pointsPanel"><b id="score">0</b></div>
-          </div>
-          <div class="vitalStats">
-            <div class="block coinsBlock">
-              <div class="statusCardHead">
-                <img id="coinIcon" src="../shared/assets/ui/coin.svg" alt="" class="icon">
-                <span class="hudLabel hudLabel--coins" aria-hidden="true"></span>
-              </div>
-              <div class="stat"><b id="coins">0</b></div>
+          <div class="block coinsBlock">
+            <div class="statusCardHead">
+              <img id="coinIcon" src="../shared/assets/ui/coin.svg" alt="" class="icon">
+              <span class="hudLabel hudLabel--coins" aria-hidden="true"></span>
             </div>
-            <div class="block livesBlock">
-              <div class="statusCardHead">
-                <img id="livesIcon" src="../shared/assets/ui/heart.svg" alt="" class="icon">
-                <span class="hudLabel hudLabel--lives" aria-hidden="true"></span>
-              </div>
-              <div class="stat"><b id="lives">10</b></div>
-            </div>
+            <div class="stat"><b id="coins">0</b></div>
           </div>
           <div class="streakPanel">
             <span class="hudLabel hudLabel--streak" aria-hidden="true"></span>
@@ -106,9 +92,9 @@
       <div class="panel bottom">
         <div class="row">
           <div class="actions">
-            <button id="pauseBtn" class="ctrl iconBtn" type="button" aria-label="השהיה"></button>
-            <button id="muteBtn" class="ctrl iconBtn" type="button" aria-label="השתקת קול"></button>
-            <button id="exitBtn" class="ctrl iconBtn" type="button" aria-label="יציאה"></button>
+            <button id="pauseBtn" class="ctrl iconBtn" type="button" aria-label="×”×©×”×™×”"></button>
+            <button id="muteBtn" class="ctrl iconBtn" type="button" aria-label="×”×©×ª×§×ª ×§×•×œ"></button>
+            <button id="exitBtn" class="ctrl iconBtn" type="button" aria-label="×™×¦×™××”"></button>
           </div>
         </div>
       </div>
@@ -120,6 +106,7 @@
   <script src="../shared/scripts/fx.js?v=20260314m"></script>
   <script src="../shared/scripts/game-shell.js?v=20260324runner2"></script>
   <script src="../shared/scripts/game-meta.js?v=20260331meta25"></script>
+  <script src="../shared/scripts/game-session.js?v=20260331level1"></script>
   <script src="config.js?v=20260322mascot1"></script>
   <script src="game.js?v=20260331streak20a"></script>
 </body>
