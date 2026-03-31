@@ -6,9 +6,13 @@
   <title>Clocks - games</title>
   <link rel="preload" href="../shared/assets/audio/splash.mp3" as="audio" type="audio/mpeg">
   <link rel="preload" href="../shared/assets/audio/coin_drop.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="../shared/assets/ui/coin.svg" as="image">
+  <link rel="preload" href="../shared/assets/ui/heart.svg" as="image">
+  <link rel="preload" href="../shared/assets/ui/star.svg" as="image">
   <link rel="preload" href="assets/ui/dial.png" as="image">
-  <link rel="stylesheet" href="../shared/styles/tokens.css?v=20260323clocks1">
-  <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260323clocks1">
+  <link rel="stylesheet" href="../shared/styles/tokens.css?v=20260331font1">
+  <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260331layout23">
+  <link rel="stylesheet" href="../shared/styles/game-meta.css?v=20260331meta43">
   <link rel="stylesheet" href="../shared/styles/falling-clocks.css?v=20260324clocksmobile7">
 </head>
 <body>
@@ -35,21 +39,31 @@
     <div class="side">
       <div class="panel">
         <div class="row topStats">
+          <div class="block scoreBlock">
+            <span class="hudLabel hudLabel--score" aria-hidden="true"></span>
+            <div class="stat scoreOnly pointsPanel"><b id="score">0</b></div>
+          </div>
           <div class="vitalStats">
-            <div class="block">
-              <img id="coinIcon" src="../shared/assets/ui/star.svg" alt="" class="icon">
+            <div class="block coinsBlock">
+              <div class="statusCardHead">
+                <img id="coinIcon" src="../shared/assets/ui/coin.svg" alt="" class="icon">
+                <span class="hudLabel hudLabel--coins" aria-hidden="true"></span>
+              </div>
               <div class="stat"><b id="coins">0</b></div>
             </div>
-            <div class="block">
-              <img id="livesIcon" src="../shared/assets/ui/heart.svg" alt="" class="icon">
+            <div class="block livesBlock">
+              <div class="statusCardHead">
+                <img id="livesIcon" src="../shared/assets/ui/heart.svg" alt="" class="icon">
+                <span class="hudLabel hudLabel--lives" aria-hidden="true"></span>
+              </div>
               <div class="stat"><b id="lives">10</b></div>
             </div>
           </div>
-          <div id="streakMeter" class="streakMeter" aria-hidden="true">
-            <div id="streakFill" class="streakFill"></div>
-          </div>
-          <div class="block scoreBlock">
-            <div class="stat scoreOnly pointsPanel"><b id="score">0</b></div>
+          <div class="streakPanel">
+            <span class="hudLabel hudLabel--streak" aria-hidden="true"></span>
+            <div id="streakMeter" class="streakMeter" aria-hidden="true">
+              <div id="streakFill" class="streakFill"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -79,6 +93,7 @@
   <script src="../shared/scripts/audio.js?v=20260323clocks1"></script>
   <script src="../shared/scripts/fx.js?v=20260323clocks1"></script>
   <script src="../shared/scripts/game-shell.js?v=20260324runner2"></script>
+  <script src="../shared/scripts/game-meta.js?v=20260331meta25"></script>
   <script src="config.js?v=20260323clocks2"></script>
   <script src="game.js?v=20260324clocksfix1"></script>
 </body>

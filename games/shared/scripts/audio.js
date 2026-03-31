@@ -445,6 +445,20 @@ window.GAMES_V2_AUDIO = (function () {
       beep({ freq: 1975, dur: 0.18, type: "triangle", gain: 0.055, when: 0.06, rampTo: 2093 });
     }
 
+    function playVictoryFanfare() {
+      if (!audioCtx || !masterGain) {
+        return;
+      }
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      for (let i = 0; i < notes.length; i += 1) {
+        const when = i * 0.08;
+        beep({ freq: notes[i], dur: 0.24, type: "triangle", gain: 0.22, when, rampTo: notes[i] * 1.02 });
+        beep({ freq: notes[i] * 2, dur: 0.3, type: "sine", gain: 0.06, when: when + 0.015, rampTo: notes[i] * 2.05 });
+      }
+      beep({ freq: 1318.5, dur: 0.48, type: "sine", gain: 0.18, when: 0.32, rampTo: 1568 });
+      beep({ freq: 1568, dur: 0.6, type: "triangle", gain: 0.12, when: 0.38, rampTo: 2093 });
+    }
+
     function playFromPool(pool, index) {
       if (muted) {
         return;
@@ -500,6 +514,7 @@ window.GAMES_V2_AUDIO = (function () {
       sfx: {
         correct() { ensureAudio(); playCorrectChime(); },
         streakReady() { ensureAudio(); playStreakReadyCue(); },
+        victory() { ensureAudio(); playVictoryFanfare(); },
         wrong() { ensureAudio(); beep({ freq: 240, dur: 0.1, type: "sine", gain: 0.9, rampTo: 180 }); },
         splash() { ensureAudio(); playSplash(); },
         coin() { ensureAudio(); playCoinDrop(); },

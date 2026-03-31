@@ -32,8 +32,8 @@
 
 .ans {
   height: auto;
-  min-height: calc(132px * var(--ui, 1));
-  padding: calc(8px * var(--ui, 1));
+  min-height: calc(112px * var(--ui, 1));
+  padding: calc(6px * var(--ui, 1));
   display: grid;
   place-items: center;
   border: 2px solid rgba(255, 255, 255, 0.78);
@@ -42,8 +42,8 @@
 .ans img {
   position: absolute;
   inset: 0;
-  width: min(91%, calc(182px * var(--ui, 1)));
-  height: min(91%, calc(182px * var(--ui, 1)));
+  width: min(86%, calc(154px * var(--ui, 1)));
+  height: min(86%, calc(154px * var(--ui, 1)));
   display: block;
   margin: auto;
   object-fit: contain;
@@ -97,12 +97,12 @@
 
 @media (max-height: 880px) {
   .ans {
-    min-height: calc(110px * var(--ui, 1));
+    min-height: calc(94px * var(--ui, 1));
   }
 
   .ans img {
-    width: min(86%, calc(160px * var(--ui, 1)));
-    height: min(86%, calc(160px * var(--ui, 1)));
+    width: min(82%, calc(136px * var(--ui, 1)));
+    height: min(82%, calc(136px * var(--ui, 1)));
   }
 }
 

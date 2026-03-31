@@ -315,11 +315,59 @@ window.GAMES_V2_FX = (function (utils) {
         });
     }
 
+    function playConfettiBurst(x, y) {
+      const ui = utils.getUi();
+      const colors = ["#facc15", "#fb7185", "#34d399", "#60a5fa", "#f97316", "#c084fc"];
+      const pieceCount = 34;
+      for (let i = 0; i < pieceCount; i += 1) {
+        const piece = document.createElement("div");
+        piece.className = "metaConfettiPiece";
+        piece.style.left = x + "px";
+        piece.style.top = y + "px";
+        piece.style.background = colors[i % colors.length];
+        piece.style.transform = "translate(-50%, -50%) rotate(0deg)";
+        settings.gameEl.appendChild(piece);
+
+        const angle = utils.randFloat(-Math.PI * 0.96, -Math.PI * 0.04);
+        const distance = utils.randFloat(90, 240) * ui;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+        const rotate = utils.randFloat(-420, 420);
+        const duration = utils.randInt(900, 1500);
+
+        piece.animate(
+          [
+            { opacity: 1, transform: "translate(-50%, -50%) scale(0.8) rotate(0deg)" },
+            { opacity: 1, transform: `translate(calc(-50% + ${dx * 0.45}px), calc(-50% + ${dy * 0.35}px)) scale(1.05) rotate(${rotate * 0.35}deg)`, offset: 0.32 },
+            { opacity: 0, transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy + (160 * ui)}px)) scale(0.64) rotate(${rotate}deg)` }
+          ],
+          { duration, easing: "cubic-bezier(.14,.68,.22,1)" }
+        ).finished.catch(() => {}).finally(() => {
+          piece.remove();
+        });
+      }
+    }
+
+    function playVictoryCelebration(targetEl) {
+      if (!settings.gameEl || !settings.gameEl.getBoundingClientRect) {
+        return;
+      }
+      const gameRect = settings.gameEl.getBoundingClientRect();
+      const targetRect = targetEl && targetEl.getBoundingClientRect ? targetEl.getBoundingClientRect() : gameRect;
+      const centerX = (targetRect.left - gameRect.left) + (targetRect.width / 2);
+      const centerY = (targetRect.top - gameRect.top) + Math.max(targetRect.height * 0.26, 90 * utils.getUi());
+      playFireworks(centerX, centerY, utils.randInt(8, 42));
+      playConfettiBurst(centerX, centerY - (18 * utils.getUi()));
+      setTimeout(() => playFireworks(centerX - (120 * utils.getUi()), centerY + (16 * utils.getUi()), utils.randInt(140, 220)), 160);
+      setTimeout(() => playFireworks(centerX + (120 * utils.getUi()), centerY + (10 * utils.getUi()), utils.randInt(240, 320)), 320);
+    }
+
     return {
       playSheetFx,
       playEnhancedBurst,
       awardCoinFromBurst,
-      playStarsAroundElement
+      playStarsAroundElement,
+      playVictoryCelebration
     };
   }
 

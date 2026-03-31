@@ -118,6 +118,27 @@ body {
   flex-direction: column;
 }
 
+html[data-meta-overlay="open"] .answersPanel,
+html[data-meta-overlay="open"] .panel.bottom {
+  display: none;
+}
+
+html[data-meta-overlay="open"] .side {
+  display: none;
+}
+
+html[data-meta-overlay="open"] .wrap {
+  gap: 0;
+}
+
+html[data-meta-overlay="open"] .game {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+}
+
 .panel.bottom {
   margin-top: auto;
   background: transparent;
@@ -173,14 +194,14 @@ body {
   min-height: 0;
   align-content: stretch;
   grid-auto-rows: minmax(0, 1fr);
-  gap: calc(12px * var(--ui, 1));
+  gap: calc(10px * var(--ui, 1));
 }
 
 .ans {
-  height: calc(110px * var(--ui, 1));
-  font-size: calc(53px * var(--ui, 1));
+  height: calc(92px * var(--ui, 1));
+  font-size: calc(44px * var(--ui, 1));
   font-weight: 900;
-  border-radius: calc(22px * var(--ui, 1));
+  border-radius: calc(20px * var(--ui, 1));
   border: 2px solid rgba(33, 53, 95, 0.48);
   color: #1b1b1b;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -292,6 +313,7 @@ body {
 
 #muteBtn {
   background-image: url("../assets/ui/unmute.png");
+  display: none;
 }
 
 #muteBtn.muted {
@@ -381,68 +403,171 @@ body {
 
 .topStats {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-areas:
-    "vital score"
+    "score score"
+    "coins lives"
     "meter meter";
-  align-items: end;
+  align-items: stretch;
   width: 100%;
-  column-gap: calc(12px * var(--ui, 1));
-  row-gap: calc(10px * var(--ui, 1));
+  column-gap: calc(14px * var(--ui, 1));
+  row-gap: calc(14px * var(--ui, 1));
 }
 
 .topStats .block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: calc(128px * var(--ui, 1));
+  gap: calc(12px * var(--ui, 1));
+  padding: calc(16px * var(--ui, 1));
+  border-radius: calc(22px * var(--ui, 1));
+  background: linear-gradient(180deg, rgba(30, 42, 78, 0.92), rgba(17, 25, 52, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 12px 20px rgba(0, 0, 0, 0.18);
+  text-align: center;
 }
 
 .topStats img.icon {
-  width: calc(92px * var(--ui, 1));
-  height: auto;
+  width: calc(48px * var(--ui, 1));
+  height: calc(48px * var(--ui, 1));
+  display: block;
+  flex: 0 0 calc(48px * var(--ui, 1));
+}
+
+.statusCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(12px * var(--ui, 1));
+  min-width: 0;
+  width: 100%;
+}
+
+.hudLabel {
+  display: block;
+  min-width: 0;
+  color: rgba(238, 244, 255, 0.78);
+  font-size: calc(18px * var(--ui, 1));
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+}
+
+.hudLabel::before {
   display: block;
 }
 
-.topStats .stat b {
-  margin-inline-start: 4px;
+html[lang="he"] .hudLabel--score::before {
+  content: "נקודות";
+}
+
+html[lang="he"] .hudLabel--coins::before {
+  content: "מטבעות";
+}
+
+html[lang="he"] .hudLabel--lives::before {
+  content: "חיים";
+}
+
+html[lang="he"] .hudLabel--streak::before {
+  content: "רצף";
+}
+
+html[lang="en"] .hudLabel--score::before {
+  content: "Score";
+}
+
+html[lang="en"] .hudLabel--coins::before {
+  content: "Coins";
+}
+
+html[lang="en"] .hudLabel--lives::before {
+  content: "Lives";
+}
+
+html[lang="en"] .hudLabel--streak::before {
+  content: "Streak";
 }
 
 .scoreBlock {
   grid-area: score;
-  align-items: stretch !important;
-  width: calc(128px * var(--ui, 1));
-  gap: calc(8px * var(--ui, 1));
-  justify-self: end;
+  width: auto;
+  justify-self: stretch;
+  min-height: calc(142px * var(--ui, 1));
+  background: linear-gradient(180deg, rgba(41, 55, 101, 0.94), rgba(19, 30, 62, 0.96));
+}
+
+.coinsBlock {
+  grid-area: coins;
+}
+
+.livesBlock {
+  grid-area: lives;
+}
+
+.topStats .stat {
+  color: var(--v2-text);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+}
+
+.topStats .stat b {
+  margin: 0;
+  font-size: calc(48px * var(--ui, 1));
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .pointsPanel {
-  min-height: calc(60px * var(--ui, 1));
+  min-height: 0;
   width: 100%;
-  min-width: 100%;
-  max-width: 100%;
-  padding: 0 calc(11px * var(--ui, 1));
+  min-width: 0;
+  max-width: none;
+  padding: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: calc(14px * var(--ui, 1));
-  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .pointsPanel b {
-  font-size: calc(34px * var(--ui, 1)) !important;
+  font-size: calc(60px * var(--ui, 1)) !important;
   line-height: 1;
   letter-spacing: 0.5px;
   font-variant-numeric: tabular-nums;
 }
 
-.streakMeter {
+.streakPanel {
   grid-area: meter;
+  display: grid;
+  gap: calc(10px * var(--ui, 1));
+  min-width: 0;
+  padding: calc(14px * var(--ui, 1)) calc(16px * var(--ui, 1));
+  border-radius: calc(22px * var(--ui, 1));
+  background: linear-gradient(180deg, rgba(30, 42, 78, 0.92), rgba(17, 25, 52, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 12px 20px rgba(0, 0, 0, 0.18);
+}
+
+.streakMeter {
   position: relative;
   width: 100%;
   min-width: 0;
-  height: calc(22px * var(--ui, 1));
+  height: calc(28px * var(--ui, 1));
   border-radius: 999px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.38);
@@ -557,11 +682,7 @@ body {
 }
 
 .vitalStats {
-  grid-area: vital;
-  display: flex;
-  gap: calc(2px * var(--ui, 1));
-  flex-wrap: nowrap;
-  justify-self: start;
+  display: contents;
 }
 
 @keyframes lifeSpendPulse {
@@ -622,8 +743,8 @@ body {
   place-items: center;
   overflow: hidden;
   isolation: isolate;
-  background: linear-gradient(180deg, rgba(6, 12, 24, 0.14), rgba(6, 12, 24, 0.22));
-  backdrop-filter: blur(0.5px) saturate(1.02);
+  background: rgba(1, 4, 12, 0.82);
+  backdrop-filter: blur(1.5px) saturate(1.02);
   z-index: 200;
 }
 
@@ -633,8 +754,8 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 20%, rgba(255, 255, 255, 0) 34%),
-    radial-gradient(circle at 50% 50%, rgba(6, 12, 24, 0) 0%, rgba(6, 12, 24, 0.03) 44%, rgba(6, 12, 24, 0.16) 76%, rgba(4, 8, 18, 0.36) 100%);
+    radial-gradient(circle at 50% 32%, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.03) 18%, rgba(59, 130, 246, 0) 32%),
+    radial-gradient(circle at 50% 52%, rgba(3, 7, 18, 0) 0%, rgba(3, 7, 18, 0.12) 44%, rgba(3, 7, 18, 0.42) 78%, rgba(1, 4, 12, 0.78) 100%);
 }
 
 .card {
@@ -819,14 +940,33 @@ body {
   .answersPanel { margin-top: 1%; }
   .panel.bottom { margin-top: 10px; }
   .topStats {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: "vital meter score";
-    align-items: end;
-    column-gap: calc(12px * var(--ui, 1));
-    row-gap: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "score score"
+      "coins lives"
+      "meter meter";
+    column-gap: calc(10px * var(--ui, 1));
+    row-gap: calc(10px * var(--ui, 1));
+  }
+  .topStats .block,
+  .streakPanel {
+    min-height: calc(98px * var(--ui, 1));
+    padding: calc(12px * var(--ui, 1));
   }
   .streakMeter {
-    height: calc(20px * var(--ui, 1));
+    height: calc(22px * var(--ui, 1));
+  }
+  .topStats img.icon {
+    width: calc(40px * var(--ui, 1));
+    height: calc(40px * var(--ui, 1));
+    flex-basis: calc(40px * var(--ui, 1));
+  }
+  .hudLabel {
+    font-size: calc(15px * var(--ui, 1));
+  }
+  .topStats .stat b,
+  .pointsPanel b {
+    font-size: calc(36px * var(--ui, 1)) !important;
   }
 }
 
@@ -871,16 +1011,34 @@ body {
   }
 
   .topStats {
-    grid-template-columns: auto auto auto minmax(calc(160px * var(--ui, 1)), calc(260px * var(--ui, 1)));
-    grid-template-areas: "score stars lives meter";
-    align-items: center;
-    justify-content: space-between;
-    column-gap: calc(10px * var(--ui, 1));
-    row-gap: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "score score"
+      "coins lives"
+      "meter meter";
+    column-gap: calc(6px * var(--ui, 1));
+    row-gap: calc(6px * var(--ui, 1));
+  }
+
+  .topStats .block,
+  .streakPanel {
+    min-height: calc(88px * var(--ui, 1));
+    padding: calc(10px * var(--ui, 1));
+    border-radius: calc(16px * var(--ui, 1));
   }
 
   .topStats img.icon {
-    width: calc(62px * var(--ui, 1));
+    width: calc(34px * var(--ui, 1));
+    height: calc(34px * var(--ui, 1));
+    flex-basis: calc(34px * var(--ui, 1));
+  }
+
+  .statusCardHead {
+    gap: calc(6px * var(--ui, 1));
+  }
+
+  .hudLabel {
+    font-size: calc(13px * var(--ui, 1));
   }
 
   .stat {
@@ -889,37 +1047,19 @@ body {
 
   .stat b,
   .pointsPanel b {
-    font-size: calc(24px * var(--ui, 1)) !important;
+    font-size: calc(30px * var(--ui, 1)) !important;
   }
 
   .pointsPanel {
-    min-height: calc(46px * var(--ui, 1));
-    padding: 0 calc(10px * var(--ui, 1));
-  }
-
-  .scoreBlock {
-    width: calc(88px * var(--ui, 1));
-    justify-self: start;
+    min-height: 0;
   }
 
   .streakMeter {
-    height: calc(38px * var(--ui, 1));
+    height: calc(18px * var(--ui, 1));
     width: 100%;
-    max-width: calc(260px * var(--ui, 1));
-    justify-self: end;
+    max-width: none;
+    justify-self: stretch;
     align-self: center;
-  }
-
-  .vitalStats {
-    display: contents;
-  }
-
-  .vitalStats .block:first-child {
-    grid-area: stars;
-  }
-
-  .vitalStats .block:last-child {
-    grid-area: lives;
   }
 
   .answersPanel {
@@ -960,7 +1100,7 @@ body {
   .ans {
     height: auto;
     min-height: 0;
-    font-size: calc(30px * var(--ui, 1));
+    font-size: calc(26px * var(--ui, 1));
   }
 }
 
@@ -985,7 +1125,7 @@ body {
   }
 
   .ans {
-    font-size: calc(48px * var(--ui, 1));
+    font-size: calc(40px * var(--ui, 1));
   }
 
   .panel.bottom .ctrl.iconBtn {
@@ -1014,26 +1154,29 @@ body {
   }
 
   .topStats img.icon {
-    width: calc(68px * var(--ui, 1));
+    width: calc(38px * var(--ui, 1));
+    height: calc(38px * var(--ui, 1));
+    flex-basis: calc(38px * var(--ui, 1));
   }
 
-  .scoreBlock {
-    width: calc(104px * var(--ui, 1));
+  .topStats .block,
+  .streakPanel {
+    min-height: calc(94px * var(--ui, 1));
+    padding: calc(10px * var(--ui, 1));
   }
 
-  .pointsPanel {
-    min-height: calc(50px * var(--ui, 1));
-    padding: 0 calc(8px * var(--ui, 1));
+  .hudLabel {
+    font-size: calc(14px * var(--ui, 1));
   }
 
   .pointsPanel b,
-  .stat b {
-    font-size: calc(26px * var(--ui, 1)) !important;
+  .topStats .stat b {
+    font-size: calc(34px * var(--ui, 1)) !important;
   }
 
   .streakMeter {
-    min-width: calc(150px * var(--ui, 1));
-    height: calc(18px * var(--ui, 1));
+    min-width: 0;
+    height: calc(20px * var(--ui, 1));
   }
 
   .answers {
@@ -1041,7 +1184,7 @@ body {
   }
 
   .ans {
-    font-size: calc(42px * var(--ui, 1));
+    font-size: calc(36px * var(--ui, 1));
   }
 
   .panel.bottom .actions {
@@ -1067,16 +1210,24 @@ body {
   }
 
   .topStats img.icon {
-    width: calc(56px * var(--ui, 1));
+    width: calc(32px * var(--ui, 1));
+    height: calc(32px * var(--ui, 1));
+    flex-basis: calc(32px * var(--ui, 1));
+  }
+
+  .hudLabel {
+    font-size: calc(12px * var(--ui, 1));
   }
 
   .stat b,
   .pointsPanel b {
-    font-size: calc(22px * var(--ui, 1)) !important;
+    font-size: calc(28px * var(--ui, 1)) !important;
   }
 
-  .pointsPanel {
-    min-height: calc(42px * var(--ui, 1));
+  .topStats .block,
+  .streakPanel {
+    min-height: calc(82px * var(--ui, 1));
+    padding: calc(8px * var(--ui, 1));
   }
 
   .answers {
@@ -1084,7 +1235,7 @@ body {
   }
 
   .ans {
-    font-size: calc(28px * var(--ui, 1));
+    font-size: calc(24px * var(--ui, 1));
   }
 
   .panel.bottom .ctrl.iconBtn {
@@ -1106,7 +1257,7 @@ body {
   }
 
   .ans {
-    font-size: calc(32px * var(--ui, 1));
+    font-size: calc(28px * var(--ui, 1));
   }
 }
 
@@ -1115,5 +1266,5 @@ body {
   .panel.bottom { margin-top: 6px; }
   .side { gap: 6px; }
   .answers { gap: calc(8px * var(--ui, 1)); }
-  .ans { height: calc(96px * var(--ui, 1)); font-size: calc(44px * var(--ui, 1)); }
+  .ans { height: calc(84px * var(--ui, 1)); font-size: calc(36px * var(--ui, 1)); }
 }
