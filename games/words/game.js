@@ -79,7 +79,7 @@
   const spawnYOffsetRatio = 0.35;
   const diffOrder = ["easy", "medium", "hard", "super"];
   let mascotAnimToken = 0;
-  const streakGoal = 10;
+const streakGoal = 20;
   const streakRewardDelayMs = 650;
   let streakRewardTimer = null;
   let streakRewardPending = false;

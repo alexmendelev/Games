@@ -53,7 +53,7 @@
     tileMargin: cfg.gameplay.tileMargin
   };
   const spawnYOffsetRatio = 0.35;
-  const streakGoal = 10;
+const streakGoal = 20;
   const streakRewardDelayMs = 650;
 
   let selected = meta.getSelectedDiff();
