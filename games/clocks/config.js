@@ -33,18 +33,26 @@ window.GAME_V3_CLOCKS_CONFIG = {
     dialPlainUrl: "assets/ui/dial_plain.png"
   },
   gameplay: {
-    livesStart: 10,
-    scoreWrong: -5,
-    scoreMiss: -10,
+    normalAttempts: 2,
+    specialAttempts: 1,
+    specialChance: 1 / 6,
+    specialSilverWeight: 70,
+    specialGoldWeight: 25,
+    specialDiamondWeight: 5,
+    specialSilverCoins: 1,
+    specialGoldCoins: 5,
+    specialDiamondCoins: 20,
     baseSpeed: 92,
     speedIncPerLevel: 8,
-    pointsPerLevel: 190,
+    levelGoals: {
+      easy: { correctTarget: 8, timeLimitMs: 60000 },
+      medium: { correctTarget: 10, timeLimitMs: 75000 },
+      hard: { correctTarget: 12, timeLimitMs: 90000 },
+      super: { correctTarget: 14, timeLimitMs: 90000 }
+    },
     tileWidth: 320,
     tileHeight: 112,
     tileMargin: 10,
-    correctMin: 10,
-    correctMax: 20,
-    correctTimeCapSec: 2.4,
     sfxGain: 0.1
   },
   diffs: {

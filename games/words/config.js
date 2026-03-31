@@ -24,19 +24,21 @@ window.GAME_V2_WORDS_CONFIG = {
     { id: "2708", he: "מטוס" }
   ],
   gameplay: {
-    livesStart: 10,
-    scoreWrong: -5,
-    scoreMiss: -10,
+    normalAttempts: 2,
+    specialAttempts: 1,
+    specialChance: 1 / 6,
+    specialSilverWeight: 70,
+    specialGoldWeight: 25,
+    specialDiamondWeight: 5,
+    specialSilverCoins: 1,
+    specialGoldCoins: 5,
+    specialDiamondCoins: 20,
     baseSpeed: 96,
     speedIncPerLevel: 8,
-    pointsPerLevel: 180,
     correctPerDiffStep: 6,
     tileWidth: 360,
     tileHeight: 116,
     tileMargin: 10,
-    correctMin: 10,
-    correctMax: 20,
-    correctTimeCapSec: 2,
     sfxGain: 0.1
   },
   diffs: {
@@ -46,3 +48,13 @@ window.GAME_V2_WORDS_CONFIG = {
     super: { label: "סופר", speedMul: 0.42, maxLetters: Infinity }
   }
 };
+window.GAME_V2_WORDS_CONFIG.gameplay.levelGoals = {
+  easy: { correctTarget: 8, timeLimitMs: 60000 },
+  medium: { correctTarget: 10, timeLimitMs: 75000 },
+  hard: { correctTarget: 12, timeLimitMs: 90000 },
+  super: { correctTarget: 14, timeLimitMs: 90000 }
+};
+window.GAME_V2_WORDS_CONFIG.diffs.easy.speedMul = 0.36;
+window.GAME_V2_WORDS_CONFIG.diffs.medium.speedMul = 0.42;
+window.GAME_V2_WORDS_CONFIG.diffs.hard.speedMul = 0.48;
+window.GAME_V2_WORDS_CONFIG.diffs.super.speedMul = 0.56;

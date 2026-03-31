@@ -37,18 +37,26 @@ window.GAME_V2_SHAPES_CONFIG = {
     { id: "orange", he: "כתום", hex: "#f97316" }
   ],
   gameplay: {
-    livesStart: 10,
-    scoreWrong: -5,
-    scoreMiss: -10,
+    normalAttempts: 2,
+    specialAttempts: 1,
+    specialChance: 1 / 6,
+    specialSilverWeight: 70,
+    specialGoldWeight: 25,
+    specialDiamondWeight: 5,
+    specialSilverCoins: 1,
+    specialGoldCoins: 5,
+    specialDiamondCoins: 20,
     baseSpeed: 90,
     speedIncPerLevel: 7,
-    pointsPerLevel: 190,
+    levelGoals: {
+      easy: { correctTarget: 8, timeLimitMs: 60000 },
+      medium: { correctTarget: 10, timeLimitMs: 75000 },
+      hard: { correctTarget: 12, timeLimitMs: 90000 },
+      super: { correctTarget: 14, timeLimitMs: 90000 }
+    },
     tileWidth: 300,
     tileHeight: 124,
     tileMargin: 10,
-    correctMin: 10,
-    correctMax: 20,
-    correctTimeCapSec: 2,
     sfxGain: 0.1
   },
   diffs: {

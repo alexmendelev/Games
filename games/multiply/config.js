@@ -36,12 +36,21 @@ window.GAME_V3_MULTIPLY_CONFIG = {
     upTo10: { label: "כפל 1-10", speedMul: 0.28, correct: 20, minFactor: 1, maxFactor: 10, wrongNear: 6, wrongFar: 12 }
   },
   gameplay: {
-    livesStart: 10,
-    scoreWrong: -5,
-    scoreMiss: -10,
+    normalAttempts: 2,
+    specialAttempts: 1,
+    specialChance: 1 / 6,
+    specialSilverWeight: 70,
+    specialGoldWeight: 25,
+    specialDiamondWeight: 5,
+    specialSilverCoins: 1,
+    specialGoldCoins: 5,
+    specialDiamondCoins: 20,
     baseSpeed: 80,
     speedIncPerLevel: 6,
-    pointsPerLevel: 200,
+    levelGoals: {
+      upTo5: { correctTarget: 10, timeLimitMs: 60000 },
+      upTo10: { correctTarget: 12, timeLimitMs: 75000 }
+    },
     tileWBase: 240,
     tileHBase: 78,
     marginBase: 10,
