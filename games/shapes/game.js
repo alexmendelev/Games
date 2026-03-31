@@ -5,6 +5,7 @@
   const shellApi = window.GAMES_V2_SHELL;
   const audioApi = window.GAMES_V2_AUDIO;
   const fxApi = window.GAMES_V2_FX;
+  const metaApi = window.GAMES_V2_META;
   const cfg = window.GAME_V2_SHAPES_CONFIG;
 
   const gameEl = document.getElementById("game");
@@ -42,6 +43,22 @@
     gameEl,
     coinIconEl
   });
+  const diffOptions = Array.from(diffsEl.querySelectorAll("[data-diff]")).map((btn) => ({
+    key: btn.dataset.diff,
+    label: String(btn.textContent || "").trim()
+  }));
+  const meta = metaApi.createGameMeta({
+    overlayEl,
+    diffOptions,
+    defaultLives: cfg.gameplay.livesStart,
+    initialLanguage: document.documentElement.lang || "he",
+    onStartRequested: handleStartRequested,
+    onExitRequested: () => shell.exitGame(),
+    audio,
+    fx,
+    gameKey: "shapes"
+  });
+  const initialSnapshot = meta.getSnapshot();
 
   function syncMuteButton() {
     if (!muteBtn) return;
@@ -76,13 +93,13 @@
   let correctDeck = [];
   let deckPos = 0;
   let recentCorrectIds = [];
-  let selected = "medium";
+  let selected = meta.getSelectedDiff();
   let activeAnswerCount = cfg.diffs.medium.answerCount;
   let running = false;
   let paused = false;
   let score = 0;
-  let coins = 0;
-  let lives = cfg.gameplay.livesStart;
+  let coins = initialSnapshot.player.coins;
+  let lives = initialSnapshot.player.lives;
   let consecutiveCorrect = 0;
   let streakCount = 0;
   let task = null;
@@ -95,6 +112,10 @@
   const streakRewardDelayMs = 650;
   let streakRewardTimer = null;
   let streakRewardPending = false;
+  let runBaseLevel = initialSnapshot.nextLevel;
+  let lastCheckpointLevel = runBaseLevel - 1;
+  let levelPausePending = false;
+  let coinAwardPending = false;
 
   function syncWaterReflection(nextTask, rectArg) {
     if (!nextTask) {
@@ -242,7 +263,7 @@
   }
 
   function level() {
-    return Math.max(1, Math.floor(score / cfg.gameplay.pointsPerLevel) + 1);
+    return Math.max(runBaseLevel, runBaseLevel + Math.floor(Math.max(0, score) / cfg.gameplay.pointsPerLevel));
   }
 
   function getSpeed() {
@@ -256,6 +277,45 @@
     scoreEl.textContent = String(score);
     coinEl.textContent = String(coins);
     livesEl.textContent = String(lives);
+  }
+
+  function syncCheckpointState(resetScore) {
+    const snapshot = meta.getSnapshot();
+    selected = meta.getSelectedDiff() || selected;
+    runBaseLevel = snapshot.nextLevel;
+    lastCheckpointLevel = runBaseLevel - 1;
+    coins = snapshot.player.coins;
+    lives = snapshot.player.lives;
+    if (resetScore) {
+      score = 0;
+    }
+  }
+
+  function levelCompletedSinceCheckpoint() {
+    return level() - 1;
+  }
+
+  async function showLevelResults(completedLevel) {
+    if (levelPausePending) {
+      return;
+    }
+    levelPausePending = true;
+    running = false;
+    paused = false;
+    pauseBtn.classList.remove("paused");
+    clearPendingStreakReward();
+    await meta.showResults({
+      completedLevel,
+      coins,
+      lives,
+      score
+    });
+    running = true;
+    paused = false;
+    levelPausePending = false;
+    if (!falling.getItem()) {
+      spawnTask();
+    }
   }
 
   function updateStreakMeter() {
@@ -507,7 +567,9 @@
       audio.sfx.death();
       running = false;
       falling.stop("game-over");
-      overlayEl.style.display = "grid";
+      syncCheckpointState(true);
+      setHUD();
+      meta.showStart({ gameOver: true });
       return;
     }
     spawnTask();
@@ -536,6 +598,7 @@
       setTimeout(() => scoreEl.classList.remove("pulse"), 350);
       if (consecutiveCorrect >= 4) {
         consecutiveCorrect = 0;
+        coinAwardPending = true;
         fx.awardCoinFromBurst(burstX, burstY, () => {
           coins += 1;
           setHUD();
@@ -544,14 +607,33 @@
           setTimeout(() => coinEl.classList.remove("pulse"), 450);
           audio.sfx.coin();
           playMascotDance();
+        }).finally(() => {
+          coinAwardPending = false;
         });
       }
       fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
       lockInputUntil = now + cfg.answerLockMs;
       setTimeout(() => {
-        if (running && !falling.getItem()) {
-          spawnTask();
+        if (!running || falling.getItem() || levelPausePending) {
+          return;
         }
+        const completedLevel = levelCompletedSinceCheckpoint();
+        if (completedLevel > lastCheckpointLevel) {
+          const proceedToResults = () => {
+            if (!running || falling.getItem() || levelPausePending) {
+              return;
+            }
+            if (coinAwardPending) {
+              setTimeout(proceedToResults, 80);
+              return;
+            }
+            lastCheckpointLevel = completedLevel;
+            showLevelResults(completedLevel);
+          };
+          proceedToResults();
+          return;
+        }
+        spawnTask();
       }, cfg.answerLockMs);
       return;
     }
@@ -564,12 +646,12 @@
   }
 
   function resetState() {
-    score = 0;
-    coins = 0;
-    lives = cfg.gameplay.livesStart;
+    syncCheckpointState(true);
     consecutiveCorrect = 0;
     streakCount = 0;
     paused = false;
+    levelPausePending = false;
+    coinAwardPending = false;
     pauseBtn.classList.remove("paused");
     correctDeck = [];
     deckPos = 0;
@@ -588,10 +670,18 @@
     running = false;
     paused = false;
     pauseBtn.classList.remove("paused");
-    overlayEl.style.display = "none";
+    meta.hideOverlay();
     resetState();
     running = true;
     falling.start();
+  }
+
+  async function handleStartRequested(payload) {
+    selected = payload.diffKey || selected;
+    applyAnswerCount(currentDiff().answerCount);
+    audio.ensureAudio();
+    await ensureAssetsReady();
+    startGame();
   }
 
   function togglePause() {
@@ -607,16 +697,6 @@
       falling.resume();
     }
   }
-
-  diffsEl.addEventListener("click", async (event) => {
-    const btn = event.target.closest("[data-diff]");
-    if (!btn || running) return;
-    selected = btn.dataset.diff;
-    applyAnswerCount(currentDiff().answerCount);
-    audio.ensureAudio();
-    await ensureAssetsReady();
-    startGame();
-  });
 
   pauseBtn.addEventListener("click", () => {
     audio.ensureAudio();
@@ -651,7 +731,7 @@
   window.addEventListener("orientationchange", syncGameplayMetrics);
 
   syncGameplayMetrics();
-  applyAnswerCount(cfg.diffs.medium.answerCount);
+  applyAnswerCount(currentDiff().answerCount);
   ensureAssetsReady();
   setMascot("idle");
   setHUD();

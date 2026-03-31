@@ -4,7 +4,7 @@
 
 .answers {
   grid-template-columns: repeat(4, 1fr);
-  gap: calc(8px * var(--ui, 1));
+  gap: calc(6px * var(--ui, 1));
   height: auto;
   align-content: center;
   justify-content: center;
@@ -12,16 +12,16 @@
 }
 
 .ans {
-  height: calc(92px * var(--ui, 1));
-  padding: calc(8px * var(--ui, 1));
+  height: calc(76px * var(--ui, 1));
+  padding: calc(6px * var(--ui, 1));
   display: grid;
   place-items: center;
   border: 2px solid rgba(255, 255, 255, 0.78);
 }
 
 .ans svg {
-  width: min(100%, calc(74px * var(--ui, 1)));
-  height: min(100%, calc(74px * var(--ui, 1)));
+  width: min(100%, calc(60px * var(--ui, 1)));
+  height: min(100%, calc(60px * var(--ui, 1)));
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.25));
   pointer-events: none;
 }
@@ -126,8 +126,8 @@
   }
 
   .ans svg {
-    width: min(100%, calc(56px * var(--ui, 1)));
-    height: min(100%, calc(56px * var(--ui, 1)));
+    width: min(100%, calc(48px * var(--ui, 1)));
+    height: min(100%, calc(48px * var(--ui, 1)));
   }
 }
 
@@ -150,8 +150,8 @@
   }
 
   .ans svg {
-    width: min(100%, calc(64px * var(--ui, 1)));
-    height: min(100%, calc(64px * var(--ui, 1)));
+    width: min(100%, calc(54px * var(--ui, 1)));
+    height: min(100%, calc(54px * var(--ui, 1)));
   }
 }
 
@@ -165,7 +165,7 @@
   }
 
   .ans svg {
-    width: min(100%, calc(48px * var(--ui, 1)));
-    height: min(100%, calc(48px * var(--ui, 1)));
+    width: min(100%, calc(42px * var(--ui, 1)));
+    height: min(100%, calc(42px * var(--ui, 1)));
   }
 }
