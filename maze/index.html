@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hedge Maze Prototype</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: rgba(19, 27, 20, 0.78);
+      --panel-border: rgba(224, 236, 219, 0.18);
+      --text: #eef7e8;
+      --muted: #b5c4af;
+      --accent: #f1d16b;
+      --success: rgba(25, 51, 28, 0.92);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #8bb4d1 0%, #b9d7a0 100%);
+      color: var(--text);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas.webgl {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hud {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .panel {
+      position: absolute;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .info {
+      top: 16px;
+      left: 16px;
+      padding: 12px 14px;
+      min-width: 240px;
+    }
+
+    .info h1 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .info p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .info strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .status {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      min-width: 190px;
+      text-align: right;
+    }
+
+    .status span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .minimap-shell {
+      right: 16px;
+      bottom: 16px;
+      width: 236px;
+      padding: 10px;
+    }
+
+    .minimap-shell h2 {
+      margin: 0 0 8px;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    #minimap {
+      display: block;
+      width: 100%;
+      height: auto;
+      background:
+        linear-gradient(180deg, rgba(89, 120, 74, 0.35), rgba(31, 44, 34, 0.55)),
+        rgba(15, 22, 16, 0.68);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 16, 10, 0.56);
+      pointer-events: auto;
+    }
+
+    .overlay.visible {
+      display: flex;
+    }
+
+    .overlay-card {
+      width: min(420px, calc(100vw - 32px));
+      text-align: center;
+      padding: 28px 24px;
+      background: var(--success);
+      border: 1px solid rgba(220, 240, 207, 0.18);
+      border-radius: 18px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.34);
+    }
+
+    .overlay-card h2 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 4vw, 2.3rem);
+    }
+
+    .overlay-card p {
+      margin: 0 0 18px;
+      color: #d6e4d1;
+      line-height: 1.5;
+    }
+
+    .overlay-card button {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font: inherit;
+      font-weight: 700;
+      color: #172016;
+      background: linear-gradient(135deg, #f5dc83, #d1ef9a);
+      cursor: pointer;
+    }
+
+    .crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      margin-left: -5px;
+      margin-top: -5px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+
+    .touch-surface {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: none;
+      pointer-events: none;
+      touch-action: none;
+    }
+
+    .touch-indicator {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      transition: opacity 120ms ease;
+      pointer-events: none;
+    }
+
+    .touch-indicator.visible {
+      opacity: 1;
+    }
+
+    .touch-base,
+    .touch-stick {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .touch-base {
+      width: 112px;
+      height: 112px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(240, 247, 226, 0.08), rgba(41, 56, 35, 0.05) 58%, rgba(0, 0, 0, 0) 59%),
+        linear-gradient(180deg, rgba(244, 250, 236, 0.08), rgba(72, 96, 56, 0.16));
+      box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.12),
+        0 10px 30px rgba(0, 0, 0, 0.16);
+    }
+
+    .touch-stick {
+      width: 64px;
+      height: 64px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 48%),
+        linear-gradient(180deg, rgba(241, 209, 107, 0.28), rgba(66, 96, 52, 0.42));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 10px 24px rgba(0, 0, 0, 0.16);
+      transition: transform 80ms ease-out;
+      opacity: 0.88;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    .touch-hint {
+      left: 16px;
+      bottom: 16px;
+      max-width: min(340px, calc(100vw - 32px));
+      padding: 12px 14px;
+      display: none;
+      z-index: 2;
+    }
+
+    .touch-hint h2 {
+      margin: 0 0 6px;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .touch-hint p {
+      margin: 0;
+      color: var(--text);
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+
+    .overlay {
+      z-index: 5;
+    }
+
+    @media (max-width: 900px) {
+      .info {
+        min-width: 0;
+        max-width: calc(100vw - 32px);
+      }
+
+      .status {
+        top: auto;
+        right: 16px;
+        bottom: 262px;
+      }
+
+      .minimap-shell {
+        width: 190px;
+      }
+
+      .touch-hint {
+        right: 16px;
+        left: auto;
+        bottom: 16px;
+        max-width: min(260px, calc(100vw - 32px));
+      }
+    }
+
+    @media (pointer: coarse) {
+      .touch-surface {
+        display: block;
+        pointer-events: auto;
+      }
+
+      .touch-hint {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="hud">
+      <section class="panel info">
+        <h1>Hedge Maze Prototype</h1>
+        <p><strong>Move:</strong> W/S or Up/Down</p>
+        <p><strong>Turn:</strong> A/D or Left/Right</p>
+        <p><strong>Touch:</strong> Drag up, down, left, or right to issue maze commands. Longer drags queue more movement.</p>
+        <p>Reach a highlighted exit cell to escape.</p>
+      </section>
+
+      <section class="panel status">
+        Current node: <span id="node-readout">Locating...</span>
+      </section>
+
+      <section class="panel minimap-shell">
+        <h2>Minimap</h2>
+        <canvas id="minimap" width="216" height="216"></canvas>
+      </section>
+
+      <div id="touch-surface" class="touch-surface" aria-hidden="true">
+        <div id="touch-indicator" class="touch-indicator">
+          <div class="touch-base"></div>
+          <div id="touch-stick" class="touch-stick"></div>
+        </div>
+      </div>
+
+      <section class="panel touch-hint" aria-hidden="true">
+        <h2>Touch Controls</h2>
+        <p>Drag up to move forward, down to step back, and left or right to turn. Longer drags queue extra steps or turns.</p>
+      </section>
+
+      <div class="crosshair" aria-hidden="true"></div>
+
+      <div id="escape-overlay" class="overlay" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="overlay-card">
+          <h2>Escaped</h2>
+          <p>You found one of the maze exits. Press restart to begin again from the entrance.</p>
+          <button id="restart-button" type="button">Restart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    let THREE;
+    try {
+      THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");
+    } catch (error) {
+      const overlay = document.querySelector("#escape-overlay");
+      overlay.classList.add("visible");
+      overlay.setAttribute("aria-hidden", "false");
+      overlay.querySelector("h2").textContent = "Load Error";
+      overlay.querySelector("p").textContent = "Three.js could not be loaded from the CDN. Check internet access or try a local static server.";
+      overlay.querySelector("button").style.display = "none";
+      console.error("Three.js failed to load.", error);
+      throw error;
+    }
+
+const maze = {
+  "nodes": {
+    "N0": {
+      "x": 1,
+      "y": -3,
+      "N": null,
+      "E": null,
+      "S": "N2",
+      "W": null
+    },
+    "N1": {
+      "x": 0,
+      "y": -2,
+      "N": null,
+      "E": "N2",
+      "S": "N5",
+      "W": null
+    },
+    "N2": {
+      "x": 1,
+      "y": -2,
+      "N": "N0",
+      "E": "N3",
+      "S": null,
+      "W": "N1"
+    },
+    "N3": {
+      "x": 2,
+      "y": -2,
+      "N": null,
+      "E": null,
+      "S": null,
+      "W": "N2"
+    },
+    "N4": {
+      "x": -1,
+      "y": -1,
+      "N": null,
+      "E": "N5",
+      "S": "N8",
+      "W": null
+    },
+    "N5": {
+      "x": 0,
+      "y": -1,
+      "N": "N1",
+      "E": null,
+      "S": "N9",
+      "W": "N4"
+    },
+    "N6": {
+      "x": 1,
+      "y": -1,
+      "N": null,
+      "E": "N7",
+      "S": "N10",
+      "W": null
+    },
+    "N7": {
+      "x": 2,
+      "y": -1,
+      "N": null,
+      "E": null,
+      "S": "N11",
+      "W": "N6"
+    },
+    "N8": {
+      "x": -1,
+      "y": 0,
+      "N": "N4",
+      "E": null,
+      "S": null,
+      "W": null
+    },
+    "N9": {
+      "x": 0,
+      "y": 0,
+      "N": "N5",
+      "E": "N10",
+      "S": "N17",
+      "W": null
+    },
+    "N10": {
+      "x": 1,
+      "y": 0,
+      "N": "N6",
+      "E": null,
+      "S": null,
+      "W": "N9"
+    },
+    "N11": {
+      "x": 2,
+      "y": 0,
+      "N": "N7",
+      "E": "N12",
+      "S": null,
+      "W": null
+    },
+    "N12": {
+      "x": 3,
+      "y": 0,
+      "N": null,
+      "E": "N13",
+      "S": "N20",
+      "W": "N11"
+    },
+    "N13": {
+      "x": 4,
+      "y": 0,
+      "N": null,
+      "E": null,
+      "S": null,
+      "W": "N12"
+    },
+    "N14": {
+      "x": -3,
+      "y": 1,
+      "N": null,
+      "E": "N15",
+      "S": null,
+      "W": null
+    },
+    "N15": {
+      "x": -2,
+      "y": 1,
+      "N": null,
+      "E": "N16",
+      "S": "N21",
+      "W": "N14"
+    },
+    "N16": {
+      "x": -1,
+      "y": 1,
+      "N": null,
+      "E": null,
+      "S": null,
+      "W": "N15"
+    },
+    "N17": {
+      "x": 0,
+      "y": 1,
+      "N": "N9",
+      "E": "N18",
+      "S": null,
+      "W": null
+    },
+    "N18": {
+      "x": 1,
+      "y": 1,
+      "N": null,
+      "E": "N19",
+      "S": null,
+      "W": "N17"
+    },
+    "N19": {
+      "x": 2,
+      "y": 1,
+      "N": null,
+      "E": null,
+      "S": null,
+      "W": "N18"
+    },
+    "N20": {
+      "x": 3,
+      "y": 1,
+      "N": "N12",
+      "E": null,
+      "S": "N25",
+      "W": null
+    },
+    "N21": {
+      "x": -2,
+      "y": 2,
+      "N": "N15",
+      "E": "N22",
+      "S": null,
+      "W": null
+    },
+    "N22": {
+      "x": -1,
+      "y": 2,
+      "N": null,
+      "E": "N23",
+      "S": null,
+      "W": "N21"
+    },
+    "N23": {
+      "x": 0,
+      "y": 2,
+      "N": null,
+      "E": "N24",
+      "S": null,
+      "W": "N22"
+    },
+    "N24": {
+      "x": 1,
+      "y": 2,
+      "N": null,
+      "E": null,
+      "S": "N26",
+      "W": "N23"
+    },
+    "N25": {
+      "x": 3,
+      "y": 2,
+      "N": "N20",
+      "E": null,
+      "S": "N28",
+      "W": null
+    },
+    "N26": {
+      "x": 1,
+      "y": 3,
+      "N": "N24",
+      "E": "N27",
+      "S": "N29",
+      "W": null
+    },
+    "N27": {
+      "x": 2,
+      "y": 3,
+      "N": null,
+      "E": "N28",
+      "S": null,
+      "W": "N26"
+    },
+    "N28": {
+      "x": 3,
+      "y": 3,
+      "N": "N25",
+      "E": null,
+      "S": null,
+      "W": "N27"
+    },
+    "N29": {
+      "x": 1,
+      "y": 4,
+      "N": "N26",
+      "E": null,
+      "S": null,
+      "W": null
+    }
+  },
+  "exits": [
+    "N0",
+    "N3"
+  ]
+};
+    const CELL_SIZE = 4;
+    const WALL_HEIGHT = 2.5;
+    const WALL_THICKNESS = 0.25;
+    const PLAYER_HEIGHT = 1.7;
+    const PLAYER_RADIUS = 0.25;
+    const MOVE_SPEED = 3.3;
+    const TURN_SPEED = Math.PI * 0.9;
+    const EXIT_RADIUS = CELL_SIZE * 0.3;
+    const FOG_NEAR = 12;
+    const FOG_FAR = 42;
+
+    const DIRECTION_META = {
+      N: { opposite: "S", dx: 0, dy: -1, yaw: 0 },
+      E: { opposite: "W", dx: 1, dy: 0, yaw: -Math.PI / 2 },
+      S: { opposite: "N", dx: 0, dy: 1, yaw: Math.PI },
+      W: { opposite: "E", dx: -1, dy: 0, yaw: Math.PI / 2 }
+    };
+
+    const app = document.querySelector("#app");
+    const minimapCanvas = document.querySelector("#minimap");
+    const minimapContext = minimapCanvas.getContext("2d");
+    const nodeReadout = document.querySelector("#node-readout");
+    const overlay = document.querySelector("#escape-overlay");
+    const restartButton = document.querySelector("#restart-button");
+    const touchSurface = document.querySelector("#touch-surface");
+    const touchIndicator = document.querySelector("#touch-indicator");
+    const touchStick = document.querySelector("#touch-stick");
+
+    const clock = new THREE.Clock();
+    const keyState = new Map();
+    const wallColliders = [];
+    const floorCenters = new Map();
+    const minimapWalls = [];
+    const coordinateToNodeId = new Map();
+    const touchInput = {
+      activePointerId: null,
+      startX: 0,
+      startY: 0,
+      lastX: 0,
+      lastY: 0,
+      startTime: 0,
+      move: 0,
+      turn: 0
+    };
+    const scriptedAction = {
+      current: null,
+      queue: []
+    };
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x93bdd8);
+    scene.fog = new THREE.Fog(0x93bdd8, FOG_NEAR, FOG_FAR);
+
+    const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 200);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.domElement.classList.add("webgl");
+    app.prepend(renderer.domElement);
+
+    const player = createPlayer(maze);
+    const mazeMetrics = computeMazeMetrics(maze);
+
+    validateMaze(maze);
+    buildEnvironment(scene, mazeMetrics);
+    buildCoordinateIndex(maze);
+    buildMazeMeshes(maze, scene, wallColliders, minimapWalls);
+    updateCurrentNode();
+    updateCameraFromPlayer();
+    drawMinimap(maze, player, minimapContext, mazeMetrics, minimapWalls);
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("resize", handleResize);
+    restartButton.addEventListener("click", restartGame);
+    touchSurface.addEventListener("pointerdown", handleTouchSurfaceDown);
+    touchSurface.addEventListener("pointermove", handleTouchSurfaceMove);
+    touchSurface.addEventListener("pointerup", handleTouchSurfaceUp);
+    touchSurface.addEventListener("pointercancel", handleTouchSurfaceCancel);
+
+    animate();
+
+    function validateMaze(mazeData) {
+      const coordinateIndex = new Map();
+
+      Object.entries(mazeData.nodes).forEach(([id, node]) => {
+        const coordinateKey = `${node.x},${node.y}`;
+        if (coordinateIndex.has(coordinateKey)) {
+          console.warn(`Maze validation: ${id} shares coordinates with ${coordinateIndex.get(coordinateKey)} at (${node.x}, ${node.y}).`);
+        } else {
+          coordinateIndex.set(coordinateKey, id);
+        }
+
+        Object.entries(DIRECTION_META).forEach(([dir, meta]) => {
+          const neighborId = node[dir];
+          if (!neighborId) {
+            return;
+          }
+
+          const neighbor = mazeData.nodes[neighborId];
+          if (!neighbor) {
+            console.warn(`Maze validation: ${id}.${dir} points to missing node "${neighborId}".`);
+            return;
+          }
+
+          if (neighbor[meta.opposite] !== id) {
+            console.warn(
+              `Maze validation: ${id}.${dir} = ${neighborId} but ${neighborId}.${meta.opposite} = ${neighbor[meta.opposite]}.`
+            );
+          }
+
+          if (neighbor.x !== node.x + meta.dx || neighbor.y !== node.y + meta.dy) {
+            console.warn(
+              `Maze validation: ${id}.${dir} expected coordinates (${node.x + meta.dx}, ${node.y + meta.dy}) but found (${neighbor.x}, ${neighbor.y}).`
+            );
+          }
+        });
+      });
+
+      mazeData.exits.forEach((exitId) => {
+        if (!mazeData.nodes[exitId]) {
+          console.warn(`Maze validation: exit "${exitId}" does not exist in maze.nodes.`);
+        }
+      });
+    }
+
+    function computeMazeMetrics(mazeData) {
+      const nodes = Object.values(mazeData.nodes);
+      const xs = nodes.map((node) => node.x);
+      const ys = nodes.map((node) => node.y);
+
+      return {
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys),
+        width: Math.max(...xs) - Math.min(...xs) + 1,
+        height: Math.max(...ys) - Math.min(...ys) + 1
+      };
+    }
+
+    function buildEnvironment(sceneRef, metrics) {
+      const ambientLight = new THREE.AmbientLight(0xd8eed2, 1.3);
+      sceneRef.add(ambientLight);
+
+      const sun = new THREE.DirectionalLight(0xfff0cc, 1.6);
+      sun.position.set(18, 24, 10);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(1024, 1024);
+      sun.shadow.camera.near = 1;
+      sun.shadow.camera.far = 80;
+      sun.shadow.camera.left = -30;
+      sun.shadow.camera.right = 30;
+      sun.shadow.camera.top = 30;
+      sun.shadow.camera.bottom = -30;
+      sceneRef.add(sun);
+
+      const groundTexture = createGroundTexture();
+      groundTexture.repeat.set(10, 10);
+
+      const groundWidth = (metrics.width + 6) * CELL_SIZE;
+      const groundDepth = (metrics.height + 6) * CELL_SIZE;
+      const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(groundWidth, groundDepth, 24, 24),
+        new THREE.MeshStandardMaterial({
+          color: 0x6a8750,
+          map: groundTexture,
+          roughness: 0.98,
+          metalness: 0.02
+        })
+      );
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = 0;
+      ground.receiveShadow = true;
+      sceneRef.add(ground);
+
+      const dirtPatch = new THREE.Mesh(
+        new THREE.CircleGeometry(Math.max(groundWidth, groundDepth) * 0.13, 56),
+        new THREE.MeshStandardMaterial({
+          color: 0x7c674f,
+          roughness: 1,
+          metalness: 0
+        })
+      );
+      dirtPatch.rotation.x = -Math.PI / 2;
+      dirtPatch.position.set(0, 0.01, 0);
+      sceneRef.add(dirtPatch);
+    }
+
+    function buildCoordinateIndex(mazeData) {
+      Object.entries(mazeData.nodes).forEach(([nodeId, node]) => {
+        coordinateToNodeId.set(`${node.x},${node.y}`, nodeId);
+      });
+    }
+
+    function buildMazeMeshes(mazeData, sceneRef, colliders, mapWalls) {
+      const mazeGroup = new THREE.Group();
+      const floorTexture = createGroundTexture();
+      floorTexture.repeat.set(1.2, 1.2);
+
+      const hedgeTexture = createHedgeTexture();
+      hedgeTexture.repeat.set(1, 1.6);
+
+      const floorGeometry = new THREE.BoxGeometry(CELL_SIZE * 0.96, 0.06, CELL_SIZE * 0.96);
+      const horizontalWallGeometry = new THREE.BoxGeometry(CELL_SIZE + WALL_THICKNESS, WALL_HEIGHT, WALL_THICKNESS);
+      const verticalWallGeometry = new THREE.BoxGeometry(WALL_THICKNESS, WALL_HEIGHT, CELL_SIZE + WALL_THICKNESS);
+
+      const floorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x86a85a,
+        map: floorTexture,
+        roughness: 0.96,
+        metalness: 0.01
+      });
+      const exitMaterial = new THREE.MeshStandardMaterial({
+        color: 0xc5ab5d,
+        emissive: 0x5e4718,
+        map: floorTexture,
+        roughness: 0.9,
+        metalness: 0.02
+      });
+      const wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0x4f7338,
+        map: hedgeTexture,
+        roughness: 0.95,
+        metalness: 0.01
+      });
+
+      const seenWalls = new Set();
+
+      Object.entries(mazeData.nodes).forEach(([nodeId, node]) => {
+        const center = nodeToWorld(node);
+        floorCenters.set(nodeId, center.clone());
+
+        const isExit = mazeData.exits.includes(nodeId);
+        const exitDirection = isExit ? getExitOpeningDirection(mazeData, nodeId, node) : null;
+        const tile = buildFloorTile(center, isExit ? exitMaterial : floorMaterial, floorGeometry);
+        mazeGroup.add(tile);
+
+        if (isExit) {
+          mazeGroup.add(buildExitMarker(center, exitDirection));
+        }
+
+        ["N", "E", "S", "W"].forEach((direction) => {
+          if (exitDirection === direction) {
+            const exitOpening = buildExitOpening(center, direction);
+            exitOpening.meshes.forEach((part) => mazeGroup.add(part));
+            colliders.push(...exitOpening.colliders);
+            return;
+          }
+
+          if (node[direction]) {
+            return;
+          }
+
+          const wallSpec = createWallSpec(node, direction);
+          if (seenWalls.has(wallSpec.key)) {
+            return;
+          }
+
+          seenWalls.add(wallSpec.key);
+          const segment = buildWallSegment(
+            wallSpec,
+            wallSpec.orientation === "horizontal" ? horizontalWallGeometry : verticalWallGeometry,
+            wallMaterial
+          );
+          mazeGroup.add(segment.mesh);
+          colliders.push(segment.collider);
+          mapWalls.push(wallSpec.mapLine);
+        });
+      });
+
+      sceneRef.add(mazeGroup);
+    }
+
+    function buildFloorTile(center, material, geometry) {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(center.x, 0.03, center.z);
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function buildExitMarker(center, direction) {
+      const marker = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.24, 0.34, 0.35, 12),
+        new THREE.MeshStandardMaterial({
+          color: 0xffd987,
+          emissive: 0x6b5320,
+          roughness: 0.55,
+          metalness: 0.08
+        })
+      );
+      const outward = directionToVector(direction).multiplyScalar(CELL_SIZE * 0.3);
+      marker.position.set(center.x + outward.x, 0.22, center.z + outward.z);
+      marker.castShadow = true;
+      return marker;
+    }
+
+    function buildExitOpening(center, direction) {
+      const meshes = [];
+      const colliders = [];
+      const openingWidth = 1.35;
+      const postWidth = Math.max((CELL_SIZE - openingWidth) * 0.5, 0.55);
+      const openingHeight = 1.95;
+      const lintelHeight = Math.max(WALL_HEIGHT - openingHeight, 0.4);
+      const outward = directionToVector(direction).multiplyScalar(CELL_SIZE * 0.5);
+      const axisIsNorthSouth = direction === "N" || direction === "S";
+
+      const hedgeTexture = createHedgeTexture();
+      hedgeTexture.repeat.set(1, 1.2);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x50743a,
+        map: hedgeTexture,
+        roughness: 0.95,
+        metalness: 0.01
+      });
+
+      const postGeometry = axisIsNorthSouth
+        ? new THREE.BoxGeometry(postWidth, openingHeight, WALL_THICKNESS)
+        : new THREE.BoxGeometry(WALL_THICKNESS, openingHeight, postWidth);
+      const lintelGeometry = axisIsNorthSouth
+        ? new THREE.BoxGeometry(CELL_SIZE + WALL_THICKNESS, lintelHeight, WALL_THICKNESS)
+        : new THREE.BoxGeometry(WALL_THICKNESS, lintelHeight, CELL_SIZE + WALL_THICKNESS);
+
+      const lateral = axisIsNorthSouth ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, 1);
+      const postOffset = (openingWidth + postWidth) * 0.5;
+
+      const leftPost = new THREE.Mesh(postGeometry, material.clone());
+      leftPost.material.color.multiplyScalar(0.94);
+      leftPost.position.copy(center)
+        .add(outward)
+        .addScaledVector(lateral, -postOffset)
+        .setY(openingHeight * 0.5);
+      leftPost.castShadow = true;
+      leftPost.receiveShadow = true;
+
+      const rightPost = new THREE.Mesh(postGeometry, material.clone());
+      rightPost.material.color.multiplyScalar(1.06);
+      rightPost.position.copy(center)
+        .add(outward)
+        .addScaledVector(lateral, postOffset)
+        .setY(openingHeight * 0.5);
+      rightPost.castShadow = true;
+      rightPost.receiveShadow = true;
+
+      const lintel = new THREE.Mesh(lintelGeometry, material.clone());
+      lintel.material.color.multiplyScalar(1.02);
+      lintel.position.copy(center).add(outward).setY(openingHeight + lintelHeight * 0.5);
+      lintel.castShadow = true;
+      lintel.receiveShadow = true;
+
+      meshes.push(leftPost, rightPost, lintel);
+      colliders.push(makeMeshCollider(leftPost, axisIsNorthSouth ? postWidth : WALL_THICKNESS, axisIsNorthSouth ? WALL_THICKNESS : postWidth));
+      colliders.push(makeMeshCollider(rightPost, axisIsNorthSouth ? postWidth : WALL_THICKNESS, axisIsNorthSouth ? WALL_THICKNESS : postWidth));
+      return { meshes, colliders };
+    }
+
+    function getExitOpeningDirection(mazeData, nodeId, node) {
+      for (const direction of ["N", "E", "S", "W"]) {
+        if (node[direction]) {
+          continue;
+        }
+
+        const meta = DIRECTION_META[direction];
+        const neighborId = coordinateToNodeId.get(`${node.x + meta.dx},${node.y + meta.dy}`);
+        if (!neighborId) {
+          return direction;
+        }
+      }
+
+      console.warn(`Maze exit "${nodeId}" has no obvious outer boundary wall. Using first null side as the opening.`);
+      return ["N", "E", "S", "W"].find((direction) => node[direction] === null) ?? "N";
+    }
+
+    function directionToVector(direction) {
+      if (direction === "N") {
+        return new THREE.Vector3(0, 0, -1);
+      }
+      if (direction === "S") {
+        return new THREE.Vector3(0, 0, 1);
+      }
+      if (direction === "E") {
+        return new THREE.Vector3(1, 0, 0);
+      }
+      return new THREE.Vector3(-1, 0, 0);
+    }
+
+    function makeMeshCollider(mesh, width, depth) {
+      return {
+        minX: mesh.position.x - width * 0.5,
+        maxX: mesh.position.x + width * 0.5,
+        minZ: mesh.position.z - depth * 0.5,
+        maxZ: mesh.position.z + depth * 0.5
+      };
+    }
+
+    function createWallSpec(node, direction) {
+      if (direction === "N") {
+        return {
+          key: `H:${node.x}:${node.y - 0.5}`,
+          orientation: "horizontal",
+          worldX: node.x * CELL_SIZE,
+          worldZ: (node.y - 0.5) * CELL_SIZE,
+          mapLine: { x1: node.x - 0.5, y1: node.y - 0.5, x2: node.x + 0.5, y2: node.y - 0.5 }
+        };
+      }
+
+      if (direction === "S") {
+        return {
+          key: `H:${node.x}:${node.y + 0.5}`,
+          orientation: "horizontal",
+          worldX: node.x * CELL_SIZE,
+          worldZ: (node.y + 0.5) * CELL_SIZE,
+          mapLine: { x1: node.x - 0.5, y1: node.y + 0.5, x2: node.x + 0.5, y2: node.y + 0.5 }
+        };
+      }
+
+      if (direction === "E") {
+        return {
+          key: `V:${node.x + 0.5}:${node.y}`,
+          orientation: "vertical",
+          worldX: (node.x + 0.5) * CELL_SIZE,
+          worldZ: node.y * CELL_SIZE,
+          mapLine: { x1: node.x + 0.5, y1: node.y - 0.5, x2: node.x + 0.5, y2: node.y + 0.5 }
+        };
+      }
+
+      return {
+        key: `V:${node.x - 0.5}:${node.y}`,
+        orientation: "vertical",
+        worldX: (node.x - 0.5) * CELL_SIZE,
+        worldZ: node.y * CELL_SIZE,
+        mapLine: { x1: node.x - 0.5, y1: node.y - 0.5, x2: node.x - 0.5, y2: node.y + 0.5 }
+      };
+    }
+
+    function buildWallSegment(wallSpec, geometry, baseMaterial) {
+      const mesh = new THREE.Mesh(geometry, baseMaterial.clone());
+      mesh.material.color.multiplyScalar(0.92 + Math.random() * 0.16);
+      mesh.position.set(wallSpec.worldX, WALL_HEIGHT / 2, wallSpec.worldZ);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+
+      const dimensions =
+        wallSpec.orientation === "horizontal"
+          ? { width: CELL_SIZE + WALL_THICKNESS, depth: WALL_THICKNESS }
+          : { width: WALL_THICKNESS, depth: CELL_SIZE + WALL_THICKNESS };
+
+      const collider = {
+        minX: mesh.position.x - dimensions.width / 2,
+        maxX: mesh.position.x + dimensions.width / 2,
+        minZ: mesh.position.z - dimensions.depth / 2,
+        maxZ: mesh.position.z + dimensions.depth / 2
+      };
+
+      return { mesh, collider };
+    }
+
+    function createGroundTexture() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 128;
+      const context = canvas.getContext("2d");
+
+      context.fillStyle = "#69864d";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < 1300; i += 1) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = 1 + Math.random() * 3;
+        const tone = i % 5 === 0 ? "rgba(109, 84, 55, 0.35)" : "rgba(157, 189, 101, 0.32)";
+        context.fillStyle = tone;
+        context.fillRect(x, y, size, size);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    function createHedgeTexture() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 128;
+      const context = canvas.getContext("2d");
+
+      context.fillStyle = "#3f612d";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < 1400; i += 1) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const radius = 1 + Math.random() * 3.8;
+        const green = 78 + Math.floor(Math.random() * 70);
+        context.fillStyle = `rgba(${28 + Math.floor(Math.random() * 30)}, ${green}, ${23 + Math.floor(Math.random() * 25)}, 0.34)`;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    function createPlayer(mazeData) {
+      const startId = pickStartNode(mazeData);
+      const startCenter = nodeToWorld(mazeData.nodes[startId]);
+
+      return {
+        position: new THREE.Vector3(startCenter.x, PLAYER_HEIGHT, startCenter.z),
+        yaw: chooseInitialYaw(mazeData.nodes[startId]),
+        radius: PLAYER_RADIUS,
+        currentNodeId: startId,
+        escaped: false
+      };
+    }
+
+    function pickStartNode(mazeData) {
+      const candidates = Object.entries(mazeData.nodes)
+        .filter(([id]) => !mazeData.exits.includes(id))
+        .map(([id, node]) => ({ id, degree: countOpenSides(node) }))
+        .sort((a, b) => b.degree - a.degree || a.id.localeCompare(b.id));
+
+      return candidates[0]?.id ?? Object.keys(mazeData.nodes)[0];
+    }
+
+    function chooseInitialYaw(node) {
+      for (const direction of ["S", "E", "N", "W"]) {
+        if (node[direction]) {
+          return DIRECTION_META[direction].yaw;
+        }
+      }
+      return 0;
+    }
+
+    function countOpenSides(node) {
+      return ["N", "E", "S", "W"].filter((dir) => Boolean(node[dir])).length;
+    }
+
+    function nodeToWorld(node) {
+      return new THREE.Vector3(node.x * CELL_SIZE, 0, node.y * CELL_SIZE);
+    }
+
+    function handleKeyDown(event) {
+      keyState.set(event.code, true);
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(event.code)) {
+        event.preventDefault();
+      }
+
+      if (player.escaped && event.code === "KeyR") {
+        restartGame();
+      }
+    }
+
+    function handleKeyUp(event) {
+      keyState.set(event.code, false);
+    }
+
+    function handleTouchSurfaceDown(event) {
+      if (!isTouchLikePointer(event) || player.escaped || scriptedAction.current || touchInput.activePointerId !== null) {
+        return;
+      }
+
+      stopTouchMotion();
+      touchInput.activePointerId = event.pointerId;
+      touchInput.startX = event.clientX;
+      touchInput.startY = event.clientY;
+      touchInput.lastX = event.clientX;
+      touchInput.lastY = event.clientY;
+      touchInput.startTime = performance.now();
+      touchSurface.setPointerCapture?.(event.pointerId);
+      updateTouchInputFromEvent(event);
+      event.preventDefault();
+    }
+
+    function handleTouchSurfaceMove(event) {
+      if (touchInput.activePointerId !== event.pointerId) {
+        return;
+      }
+
+      updateTouchInputFromEvent(event);
+      event.preventDefault();
+    }
+
+    function handleTouchSurfaceUp(event) {
+      if (touchInput.activePointerId !== event.pointerId) {
+        return;
+      }
+
+      updateTouchInputFromEvent(event);
+      queueCommandsFromTouchDrag(event);
+      clearTouchPointer(event.pointerId);
+      event.preventDefault();
+    }
+
+    function handleTouchSurfaceCancel(event) {
+      if (touchInput.activePointerId !== event.pointerId) {
+        return;
+      }
+
+      clearTouchPointer(event.pointerId);
+      event.preventDefault();
+    }
+
+    function updateTouchInputFromEvent(event) {
+      const rawX = event.clientX - touchInput.startX;
+      const rawY = event.clientY - touchInput.startY;
+      const maxRadius = getTouchDragRadius();
+      const deadZone = 10;
+      const distance = Math.hypot(rawX, rawY);
+
+      let clampedX = rawX;
+      let clampedY = rawY;
+      if (distance > maxRadius && distance > 0) {
+        const scale = maxRadius / distance;
+        clampedX *= scale;
+        clampedY *= scale;
+      }
+
+      touchInput.lastX = event.clientX;
+      touchInput.lastY = event.clientY;
+      renderTouchIndicator(touchInput.startX, touchInput.startY, clampedX, clampedY, true);
+    }
+
+    function getTouchDragRadius() {
+      return THREE.MathUtils.clamp(Math.min(window.innerWidth, window.innerHeight) * 0.14, 54, 92);
+    }
+
+    function renderTouchIndicator(anchorX, anchorY, offsetX, offsetY, visible) {
+      touchIndicator.style.left = `${anchorX}px`;
+      touchIndicator.style.top = `${anchorY}px`;
+      touchStick.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+      touchIndicator.classList.toggle("visible", visible);
+    }
+
+    function isTouchLikePointer(event) {
+      return event.pointerType === "touch" || event.pointerType === "pen";
+    }
+
+    function clearTouchPointer(pointerId) {
+      stopTouchMotion();
+      touchInput.activePointerId = null;
+      touchSurface.releasePointerCapture?.(pointerId);
+      renderTouchIndicator(touchInput.lastX, touchInput.lastY, 0, 0, false);
+    }
+
+    function stopTouchMotion() {
+      touchInput.move = 0;
+      touchInput.turn = 0;
+    }
+
+    function queueCommandsFromTouchDrag(event) {
+      if (player.escaped || scriptedAction.current) {
+        return;
+      }
+
+      const dx = event.clientX - touchInput.startX;
+      const dy = event.clientY - touchInput.startY;
+      const distance = Math.hypot(dx, dy);
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+      const minimumDistance = 42;
+
+      if (distance < minimumDistance) {
+        return;
+      }
+
+      if (absY >= absX) {
+        const steps = 1 + Math.floor((distance - minimumDistance) / 92);
+        queueStepCommands(dy < 0 ? 1 : -1, THREE.MathUtils.clamp(steps, 1, 3));
+        return;
+      }
+
+      const turns = 1 + Math.floor((distance - minimumDistance) / 120);
+      queueTurnCommands(dx < 0 ? 1 : -1, THREE.MathUtils.clamp(turns, 1, 2));
+    }
+
+    function startTurnAction(direction) {
+      queueTurnCommands(direction, 1);
+    }
+
+    function queueTurnCommands(direction, count) {
+      if (player.escaped) {
+        return;
+      }
+
+      stopTouchMotion();
+      renderTouchIndicator(touchInput.lastX, touchInput.lastY, 0, 0, false);
+      for (let index = 0; index < count; index += 1) {
+        scriptedAction.queue.push({
+          type: "turn",
+          direction
+        });
+      }
+      beginNextQueuedAction();
+    }
+
+    function startStepForwardAction() {
+      queueStepCommands(1, 1);
+    }
+
+    function queueStepCommands(direction, count) {
+      if (player.escaped) {
+        return;
+      }
+
+      stopTouchMotion();
+      renderTouchIndicator(touchInput.lastX, touchInput.lastY, 0, 0, false);
+      for (let index = 0; index < count; index += 1) {
+        scriptedAction.queue.push({
+          type: "move",
+          direction
+        });
+      }
+      beginNextQueuedAction();
+    }
+
+    function beginNextQueuedAction() {
+      if (player.escaped || scriptedAction.current || scriptedAction.queue.length === 0) {
+        return;
+      }
+
+      const nextCommand = scriptedAction.queue.shift();
+      if (nextCommand.type === "turn") {
+        scriptedAction.current = {
+          type: "turn",
+          startYaw: player.yaw,
+          targetYaw: player.yaw + nextCommand.direction * (Math.PI / 2),
+          elapsed: 0,
+          duration: 0.18
+        };
+        return;
+      }
+
+      if (nextCommand.type === "move") {
+        scriptedAction.current = {
+          type: "move",
+          direction: nextCommand.direction,
+          heading: player.yaw,
+          remainingDistance: CELL_SIZE,
+          speed: CELL_SIZE / 0.34
+        };
+        return;
+      }
+
+      scriptedAction.current = null;
+      beginNextQueuedAction();
+    }
+
+    function startStepAction(direction) {
+      queueStepCommands(direction, 1);
+    }
+
+    function updateScriptedAction(dt) {
+      const action = scriptedAction.current;
+      if (!action) {
+        beginNextQueuedAction();
+        return false;
+      }
+
+      if (action.type === "turn") {
+        action.elapsed += dt;
+        const t = THREE.MathUtils.clamp(action.elapsed / action.duration, 0, 1);
+        player.yaw = THREE.MathUtils.lerp(action.startYaw, action.targetYaw, t);
+        if (t >= 1) {
+          player.yaw = action.targetYaw;
+          scriptedAction.current = null;
+          beginNextQueuedAction();
+        }
+        updateCurrentNode();
+        return true;
+      }
+
+      if (action.type === "move") {
+        const stepDistance = Math.min(action.remainingDistance, action.speed * dt);
+        const beforeX = player.position.x;
+        const beforeZ = player.position.z;
+        const forward = new THREE.Vector3(-Math.sin(action.heading), 0, -Math.cos(action.heading));
+        const delta = forward.multiplyScalar(stepDistance * action.direction);
+
+        attemptMove(delta.x, 0);
+        attemptMove(0, delta.z);
+
+        const actualDistance = Math.hypot(player.position.x - beforeX, player.position.z - beforeZ);
+        action.remainingDistance -= actualDistance;
+
+        if (actualDistance < 0.0005 || action.remainingDistance <= 0.0005) {
+          scriptedAction.current = null;
+          beginNextQueuedAction();
+        }
+
+        updateCurrentNode();
+        return true;
+      }
+
+      scriptedAction.current = null;
+      beginNextQueuedAction();
+      return false;
+    }
+
+    function updatePlayer(dt) {
+      if (player.escaped) {
+        return;
+      }
+
+      if (updateScriptedAction(dt)) {
+        return;
+      }
+
+      const keyboardTurn = (isPressed("ArrowLeft") || isPressed("KeyA") ? 1 : 0) - (isPressed("ArrowRight") || isPressed("KeyD") ? 1 : 0);
+      const turnAmount = THREE.MathUtils.clamp(keyboardTurn + touchInput.turn, -1, 1);
+      player.yaw += turnAmount * TURN_SPEED * dt;
+
+      const keyboardMove = (isPressed("ArrowUp") || isPressed("KeyW") ? 1 : 0) - (isPressed("ArrowDown") || isPressed("KeyS") ? 1 : 0);
+      const moveDirection = THREE.MathUtils.clamp(keyboardMove + touchInput.move, -1, 1);
+      const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
+      const delta = forward.multiplyScalar(moveDirection * MOVE_SPEED * dt);
+
+      attemptMove(delta.x, 0);
+      attemptMove(0, delta.z);
+      updateCurrentNode();
+    }
+
+    function attemptMove(dx, dz) {
+      if (dx !== 0) {
+        const nextX = player.position.x + dx;
+        if (!collides(nextX, player.position.z, player.radius)) {
+          player.position.x = nextX;
+        }
+      }
+
+      if (dz !== 0) {
+        const nextZ = player.position.z + dz;
+        if (!collides(player.position.x, nextZ, player.radius)) {
+          player.position.z = nextZ;
+        }
+      }
+    }
+
+    function collides(x, z, radius) {
+      for (const wall of wallColliders) {
+        if (
+          x + radius > wall.minX &&
+          x - radius < wall.maxX &&
+          z + radius > wall.minZ &&
+          z - radius < wall.maxZ
+        ) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function updateCurrentNode() {
+      let nearestId = player.currentNodeId;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      floorCenters.forEach((center, nodeId) => {
+        const dx = player.position.x - center.x;
+        const dz = player.position.z - center.z;
+        const distanceSq = dx * dx + dz * dz;
+        if (distanceSq < nearestDistance) {
+          nearestDistance = distanceSq;
+          nearestId = nodeId;
+        }
+      });
+
+      player.currentNodeId = nearestId;
+    }
+
+    function checkExitReached(mazeData) {
+      if (player.escaped) {
+        return;
+      }
+
+      for (const exitId of mazeData.exits) {
+        const center = floorCenters.get(exitId);
+        if (!center) {
+          continue;
+        }
+
+        const dx = player.position.x - center.x;
+        const dz = player.position.z - center.z;
+        if (Math.hypot(dx, dz) <= EXIT_RADIUS) {
+          player.escaped = true;
+          overlay.classList.add("visible");
+          overlay.setAttribute("aria-hidden", "false");
+          return;
+        }
+      }
+    }
+
+    function updateCameraFromPlayer() {
+      camera.position.copy(player.position);
+      camera.rotation.set(0, player.yaw, 0, "YXZ");
+      nodeReadout.textContent = player.currentNodeId ?? "Unknown";
+    }
+
+    function drawMinimap(mazeData, playerState, context, metrics, mapWalls) {
+      const { canvas } = context;
+      const layout = getMinimapLayout(canvas, metrics);
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = "#122016";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      Object.entries(mazeData.nodes).forEach(([nodeId, node]) => {
+        const topLeft = gridToMinimap(node.x - 0.5, node.y - 0.5, layout, metrics);
+        context.fillStyle = nodeId === playerState.currentNodeId ? "#41643a" : "#2c442b";
+        context.fillRect(topLeft.x, topLeft.y, layout.cellSize, layout.cellSize);
+      });
+
+      context.strokeStyle = "#dcead4";
+      context.lineWidth = 3;
+      context.lineCap = "round";
+      mapWalls.forEach((wall) => {
+        const start = gridToMinimap(wall.x1, wall.y1, layout, metrics);
+        const end = gridToMinimap(wall.x2, wall.y2, layout, metrics);
+        context.beginPath();
+        context.moveTo(start.x, start.y);
+        context.lineTo(end.x, end.y);
+        context.stroke();
+      });
+
+      mazeData.exits.forEach((exitId) => {
+        const exitNode = mazeData.nodes[exitId];
+        if (!exitNode) {
+          return;
+        }
+
+        const point = gridToMinimap(exitNode.x, exitNode.y, layout, metrics);
+        context.fillStyle = "#f1d16b";
+        context.beginPath();
+        context.arc(point.x, point.y, layout.cellSize * 0.17, 0, Math.PI * 2);
+        context.fill();
+      });
+
+      const playerPoint = gridToMinimap(playerState.position.x / CELL_SIZE, playerState.position.z / CELL_SIZE, layout, metrics);
+      context.save();
+      context.translate(playerPoint.x, playerPoint.y);
+      context.rotate(-playerState.yaw);
+      context.fillStyle = playerState.escaped ? "#ffd4b8" : "#ff9067";
+      context.beginPath();
+      context.moveTo(0, -layout.cellSize * 0.25);
+      context.lineTo(layout.cellSize * 0.16, layout.cellSize * 0.19);
+      context.lineTo(-layout.cellSize * 0.16, layout.cellSize * 0.19);
+      context.closePath();
+      context.fill();
+      context.restore();
+    }
+
+    function getMinimapLayout(canvas, metrics) {
+      const padding = 18;
+      const cellSize = Math.min(
+        (canvas.width - padding * 2) / metrics.width,
+        (canvas.height - padding * 2) / metrics.height
+      );
+
+      return {
+        cellSize,
+        originX: (canvas.width - metrics.width * cellSize) / 2,
+        originY: (canvas.height - metrics.height * cellSize) / 2
+      };
+    }
+
+    function gridToMinimap(gridX, gridY, layout, metrics) {
+      return {
+        x: layout.originX + (gridX - metrics.minX + 0.5) * layout.cellSize,
+        y: layout.originY + (gridY - metrics.minY + 0.5) * layout.cellSize
+      };
+    }
+
+    function isPressed(code) {
+      return keyState.get(code) === true;
+    }
+
+    function handleResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function restartGame() {
+      const freshPlayer = createPlayer(maze);
+      player.position.copy(freshPlayer.position);
+      player.yaw = freshPlayer.yaw;
+      player.currentNodeId = freshPlayer.currentNodeId;
+      player.escaped = false;
+      scriptedAction.current = null;
+      scriptedAction.queue.length = 0;
+      touchInput.activePointerId = null;
+      stopTouchMotion();
+      renderTouchIndicator(touchInput.lastX, touchInput.lastY, 0, 0, false);
+      overlay.classList.remove("visible");
+      overlay.setAttribute("aria-hidden", "true");
+      updateCameraFromPlayer();
+      drawMinimap(maze, player, minimapContext, mazeMetrics, minimapWalls);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min(clock.getDelta(), 0.05);
+      updatePlayer(dt);
+      checkExitReached(maze);
+      updateCameraFromPlayer();
+      drawMinimap(maze, player, minimapContext, mazeMetrics, minimapWalls);
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>
