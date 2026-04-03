@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>×›×¤×œ × ×•×¤×œ - Games</title>
+  <title>Multiply - Games</title>
   <link rel="preload" href="../shared/assets/ui/background.png" as="image">
   <link rel="preload" href="../shared/assets/ui/rock.png" as="image">
   <link rel="preload" href="../shared/assets/ui/tablet.png" as="image">
@@ -22,21 +22,21 @@
   <link rel="preload" href="../shared/assets/audio/splash.mp3" as="audio" type="audio/mpeg">
   <link rel="preload" href="../shared/assets/audio/coin_drop.mp3" as="audio" type="audio/mpeg">
   <link rel="stylesheet" href="../shared/styles/tokens.css?v=20260331font1">
-  <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260331layout27">
-  <link rel="stylesheet" href="../shared/styles/game-meta.css?v=20260331meta43">
+  <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260403layout30">
+  <link rel="stylesheet" href="../shared/styles/game-meta.css?v=20260403meta46">
 </head>
 <body>
   <div class="wrap">
     <div id="game" class="game">
       <div id="mascot" class="mascot" aria-hidden="true"></div>
-      <div id="tile" class="tile">2Ã—4</div>
+      <div id="tile" class="tile">2&times;4</div>
 
       <div id="overlay" class="overlay">
         <div class="card">
-          <h2>×‘×—×¨×• ×¨×ž×”</h2>
+          <h2>&#1489;&#1495;&#1512;&#1493; &#1512;&#1502;&#1492;</h2>
           <div class="diffs" id="diffs">
-            <button class="diffbtn" type="button" data-diff="upTo5">×›×¤×œ 1-5</button>
-            <button class="diffbtn" type="button" data-diff="upTo10">×›×¤×œ 1-10</button>
+            <button class="diffbtn" type="button" data-diff="upTo5">&#1499;&#1508;&#1500; 1-5</button>
+            <button class="diffbtn" type="button" data-diff="upTo10">&#1499;&#1508;&#1500; 1-10</button>
           </div>
         </div>
       </div>
@@ -51,6 +51,10 @@
               <span class="hudLabel hudLabel--coins" aria-hidden="true"></span>
             </div>
             <div class="stat"><b id="coins">0</b></div>
+            <div class="difficultyInline">
+              <span id="difficultyLabel" class="difficultyLabel">&#1511;&#1493;&#1513;&#1497;</span>
+              <span id="difficultyValue" class="difficultyValue">...</span>
+            </div>
           </div>
           <div class="streakPanel">
             <span class="hudLabel hudLabel--streak" aria-hidden="true"></span>
@@ -73,9 +77,9 @@
       <div class="panel bottom">
         <div class="row">
           <div class="actions">
-            <button id="pauseBtn" class="ctrl iconBtn" type="button" aria-label="×”×©×”×™×”"></button>
-            <button id="muteBtn" class="ctrl iconBtn" type="button" aria-label="×”×©×ª×§×ª ×§×•×œ"></button>
-            <button id="exitBtn" class="ctrl iconBtn" type="button" aria-label="×™×¦×™××”"></button>
+            <button id="pauseBtn" class="ctrl iconBtn" type="button" aria-label="Pause"></button>
+            <button id="muteBtn" class="ctrl iconBtn" type="button" aria-label="Mute sound"></button>
+            <button id="exitBtn" class="ctrl iconBtn" type="button" aria-label="Exit"></button>
           </div>
         </div>
       </div>
@@ -85,10 +89,10 @@
   <script src="../shared/scripts/utils.js?v=20260314p"></script>
   <script src="../shared/scripts/audio.js?v=20260320audio3"></script>
   <script src="../shared/scripts/fx.js?v=20260314p"></script>
-  <script src="../shared/scripts/game-shell.js?v=20260324runner2"></script>
-  <script src="../shared/scripts/game-meta.js?v=20260331meta25"></script>
-  <script src="../shared/scripts/game-session.js?v=20260331level1"></script>
+  <script src="../shared/scripts/game-shell.js?v=20260403runner5"></script>
+  <script src="../shared/scripts/game-meta.js?v=20260403meta35"></script>
+  <script src="../shared/scripts/game-session.js?v=20260403level2"></script>
   <script src="config.js?v=20260322mascot1"></script>
-  <script src="game.js?v=20260331streak20a"></script>
+  <script src="game.js?v=20260403balance4"></script>
 </body>
 </html>

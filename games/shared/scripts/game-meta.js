@@ -1,5 +1,6 @@
 window.GAMES_V2_META = (function (utils) {
   const STORAGE_KEY = "games_v3_meta_state_v1";
+  const TEST_MODE_STORAGE_KEY = "games_v3_test_mode";
   const MESSAGES_HE = [
     "כל הכבוד!",
     "איזה יופי!",
@@ -97,6 +98,8 @@ window.GAMES_V2_META = (function (utils) {
       messageTitle: "מסר קטן לפני שממשיכים",
       showMore: "הצג עוד",
       showLess: "הצג פחות",
+      testMode: "מצב בדיקה",
+      previewResults: "תצוגת מסך תוצאות",
       progressBadge(levelNumber) { return "הישג שיא: שלב " + levelNumber; },
       defaultPlayerName: "את/ה"
     },
@@ -152,6 +155,8 @@ window.GAMES_V2_META = (function (utils) {
       messageTitle: "A quick boost before the next level",
       showMore: "Show more",
       showLess: "Show less",
+      testMode: "Test mode",
+      previewResults: "Preview results screen",
       progressBadge(levelNumber) { return "Best checkpoint: Level " + levelNumber; },
       defaultPlayerName: "You"
     }
@@ -176,6 +181,35 @@ window.GAMES_V2_META = (function (utils) {
 
   function deepClone(value) {
     return JSON.parse(JSON.stringify(value));
+  }
+
+  function isTruthyFlag(value) {
+    if (value == null) {
+      return false;
+    }
+    const normalized = String(value).trim().toLowerCase();
+    return normalized === "" || normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+  }
+
+  function isTestModeEnabled() {
+    try {
+      const params = new window.URLSearchParams((window.location && window.location.search) || "");
+      if (params.has("testMode")) {
+        return isTruthyFlag(params.get("testMode"));
+      }
+      if (params.has("test")) {
+        return isTruthyFlag(params.get("test"));
+      }
+    } catch (_) {}
+    try {
+      if (window.localStorage) {
+        const stored = window.localStorage.getItem(TEST_MODE_STORAGE_KEY);
+        if (stored != null && String(stored).trim() !== "") {
+          return isTruthyFlag(stored);
+        }
+      }
+    } catch (_) {}
+    return false;
   }
 
   function getCopy(languageId) {
@@ -227,6 +261,19 @@ window.GAMES_V2_META = (function (utils) {
       return String(diffKey || "").trim();
     }
     return entry[languageId] || entry.he || diffKey;
+  }
+
+  function applyHudDifficulty(labelEl, valueEl, diffKey, languageId) {
+    const safeLanguageId = languageId === "en" ? "en" : "he";
+    const difficultyText = diffLabel(diffKey, safeLanguageId);
+    if (labelEl) {
+      labelEl.textContent = "";
+    }
+    if (valueEl) {
+      valueEl.textContent = difficultyText;
+      valueEl.title = difficultyText;
+    }
+    return difficultyText;
   }
 
   function defaultPlayerName(languageId) {
@@ -314,6 +361,38 @@ window.GAMES_V2_META = (function (utils) {
     }
   }
 
+  function getRewardProgress(state) {
+    const raw = state && state.rewardProgress && typeof state.rewardProgress === "object"
+      ? state.rewardProgress
+      : {};
+    const consecutiveGameKey = GAME_BADGES[raw.consecutiveGameKey] ? raw.consecutiveGameKey : "";
+    return {
+      consecutiveGameKey,
+      consecutiveGameCount: Math.max(0, Number(raw.consecutiveGameCount) || 0)
+    };
+  }
+
+  function setRewardProgress(state, gameKey) {
+    if (!state) {
+      return;
+    }
+    const current = getRewardProgress(state);
+    const nextGameKey = GAME_BADGES[gameKey] ? gameKey : "";
+    state.rewardProgress = {
+      consecutiveGameKey: nextGameKey,
+      consecutiveGameCount: nextGameKey && current.consecutiveGameKey === nextGameKey
+        ? current.consecutiveGameCount + 1
+        : (nextGameKey ? 1 : 0)
+    };
+  }
+
+  function getShapesRunStreak(state) {
+    const rewardProgress = getRewardProgress(state);
+    return rewardProgress.consecutiveGameKey === "shapes"
+      ? rewardProgress.consecutiveGameCount
+      : 0;
+  }
+
   function rankParticipants(participants) {
     return participants
       .slice()
@@ -331,7 +410,7 @@ window.GAMES_V2_META = (function (utils) {
     const defaultLevel = 0;
     const defaultDiff = "medium";
     return {
-      version: 1,
+      version: 2,
       player: {
         id: "me",
         name: playerName,
@@ -356,6 +435,10 @@ window.GAMES_V2_META = (function (utils) {
         { id: "p4", name: "Maya", avatar: "frog", coins: 127 },
         { id: "p5", name: "Lior", avatar: "cat", coins: 112 }
       ],
+      rewardProgress: {
+        consecutiveGameKey: "",
+        consecutiveGameCount: 0
+      },
       messageCursor: 0
     };
   }
@@ -366,6 +449,7 @@ window.GAMES_V2_META = (function (utils) {
     const source = rawState && typeof rawState === "object" ? rawState : {};
     next.player = Object.assign({}, defaults.player, source.player || {});
     next.settings = Object.assign({}, defaults.settings, source.settings || {});
+    next.rewardProgress = Object.assign({}, defaults.rewardProgress, source.rewardProgress || {});
     next.messageCursor = Number.isFinite(source.messageCursor) ? source.messageCursor : defaults.messageCursor;
     delete next.player.lives;
 
@@ -447,6 +531,7 @@ window.GAMES_V2_META = (function (utils) {
     GAME_KEYS.forEach((gameKey) => {
       next.settings.preferredDiffByGame[gameKey] = String(next.settings.preferredDiffByGame[gameKey] || next.settings.preferredDiff || defaults.settings.preferredDiff);
     });
+    next.rewardProgress = getRewardProgress(next);
     syncLegacyProgressFields(next);
 
     return next;
@@ -481,14 +566,103 @@ window.GAMES_V2_META = (function (utils) {
     const playerRank = ranked.find((participant) => participant.id === "me");
     const gameProgress = getGameProgress(state, gameKey);
     const bestLevel = Math.max(0, Number(gameProgress.highestCompletedLevel) || 0);
+    const rewardProgress = getRewardProgress(state);
     return {
       player: deepClone(Object.assign({}, state.player, {
         currentRank: playerRank ? playerRank.rank : state.player.currentRank,
         highestCompletedLevel: bestLevel
       })),
       participants: ranked,
+      economy: {
+        consecutiveGameKey: rewardProgress.consecutiveGameKey,
+        consecutiveGameCount: rewardProgress.consecutiveGameCount,
+        shapesRunStreak: getShapesRunStreak(state)
+      },
       nextLevel: bestLevel + 1,
       bestLevel
+    };
+  }
+
+  function buildTestResultsPreview(state, gameKey) {
+    const snapshot = getStatusSnapshot(state, gameKey);
+    const otherParticipants = rankParticipants(
+      (state.participants || []).filter((participant) => participant.id !== "me")
+    ).slice(0, 4);
+
+    while (otherParticipants.length < 4) {
+      const fallbackIndex = otherParticipants.length + 1;
+      otherParticipants.push({
+        id: "preview-bot-" + fallbackIndex,
+        name: "Player " + fallbackIndex,
+        avatar: AVATARS[fallbackIndex % AVATARS.length].id,
+        coins: 0
+      });
+    }
+
+    const leaderCoins = Math.max(180, Math.max(0, Number(snapshot.player.coins) || 0) + 40);
+    const trailingCoins = [
+      Math.max(leaderCoins - 4, 0),
+      Math.max(Math.round(leaderCoins * 0.52), 0),
+      Math.max(Math.round(leaderCoins * 0.47), 0),
+      Math.max(Math.round(leaderCoins * 0.43), 0)
+    ];
+    const afterParticipants = [
+      {
+        id: "me",
+        name: state.player.name,
+        avatar: state.player.avatar,
+        coins: leaderCoins
+      }
+    ].concat(otherParticipants.map((participant, index) => Object.assign({}, participant, {
+      coins: trailingCoins[index]
+    })));
+    const beforeParticipants = [
+      {
+        id: "me",
+        name: state.player.name,
+        avatar: state.player.avatar,
+        coins: Math.max(leaderCoins - 8, 0)
+      },
+      Object.assign({}, otherParticipants[0], { coins: Math.max(leaderCoins - 3, 0) }),
+      Object.assign({}, otherParticipants[1], { coins: Math.max(trailingCoins[1] + 3, 0) }),
+      Object.assign({}, otherParticipants[2], { coins: Math.max(trailingCoins[2] + 2, 0) }),
+      Object.assign({}, otherParticipants[3], { coins: trailingCoins[3] })
+    ];
+    const afterRanks = rankParticipants(afterParticipants);
+    const beforeRanks = rankParticipants(beforeParticipants);
+    const previewState = deepClone(state);
+    previewState.player.coins = leaderCoins;
+    previewState.player.currentRank = 1;
+    previewState.player.progressByGame = Object.assign({}, previewState.player.progressByGame, {
+      [gameKey]: {
+        highestCompletedLevel: snapshot.nextLevel
+      }
+    });
+    previewState.participants = afterRanks.map((participant) => ({
+      id: participant.id,
+      name: participant.name,
+      avatar: participant.avatar,
+      coins: participant.coins
+    }));
+    syncLegacyProgressFields(previewState);
+
+    const previewMessageState = deepClone(state);
+
+    return {
+      state: previewState,
+      resultContext: {
+        beforeRanks,
+        afterRanks,
+        message: nextMessage(previewMessageState),
+        previewOnly: true,
+        metrics: {
+          accuracy: 1,
+          bestStreak: Math.max(7, snapshot.nextLevel + 3),
+          coinsEarned: 17,
+          elapsedMs: 38000,
+          endedBy: "target"
+        }
+      }
     };
   }
 
@@ -500,6 +674,7 @@ window.GAMES_V2_META = (function (utils) {
   }
 
   function buildPerformanceProfile(context, beforeRanks) {
+    const shellApi = window.GAMES_V2_SHELL || {};
     const metrics = context && context.metrics ? context.metrics : {};
     const accuracy = utils.clamp(Number(metrics.accuracy) || 0, 0, 1);
     const coinsEarned = Math.max(0, Number(metrics.coinsEarned) || 0);
@@ -516,21 +691,11 @@ window.GAMES_V2_META = (function (utils) {
       score += 0.1;
     }
     score = utils.clamp(score, 0, 1);
-
-    let playerBonus = 1;
-    if (score >= 0.92) {
-      playerBonus += 3;
-    } else if (score >= 0.78) {
-      playerBonus += 2;
-    } else if (score >= 0.6) {
-      playerBonus += 1;
-    }
-    if (playerRank >= 4) {
-      playerBonus += 1;
-    }
-    if (accuracy >= 0.98 && coinsEarned >= 2) {
-      playerBonus += 1;
-    }
+    const playerBonus = shellApi && typeof shellApi.getCompletionBonus === "function"
+      ? shellApi.getCompletionBonus(context && context.diffKey, {
+        gameKey: context && context.gameKey
+      })
+      : 1;
 
     return {
       metrics,
@@ -539,7 +704,7 @@ window.GAMES_V2_META = (function (utils) {
       bestStreak,
       playerRank,
       score,
-      playerBonus: utils.clamp(playerBonus, 1, 6)
+      playerBonus: Math.max(1, Number(playerBonus) || 1)
     };
   }
 
@@ -566,6 +731,39 @@ window.GAMES_V2_META = (function (utils) {
     return { min: 3, max: 10 };
   }
 
+  function getLeaderboardPressure(context) {
+    const playerBonus = Math.max(1, Number(context && context.playerBonus) || 1);
+    const coinsEarned = Math.max(0, Number(context && context.coinsEarned) || 0);
+    const normalizedBonus = utils.clamp((playerBonus - 1) / 7, 0, 1);
+    let pressure = 0.35 + (normalizedBonus * 0.65);
+
+    if (coinsEarned >= 8) {
+      pressure = Math.max(pressure, 0.92);
+    } else if (coinsEarned >= 5) {
+      pressure = Math.max(pressure, 0.75);
+    } else if (coinsEarned >= 3) {
+      pressure = Math.max(pressure, 0.58);
+    }
+
+    if (context && context.gameKey === "shapes") {
+      const shapesRunStreak = Math.max(0, Number(context.shapesRunStreak) || 0);
+      const streakPenalty = Math.max(0, 1 - (Math.min(10, shapesRunStreak) / 10));
+      pressure *= 0.45 * streakPenalty;
+    }
+
+    return utils.clamp(pressure, 0, 1);
+  }
+
+  function applyPressureToRange(range, pressure) {
+    const safeRange = range && typeof range === "object" ? range : { min: 0, max: 0 };
+    const scaledMin = Math.max(0, Math.floor((Number(safeRange.min) || 0) * pressure));
+    const scaledMax = Math.max(scaledMin, Math.round((Number(safeRange.max) || 0) * pressure));
+    return {
+      min: scaledMin,
+      max: scaledMax
+    };
+  }
+
   function tightenCompetitionAroundPlayer(participants, context) {
     const ranked = rankParticipants(participants);
     const playerIndex = ranked.findIndex((participant) => participant.id === "me");
@@ -575,6 +773,7 @@ window.GAMES_V2_META = (function (utils) {
 
     const adjusted = ranked.map((participant) => Object.assign({}, participant));
     const player = adjusted[playerIndex];
+    const pressure = getLeaderboardPressure(context);
 
     function seededGap(participantId, direction, minGap, maxGap) {
       const rng = seededRandom(hashString([
@@ -591,7 +790,7 @@ window.GAMES_V2_META = (function (utils) {
 
     const ahead = adjusted[playerIndex - 1];
     if (ahead) {
-      const range = competitorGapRange(context, "ahead");
+      const range = applyPressureToRange(competitorGapRange(context, "ahead"), pressure);
       const targetGap = seededGap(ahead.id, "ahead", range.min, range.max);
       let desiredCoins = player.coins + targetGap;
       const hardCeiling = playerIndex >= 2 ? adjusted[playerIndex - 2].coins - 1 : desiredCoins;
@@ -603,7 +802,7 @@ window.GAMES_V2_META = (function (utils) {
 
     const behind = adjusted[playerIndex + 1];
     if (behind) {
-      const range = competitorGapRange(context, "behind");
+      const range = applyPressureToRange(competitorGapRange(context, "behind"), pressure);
       const targetGap = seededGap(behind.id, "behind", range.min, range.max);
       let desiredCoins = Math.max(0, player.coins - targetGap);
       const floor = playerIndex + 2 < adjusted.length ? adjusted[playerIndex + 2].coins + 1 : 0;
@@ -617,6 +816,7 @@ window.GAMES_V2_META = (function (utils) {
   }
 
   function simulateCompetitorProgress(participants, context) {
+    const pressure = getLeaderboardPressure(context);
     const progressed = participants.map((participant, index) => {
       if (participant.id === "me") {
         return Object.assign({}, participant);
@@ -661,6 +861,9 @@ window.GAMES_V2_META = (function (utils) {
         minGain = Math.min(minGain, maxGain);
       }
 
+      minGain = Math.max(0, Math.floor(minGain * pressure));
+      maxGain = Math.max(minGain, Math.round(maxGain * pressure));
+
       const delta = randomInt(rng, minGain, maxGain);
       return Object.assign({}, participant, {
         coins: participant.coins + delta
@@ -676,6 +879,7 @@ window.GAMES_V2_META = (function (utils) {
     const totalPlayerCoins = Math.max(0, Number(context.playerCoins) || nextState.player.coins) + performance.playerBonus;
     nextState.player.coins = totalPlayerCoins;
     setGameCompletedLevel(nextState, context.gameKey, context.completedLevel);
+    setRewardProgress(nextState, context.gameKey);
     syncLegacyProgressFields(nextState);
     nextState.participants = nextState.participants.map((participant) => {
       if (participant.id !== "me") {
@@ -693,7 +897,9 @@ window.GAMES_V2_META = (function (utils) {
       playerCoins: totalPlayerCoins,
       playerRank: performance.playerRank,
       performanceScore: performance.score,
-      coinsEarned: performance.coinsEarned
+      coinsEarned: performance.coinsEarned,
+      playerBonus: performance.playerBonus,
+      shapesRunStreak: getShapesRunStreak(nextState)
     });
 
     const afterRanks = rankParticipants(nextState.participants);
@@ -892,6 +1098,12 @@ window.GAMES_V2_META = (function (utils) {
           "<div class=\"metaStatusGrid metaStatusGrid--" + escapeHtml(statusPills.count) + "\">" + statusPills.markup + "</div>" +
         "</div>"
       : "";
+    const testModeSection = options.testMode
+      ? "<section class=\"metaTestPanel\">" +
+          "<div class=\"metaTestPanelTitle\">" + escapeHtml(copy.testMode) + "</div>" +
+          "<button class=\"metaGhostButton metaTestActionButton\" type=\"button\" data-action=\"preview-results\">" + escapeHtml(copy.previewResults) + "</button>" +
+        "</section>"
+      : "";
 
     return "<div class=\"metaCard metaCard--start\" dir=\"" + escapeHtml(language.dir) + "\">" +
       "<div class=\"metaStartBrand metaStartBrand--top\">" +
@@ -906,6 +1118,7 @@ window.GAMES_V2_META = (function (utils) {
           "</button>" +
       "</div>" +
       statusSection +
+      testModeSection +
       "<div class=\"metaStartFooter\">" +
         "<div class=\"metaStartToolbar\">" +
           "<div class=\"metaStartActions\">" +
@@ -1031,9 +1244,45 @@ window.GAMES_V2_META = (function (utils) {
     "</div>";
   }
 
+  function getMaxVisibleResultRows(expanded) {
+    if (expanded) {
+      return MAX_VISIBLE_RESULT_ROWS;
+    }
+    const viewportWidth = Math.max(
+      0,
+      Number(window.innerWidth) ||
+      Number(document && document.documentElement && document.documentElement.clientWidth) ||
+      0
+    );
+    const viewportHeight = Math.max(
+      0,
+      Number(window.innerHeight) ||
+      Number(document && document.documentElement && document.documentElement.clientHeight) ||
+      0
+    );
+    const isLandscape = viewportWidth > viewportHeight;
+    if (viewportHeight && viewportHeight <= 700) {
+      return 2;
+    }
+    if (isLandscape && viewportHeight && viewportHeight <= 860) {
+      return 2;
+    }
+    if (isLandscape && viewportHeight && viewportHeight <= 960) {
+      return 3;
+    }
+    if (viewportHeight && viewportHeight <= 820) {
+      return 2;
+    }
+    if (viewportHeight && viewportHeight <= 940) {
+      return 3;
+    }
+    return MAX_VISIBLE_RESULT_ROWS;
+  }
+
   function getVisibleResultRows(rows, expanded, pinnedId) {
     const rankedRows = Array.isArray(rows) ? rows.slice() : [];
-    if (expanded || rankedRows.length <= MAX_VISIBLE_RESULT_ROWS) {
+    const maxVisibleRows = getMaxVisibleResultRows(expanded);
+    if (expanded || rankedRows.length <= maxVisibleRows) {
       return {
         rows: rankedRows,
         hasHiddenRows: false,
@@ -1041,10 +1290,10 @@ window.GAMES_V2_META = (function (utils) {
       };
     }
     const pinnedIndex = rankedRows.findIndex((participant) => participant.id === pinnedId);
-    if (pinnedIndex >= MAX_VISIBLE_RESULT_ROWS) {
+    if (pinnedIndex >= maxVisibleRows) {
       const focusIndexes = new Set([0, pinnedIndex - 1, pinnedIndex, pinnedIndex + 1].filter((index) => index >= 0 && index < rankedRows.length));
       let backfillOffset = 2;
-      while (focusIndexes.size < Math.min(MAX_VISIBLE_RESULT_ROWS, rankedRows.length)) {
+      while (focusIndexes.size < Math.min(maxVisibleRows, rankedRows.length)) {
         const candidate = pinnedIndex - backfillOffset;
         if (candidate >= 0) {
           focusIndexes.add(candidate);
@@ -1056,7 +1305,7 @@ window.GAMES_V2_META = (function (utils) {
       }
       const uniqueIndexes = Array.from(focusIndexes)
         .sort((left, right) => left - right)
-        .slice(0, MAX_VISIBLE_RESULT_ROWS);
+        .slice(0, maxVisibleRows);
       return {
         rows: uniqueIndexes.map((index) => rankedRows[index]),
         hasHiddenRows: true,
@@ -1064,9 +1313,9 @@ window.GAMES_V2_META = (function (utils) {
       };
     }
     return {
-      rows: rankedRows.slice(0, MAX_VISIBLE_RESULT_ROWS),
+      rows: rankedRows.slice(0, maxVisibleRows),
       hasHiddenRows: true,
-      hiddenCount: rankedRows.length - MAX_VISIBLE_RESULT_ROWS
+      hiddenCount: rankedRows.length - maxVisibleRows
     };
   }
 
@@ -1076,18 +1325,14 @@ window.GAMES_V2_META = (function (utils) {
     const language = getLanguage(languageId);
     const snapshot = getStatusSnapshot(state, gameKey);
     const afterRankMap = {};
-    const beforeRankMap = {};
     resultContext.afterRanks.forEach((participant) => {
       afterRankMap[participant.id] = participant.rank;
     });
-    resultContext.beforeRanks.forEach((participant) => {
-      beforeRankMap[participant.id] = participant.rank;
-    });
-    const playerRank = afterRankMap.me || state.player.currentRank;
-    const rankDelta = buildRankDelta(copy, beforeRankMap.me || playerRank, playerRank);
     const nextLevel = snapshot.nextLevel;
     const difficultyText = diffLabel(selectedDiff, languageId);
     const visibleRows = getVisibleResultRows(resultContext.afterRanks, expandedRows, "me");
+    const canToggleRows = resultContext.afterRanks.length > visibleRows.rows.length;
+    const resultsCardClass = "metaCard metaCard--results" + (expandedRows ? " metaCard--results-expanded" : "");
     const rowsMarkup = visibleRows.rows.map((participant) => {
       const avatar = getAvatar(participant.avatar);
       const isCurrent = participant.id === "me";
@@ -1105,24 +1350,24 @@ window.GAMES_V2_META = (function (utils) {
       "</div>";
     }).join("");
 
-    return "<div class=\"metaCard metaCard--results\" dir=\"" + escapeHtml(language.dir) + "\">" +
+    return "<div class=\"" + resultsCardClass + "\" dir=\"" + escapeHtml(language.dir) + "\">" +
       "<div class=\"metaCardHead\">" +
         "<div>" +
           "<h2 class=\"metaTitle\">" + escapeHtml(copy.resultsTitle(snapshot.player.highestCompletedLevel)) + "</h2>" +
-          "<p class=\"metaSubtitle metaSubtitle--tight\">" + escapeHtml(rankDelta.text) + "</p>" +
         "</div>" +
-        "<span class=\"metaRankBadge metaRankBadge--" + escapeHtml(rankDelta.kind) + "\">#" + escapeHtml(playerRank) + "</span>" +
       "</div>" +
       buildResultsSummaryMarkup(resultContext, copy) +
       "<div class=\"metaLeaderboardWrap\">" +
         "<div class=\"metaSectionTitle\">" + escapeHtml(copy.leaderboard) + "</div>" +
         "<div class=\"metaLeaderboardList\">" + rowsMarkup + "</div>" +
-        (!expandedRows && resultContext.afterRanks.length > visibleRows.rows.length
-          ? "<button class=\"metaGhostButton metaLeaderboardMoreButton\" type=\"button\" data-action=\"toggle-results-rows\">" + escapeHtml(copy.showMore) + "</button>"
+        (canToggleRows
+          ? "<button class=\"metaGhostButton metaLeaderboardMoreButton\" type=\"button\" data-action=\"toggle-results-rows\">" + escapeHtml(expandedRows ? copy.showLess : copy.showMore) + "</button>"
           : "") +
       "</div>" +
-      (playerRank === 1 ? "<div class=\"metaChampionBanner\">" + escapeHtml(copy.champion) + "</div>" : "") +
-      "<button class=\"metaPrimaryButton\" type=\"button\" data-action=\"continue-level\">" + escapeHtml(copy.continueLevel(nextLevel, difficultyText)) + "</button>" +
+      "<div class=\"metaResultsActions\">" +
+        "<button class=\"metaGhostButton metaResultsExitButton\" type=\"button\" data-action=\"exit-game\">" + escapeHtml(copy.exit) + "</button>" +
+        "<button class=\"metaPrimaryButton metaResultsContinueButton\" type=\"button\" data-action=\"continue-level\">" + escapeHtml(copy.continueLevel(nextLevel, difficultyText)) + "</button>" +
+      "</div>" +
     "</div>";
   }
 
@@ -1134,6 +1379,7 @@ window.GAMES_V2_META = (function (utils) {
       defaultLives: 5,
       initialLanguage: "he",
       initialSoundEnabled: true,
+      testMode: isTestModeEnabled(),
       onStartRequested: null,
       onExitRequested: null,
       audio: null,
@@ -1166,6 +1412,7 @@ window.GAMES_V2_META = (function (utils) {
     let continueResolver = null;
     let pendingStart = false;
     let draftProfile = null;
+    let resultsPreviewState = null;
 
     function isSelectedDiffWithinBounds(extra) {
       if (!diffOptions.length) {
@@ -1253,6 +1500,11 @@ window.GAMES_V2_META = (function (utils) {
         overlayEl.style.display = "none";
       }
       syncOverlayUiState(false);
+      if (window && typeof window.dispatchEvent === "function" && typeof window.CustomEvent === "function") {
+        window.dispatchEvent(new window.CustomEvent("games:meta-overlay-change", {
+          detail: { open: false }
+        }));
+      }
     }
 
     function showOverlay() {
@@ -1260,6 +1512,11 @@ window.GAMES_V2_META = (function (utils) {
         overlayEl.style.display = "grid";
       }
       syncOverlayUiState(true);
+      if (window && typeof window.dispatchEvent === "function" && typeof window.CustomEvent === "function") {
+        window.dispatchEvent(new window.CustomEvent("games:meta-overlay-change", {
+          detail: { open: true }
+        }));
+      }
     }
 
     function syncDocumentLanguage() {
@@ -1334,7 +1591,7 @@ window.GAMES_V2_META = (function (utils) {
         return;
       }
       if (currentScreen === "results" && resultContext) {
-        overlayEl.innerHTML = buildResultsMarkup(resultContext, state, selectedDiff, settings.gameKey, resultRowsExpanded);
+        overlayEl.innerHTML = buildResultsMarkup(resultContext, resultsPreviewState || state, selectedDiff, settings.gameKey, resultRowsExpanded);
         showOverlay();
         if (animateResultsOnRender) {
           animateResultsOnRender = false;
@@ -1343,7 +1600,8 @@ window.GAMES_V2_META = (function (utils) {
         return;
       }
       overlayEl.innerHTML = buildStartMarkup(state, selectedDiff, Object.assign({
-        gameKey: settings.gameKey
+        gameKey: settings.gameKey,
+        testMode: settings.testMode
       }, currentStartOptions));
       showOverlay();
     }
@@ -1381,6 +1639,7 @@ window.GAMES_V2_META = (function (utils) {
       currentScreen = "start";
       currentStartOptions = Object.assign({}, extra || {});
       resultContext = null;
+      resultsPreviewState = null;
       resultRowsExpanded = false;
       animateResultsOnRender = false;
       continueResolver = null;
@@ -1392,6 +1651,7 @@ window.GAMES_V2_META = (function (utils) {
       const round = applyRoundResult(state, {
         gameKey: settings.gameKey,
         completedLevel: context.completedLevel,
+        diffKey: context && context.diffKey ? context.diffKey : selectedDiff,
         playerCoins: context.coins,
         metrics: context && context.metrics ? deepClone(context.metrics) : null
       });
@@ -1400,6 +1660,7 @@ window.GAMES_V2_META = (function (utils) {
       persist();
       currentScreen = "results";
       currentStartOptions = {};
+      resultsPreviewState = null;
       resultRowsExpanded = false;
       animateResultsOnRender = true;
       resultContext = {
@@ -1454,6 +1715,19 @@ window.GAMES_V2_META = (function (utils) {
         draftProfile = null;
         persist();
         currentScreen = "start";
+        render();
+        return;
+      }
+      if (action === "preview-results" && settings.testMode) {
+        const preview = buildTestResultsPreview(state, settings.gameKey);
+        currentScreen = "results";
+        currentStartOptions = {};
+        resultRowsExpanded = false;
+        animateResultsOnRender = false;
+        continueResolver = null;
+        draftProfile = null;
+        resultsPreviewState = preview.state;
+        resultContext = preview.resultContext;
         render();
         return;
       }
@@ -1521,6 +1795,10 @@ window.GAMES_V2_META = (function (utils) {
         return;
       }
       if (action === "continue-level") {
+        if (resultContext && resultContext.previewOnly && typeof continueResolver !== "function") {
+          showStart();
+          return;
+        }
         const resolver = continueResolver;
         continueResolver = null;
         hideOverlay();
@@ -1587,6 +1865,8 @@ window.GAMES_V2_META = (function (utils) {
 
   return {
     createGameMeta,
-    simulateCompetitorProgress
+    simulateCompetitorProgress,
+    diffLabel,
+    applyHudDifficulty
   };
 })(window.GAMES_V2_UTILS);

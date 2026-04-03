@@ -20,6 +20,8 @@
   const mascotEl = document.getElementById("mascot");
   const coinEl = document.getElementById("coins");
   const coinIconEl = document.getElementById("coinIcon");
+  const difficultyLabelEl = document.getElementById("difficultyLabel");
+  const difficultyValueEl = document.getElementById("difficultyValue");
   const streakMeterEl = document.getElementById("streakMeter");
   const streakFillEl = document.getElementById("streakFill");
   const answersEl = document.getElementById("answers");
@@ -170,6 +172,10 @@
 
   function setHUD() {
     coinEl.textContent = String(coins);
+    const languageId = document.documentElement.lang === "en" ? "en" : "he";
+    if (metaApi && typeof metaApi.applyHudDifficulty === "function") {
+      metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, selected, languageId);
+    }
   }
 
   function syncCheckpointState() {
@@ -178,6 +184,7 @@
   }
 
   function syncSessionUi(state) {
+    selected = state.diffKey || selected;
     coins = state.coins;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
@@ -307,18 +314,9 @@
   }
 
   function rollSpecialTablet() {
-    if (Math.random() >= gameplayRules.specialChance) {
-      return { tabletType: "simple", rewardCoins: 0 };
-    }
-    const totalWeight = gameplayRules.specialTablets.reduce((sum, tabletType) => sum + tabletType.weight, 0);
-    let roll = Math.random() * totalWeight;
-    for (const tabletType of gameplayRules.specialTablets) {
-      roll -= tabletType.weight;
-      if (roll <= 0) {
-        return tabletType;
-      }
-    }
-    return gameplayRules.specialTablets[0];
+    return shellApi.rollSpecialTablet(gameplayRules, selected, {
+      gameKey: "clocks"
+    });
   }
 
   function awardTabletBonus(burstX, burstY, rewardCoins) {
@@ -643,12 +641,16 @@
     falling.stop("reset");
   }
 
-  function startGame() {
+  async function startGame() {
     syncGameplayMetrics();
     running = false;
     paused = false;
     pauseBtn.classList.remove("paused");
     meta.hideOverlay();
+    shell.refreshLayout();
+    await new Promise((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
     resetState();
     session.beginLevel();
     setMascot("idle");
@@ -660,7 +662,7 @@
     selected = payload.diffKey || selected;
     audio.ensureAudio();
     await ensureAssetsReady();
-    startGame();
+    await startGame();
   }
 
   function togglePause() {

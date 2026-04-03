@@ -288,6 +288,7 @@ window.GAMES_V2_SESSION = (function () {
       const attempts = correctCount + wrongCount + missCount;
       return {
         completedLevel: levelNumber,
+        diffKey: activeDiffKey,
         coins,
         metrics: {
           correct: correctCount,

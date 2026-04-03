@@ -12,6 +12,8 @@
   const menuTitleEl = document.querySelector(".menuTitle");
   const gameStageEl = document.getElementById("gameStage");
   const gameFrameEl = document.getElementById("gameFrame");
+  const embeddedBuildTag = "20260403embed4";
+  let embeddedLaunchSeq = 0;
 
   const imageUrls = [
     "shared/assets/ui/starting.png",
@@ -146,6 +148,14 @@
     return Promise.resolve();
   }
 
+  function buildFreshGameUrl(href) {
+    const url = new URL(href, window.location.href);
+    embeddedLaunchSeq += 1;
+    url.searchParams.set("embedv", embeddedBuildTag);
+    url.searchParams.set("launch", String(embeddedLaunchSeq));
+    return url.toString();
+  }
+
   function openEmbeddedGame(href) {
     if (!gameStageEl || !gameFrameEl) {
       window.location.href = href;
@@ -157,7 +167,15 @@
     }
     gameStageEl.hidden = false;
     gameStageEl.setAttribute("aria-hidden", "false");
-    gameFrameEl.src = href;
+    const freshHref = buildFreshGameUrl(href);
+    if (gameFrameEl.src !== "about:blank") {
+      gameFrameEl.src = "about:blank";
+      window.requestAnimationFrame(() => {
+        gameFrameEl.src = freshHref;
+      });
+      return;
+    }
+    gameFrameEl.src = freshHref;
   }
 
   function closeEmbeddedGame() {

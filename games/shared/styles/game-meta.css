@@ -869,6 +869,33 @@
   margin-top: calc(16px * var(--ui, 1));
 }
 
+.metaTestPanel {
+  display: grid;
+  gap: calc(10px * var(--ui, 1));
+  margin-top: calc(12px * var(--ui, 1));
+  padding: calc(12px * var(--ui, 1));
+  border-radius: 22px;
+  background: rgba(4, 15, 44, 0.18);
+  border: 1px dashed rgba(250, 204, 21, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.metaTestPanelTitle {
+  font-size: calc(14px * var(--ui, 1));
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(251, 191, 36, 0.96);
+}
+
+.metaTestActionButton {
+  width: 100%;
+  min-height: calc(56px * var(--ui, 1));
+  border-radius: 20px;
+  font-size: calc(18px * var(--ui, 1));
+  font-weight: 800;
+}
+
 .metaStartToolbar {
   display: flex;
   justify-content: flex-start;
@@ -1486,6 +1513,138 @@
   min-height: calc(74px * var(--ui, 1));
 }
 
+.metaResultsActions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: calc(12px * var(--ui, 1));
+  margin-top: calc(16px * var(--ui, 1));
+}
+
+.metaCard--results .metaResultsActions .metaGhostButton,
+.metaCard--results .metaResultsActions .metaPrimaryButton {
+  width: 100%;
+  margin-top: 0;
+}
+
+.metaResultsExitButton {
+  min-height: calc(74px * var(--ui, 1));
+  border-radius: 24px;
+  font-size: clamp(20px, calc(22px * var(--ui, 1)), 28px);
+  font-weight: 800;
+}
+
+.metaCard--results-expanded {
+  padding: calc(16px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaCardHead {
+  margin-bottom: calc(10px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaTitle {
+  font-size: clamp(28px, calc(30px * var(--ui, 1)), 40px);
+}
+
+.metaCard--results-expanded .metaSubtitle {
+  margin-top: 4px;
+  font-size: clamp(16px, calc(17px * var(--ui, 1)), 20px);
+  line-height: 1.35;
+}
+
+.metaCard--results-expanded .metaRankBadge {
+  min-width: calc(52px * var(--ui, 1));
+  min-height: calc(38px * var(--ui, 1));
+  padding: 0 calc(14px * var(--ui, 1));
+  font-size: calc(15px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaResultMetaRow {
+  gap: calc(8px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaResultBadge {
+  min-height: calc(32px * var(--ui, 1));
+  padding: 0 calc(12px * var(--ui, 1));
+  font-size: calc(14px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaLeaderboardWrap {
+  margin-top: calc(8px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaSectionTitle {
+  margin-bottom: calc(8px * var(--ui, 1));
+  font-size: calc(14px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaLeaderboardList {
+  gap: 5px;
+  margin-top: calc(6px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaLeaderboardRow {
+  gap: calc(10px * var(--ui, 1));
+  min-height: calc(56px * var(--ui, 1));
+  padding: calc(8px * var(--ui, 1)) calc(12px * var(--ui, 1));
+  border-radius: 18px;
+}
+
+.metaCard--results-expanded .metaLeaderboardAvatar {
+  width: calc(56px * var(--ui, 1));
+  height: calc(56px * var(--ui, 1));
+  border-radius: 16px;
+}
+
+.metaCard--results-expanded .metaLeaderboardRank {
+  width: calc(42px * var(--ui, 1));
+  font-size: calc(19px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaLeaderboardTitleRow {
+  gap: calc(10px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaLeaderboardName {
+  font-size: calc(14px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaInlineIcon {
+  width: calc(20px * var(--ui, 1));
+  height: calc(20px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaLeaderboardCoins strong {
+  font-size: calc(22px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaLeaderboardMoreButton {
+  margin-top: calc(8px * var(--ui, 1));
+  min-height: calc(44px * var(--ui, 1));
+  font-size: calc(15px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaChampionBanner {
+  margin-top: calc(8px * var(--ui, 1));
+  padding: calc(10px * var(--ui, 1));
+  font-size: calc(20px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaResultsActions {
+  gap: calc(8px * var(--ui, 1));
+  margin-top: calc(10px * var(--ui, 1));
+}
+
+.metaCard--results-expanded .metaPrimaryButton {
+  margin-top: 0;
+  min-height: calc(58px * var(--ui, 1));
+  font-size: clamp(20px, calc(22px * var(--ui, 1)), 28px);
+}
+
+.metaCard--results-expanded .metaResultsExitButton {
+  min-height: calc(58px * var(--ui, 1));
+  font-size: calc(17px * var(--ui, 1));
+}
+
 .metaChampionBanner {
   color: #fef3c7;
   font-size: calc(28px * var(--ui, 1));
@@ -1865,5 +2024,490 @@
   .metaCard--profile .metaPrimaryButton {
     margin-top: auto;
     min-height: calc(72px * var(--ui, 1));
+  }
+}
+
+@media (max-height: 900px) {
+  .metaCard--results {
+    padding: calc(16px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaCardHead {
+    margin-bottom: calc(10px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaTitle {
+    font-size: clamp(30px, calc(32px * var(--ui, 1)), 42px);
+  }
+
+  .metaCard--results .metaSubtitle {
+    margin-top: 4px;
+    font-size: clamp(16px, calc(17px * var(--ui, 1)), 20px);
+    line-height: 1.35;
+  }
+
+  .metaCard--results .metaRankBadge {
+    min-width: calc(54px * var(--ui, 1));
+    min-height: calc(38px * var(--ui, 1));
+    padding: 0 calc(14px * var(--ui, 1));
+    font-size: calc(15px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultMetaRow {
+    gap: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultBadge {
+    min-height: calc(32px * var(--ui, 1));
+    padding: 0 calc(12px * var(--ui, 1));
+    font-size: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardWrap {
+    margin-top: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaSectionTitle {
+    margin-bottom: calc(8px * var(--ui, 1));
+    font-size: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardList {
+    gap: 6px;
+    margin-top: calc(6px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardRow {
+    gap: calc(10px * var(--ui, 1));
+    min-height: calc(60px * var(--ui, 1));
+    padding: calc(10px * var(--ui, 1)) calc(12px * var(--ui, 1));
+    border-radius: 18px;
+  }
+
+  .metaCard--results .metaLeaderboardAvatar {
+    width: calc(64px * var(--ui, 1));
+    height: calc(64px * var(--ui, 1));
+    border-radius: 18px;
+  }
+
+  .metaCard--results .metaLeaderboardRank {
+    width: calc(46px * var(--ui, 1));
+    font-size: calc(20px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardTitleRow {
+    gap: calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardMeta {
+    font-size: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaInlineIcon {
+    width: calc(22px * var(--ui, 1));
+    height: calc(22px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardCoins strong {
+    font-size: calc(24px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardMoreButton {
+    margin-top: calc(10px * var(--ui, 1));
+    min-height: calc(46px * var(--ui, 1));
+    font-size: calc(16px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaChampionBanner {
+    margin-top: calc(10px * var(--ui, 1));
+    padding: calc(12px * var(--ui, 1));
+    font-size: calc(22px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultsActions {
+    margin-top: calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaPrimaryButton {
+    margin-top: 0;
+    min-height: calc(62px * var(--ui, 1));
+    font-size: clamp(22px, calc(24px * var(--ui, 1)), 30px);
+  }
+
+  .metaCard--results .metaResultsExitButton {
+    min-height: calc(62px * var(--ui, 1));
+    font-size: calc(18px * var(--ui, 1));
+  }
+}
+
+@media (max-height: 760px) {
+  .metaCard--results {
+    padding: calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaCardHead {
+    margin-bottom: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaTitle {
+    font-size: clamp(24px, calc(26px * var(--ui, 1)), 34px);
+  }
+
+  .metaCard--results .metaSubtitle {
+    font-size: calc(15px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultMetaRow {
+    gap: calc(6px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultBadge {
+    min-height: calc(28px * var(--ui, 1));
+    padding: 0 calc(10px * var(--ui, 1));
+    font-size: calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardWrap {
+    margin-top: calc(6px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaSectionTitle {
+    margin-bottom: calc(6px * var(--ui, 1));
+    font-size: calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardList {
+    gap: 4px;
+    margin-top: calc(4px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardRow {
+    min-height: calc(52px * var(--ui, 1));
+    padding: calc(8px * var(--ui, 1)) calc(10px * var(--ui, 1));
+    border-radius: 16px;
+  }
+
+  .metaCard--results .metaLeaderboardAvatar {
+    width: calc(52px * var(--ui, 1));
+    height: calc(52px * var(--ui, 1));
+    border-radius: 16px;
+  }
+
+  .metaCard--results .metaLeaderboardRank {
+    width: calc(40px * var(--ui, 1));
+    font-size: calc(18px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardTitleRow {
+    gap: calc(10px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardName {
+    font-size: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaInlineIcon {
+    width: calc(18px * var(--ui, 1));
+    height: calc(18px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardCoins strong {
+    font-size: calc(20px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaChampionBanner {
+    margin-top: calc(8px * var(--ui, 1));
+    padding: calc(10px * var(--ui, 1));
+    font-size: calc(18px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultsActions {
+    gap: calc(8px * var(--ui, 1));
+    margin-top: calc(10px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaPrimaryButton {
+    margin-top: 0;
+    min-height: calc(54px * var(--ui, 1));
+    font-size: clamp(18px, calc(20px * var(--ui, 1)), 24px);
+  }
+
+  .metaCard--results .metaResultsExitButton {
+    min-height: calc(54px * var(--ui, 1));
+    font-size: calc(16px * var(--ui, 1));
+  }
+}
+
+@media (min-height: 761px) and (max-height: 920px) {
+  .metaCard--results {
+    padding: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaCardHead {
+    margin-bottom: calc(10px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaTitle {
+    font-size: clamp(26px, calc(28px * var(--ui, 1)), 36px);
+  }
+
+  .metaCard--results .metaSubtitle {
+    font-size: calc(16px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaRankBadge {
+    min-width: calc(56px * var(--ui, 1));
+    min-height: calc(40px * var(--ui, 1));
+    font-size: calc(16px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultMetaRow {
+    gap: calc(7px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultBadge {
+    min-height: calc(30px * var(--ui, 1));
+    padding: 0 calc(11px * var(--ui, 1));
+    font-size: calc(13px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardWrap {
+    margin-top: calc(7px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaSectionTitle {
+    margin-bottom: calc(7px * var(--ui, 1));
+    font-size: calc(13px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardList {
+    gap: 5px;
+    margin-top: calc(5px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardRow {
+    gap: calc(10px * var(--ui, 1));
+    min-height: calc(56px * var(--ui, 1));
+    padding: calc(8px * var(--ui, 1)) calc(11px * var(--ui, 1));
+    border-radius: 17px;
+  }
+
+  .metaCard--results .metaLeaderboardAvatar {
+    width: calc(56px * var(--ui, 1));
+    height: calc(56px * var(--ui, 1));
+    border-radius: 16px;
+  }
+
+  .metaCard--results .metaLeaderboardRank {
+    width: calc(42px * var(--ui, 1));
+    font-size: calc(19px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardTitleRow {
+    gap: calc(10px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardName {
+    font-size: calc(15px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaInlineIcon {
+    width: calc(20px * var(--ui, 1));
+    height: calc(20px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardCoins strong {
+    font-size: calc(22px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaLeaderboardMoreButton {
+    margin-top: calc(8px * var(--ui, 1));
+    min-height: calc(42px * var(--ui, 1));
+    font-size: calc(15px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaChampionBanner {
+    margin-top: calc(8px * var(--ui, 1));
+    padding: calc(10px * var(--ui, 1));
+    font-size: calc(19px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaResultsActions {
+    gap: calc(8px * var(--ui, 1));
+    margin-top: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--results .metaPrimaryButton {
+    margin-top: 0;
+    min-height: calc(56px * var(--ui, 1));
+    font-size: clamp(20px, calc(21px * var(--ui, 1)), 26px);
+  }
+
+  .metaCard--results .metaResultsExitButton {
+    min-height: calc(56px * var(--ui, 1));
+    font-size: calc(17px * var(--ui, 1));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 760px) {
+  .metaCard--start {
+    width: min(98vw, 1120px);
+    max-height: min(92dvh, 640px);
+    overflow: hidden;
+    padding: calc(14px * var(--ui, 1));
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "brand hero"
+      "brand status"
+      "test footer";
+    column-gap: calc(16px * var(--ui, 1));
+    row-gap: calc(10px * var(--ui, 1));
+    align-items: start;
+  }
+
+  .metaCard--start .metaStartBrand--top {
+    grid-area: brand;
+    margin-top: 0;
+    align-self: center;
+    justify-items: center;
+  }
+
+  .metaCard--start .metaGameBadge--art {
+    width: calc(188px * var(--ui, 1));
+    min-width: calc(188px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaGameBadgeArt {
+    width: calc(138px * var(--ui, 1));
+    max-height: calc(138px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStartHero--compact {
+    grid-area: hero;
+    gap: calc(8px * var(--ui, 1));
+    justify-items: start;
+    margin-top: 0;
+  }
+
+  .metaCard--start .metaProfileButton--start {
+    flex-direction: row;
+    gap: calc(12px * var(--ui, 1));
+    justify-self: start;
+    align-items: center;
+    text-align: start;
+  }
+
+  .metaCard--start .metaProfileButton--start .metaProfileButtonText {
+    align-items: flex-start;
+    text-align: start;
+  }
+
+  .metaCard--start .metaProfileButton--start .metaHeroAvatar {
+    width: calc(66px * var(--ui, 1));
+    height: calc(66px * var(--ui, 1));
+    border-radius: 18px;
+  }
+
+  .metaCard--start .metaProfileButton--start .metaProfileName {
+    font-size: calc(20px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaSection--start {
+    grid-area: status;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .metaCard--start .metaStatusGrid {
+    gap: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStatusChip {
+    min-height: calc(70px * var(--ui, 1));
+    padding: calc(10px * var(--ui, 1)) calc(12px * var(--ui, 1));
+    gap: calc(8px * var(--ui, 1));
+    border-radius: 18px;
+  }
+
+  .metaCard--start .metaStatusIcon {
+    width: calc(34px * var(--ui, 1));
+    height: calc(34px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStatusLabel {
+    font-size: calc(13px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStatusValue {
+    font-size: calc(24px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaTestPanel {
+    grid-area: test;
+    align-self: end;
+    margin-top: 0;
+    padding: calc(8px * var(--ui, 1)) calc(10px * var(--ui, 1));
+    gap: calc(6px * var(--ui, 1));
+    border-radius: 16px;
+  }
+
+  .metaCard--start .metaTestPanelTitle {
+    display: none;
+  }
+
+  .metaCard--start .metaTestActionButton {
+    min-height: calc(38px * var(--ui, 1));
+    padding: 0 calc(12px * var(--ui, 1));
+    border-radius: 14px;
+    font-size: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStartFooter {
+    grid-area: footer;
+    width: 100%;
+    align-self: end;
+    margin-top: 0;
+    gap: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStartToolbar {
+    justify-content: flex-start;
+  }
+
+  .metaCard--start .metaStartActions {
+    gap: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStartSecondaryButton {
+    min-height: calc(54px * var(--ui, 1));
+    width: calc(54px * var(--ui, 1));
+    min-width: calc(54px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStartSecondaryIcon {
+    width: calc(36px * var(--ui, 1));
+    height: calc(36px * var(--ui, 1));
+    flex-basis: calc(36px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaStartSecondaryButton .metaIconGlyph,
+  .metaCard--start .metaStartSecondaryIconImage {
+    width: calc(24px * var(--ui, 1));
+    height: calc(24px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaPrimaryButton--level {
+    min-height: calc(64px * var(--ui, 1));
+    gap: calc(4px * var(--ui, 1));
+    border-radius: 20px;
+  }
+
+  .metaCard--start .metaPrimaryKicker {
+    font-size: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--start .metaPrimaryMain {
+    font-size: clamp(24px, calc(26px * var(--ui, 1)), 30px);
   }
 }

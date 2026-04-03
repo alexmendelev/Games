@@ -18,6 +18,8 @@
   const exitBtn = document.getElementById("exitBtn");
   const coinEl = document.getElementById("coins");
   const coinIconEl = document.getElementById("coinIcon");
+  const difficultyLabelEl = document.getElementById("difficultyLabel");
+  const difficultyValueEl = document.getElementById("difficultyValue");
   const mascotEl = document.getElementById("mascot");
   const streakMeterEl = document.getElementById("streakMeter");
   const streakFillEl = document.getElementById("streakFill");
@@ -95,6 +97,18 @@
   let levelPausePending = false;
   let coinAwardPending = false;
   session.loadCheckpoint(initialSnapshot, selected);
+
+  function resolveHudDiffKey(diffKey) {
+    const metaDiff = meta && typeof meta.getSelectedDiff === "function" ? meta.getSelectedDiff() : "";
+    const sessionDiff = session && typeof session.getState === "function" ? session.getState().diffKey : "";
+    return String(diffKey || metaDiff || sessionDiff || "medium");
+  }
+
+  function waitForNextFrame() {
+    return new Promise((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+  }
 
   function syncWaterReflection(tile, rectArg) {
     if (!tile) {
@@ -183,6 +197,10 @@
     return cfg.progression[currentStageIndex()] || cfg.progression[0];
   }
 
+  function negativesAllowed() {
+    return selected === "super";
+  }
+
   function speedPxPerSec() {
     const base = cfg.gameplay.baseSpeed + (level() - 1) * cfg.gameplay.speedIncPerLevel;
     const rect = shell.rect();
@@ -192,9 +210,14 @@
 
   function setHUD() {
     coinEl.textContent = String(coins);
+    const languageId = document.documentElement.lang === "en" ? "en" : "he";
+    if (metaApi && typeof metaApi.applyHudDifficulty === "function") {
+      metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, resolveHudDiffKey(selected), languageId);
+    }
   }
 
   function syncSessionUi(state) {
+    selected = state.diffKey || selected;
     coins = state.coins;
     correctAnswers = state.correctCount;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
@@ -285,18 +308,9 @@
   }
 
   function rollSpecialTablet() {
-    if (Math.random() >= gameplayRules.specialChance) {
-      return { tabletType: "simple", rewardCoins: 0 };
-    }
-    const totalWeight = gameplayRules.specialTablets.reduce((sum, tabletType) => sum + tabletType.weight, 0);
-    let roll = Math.random() * totalWeight;
-    for (const tabletType of gameplayRules.specialTablets) {
-      roll -= tabletType.weight;
-      if (roll <= 0) {
-        return tabletType;
-      }
-    }
-    return gameplayRules.specialTablets[0];
+    return shellApi.rollSpecialTablet(gameplayRules, selected, {
+      gameKey: "math"
+    });
   }
 
   function awardTabletBonus(burstX, burstY, rewardCoins) {
@@ -439,7 +453,7 @@
       const subRange = stage.subRange || [0, 10];
       a = utils.randInt(subRange[0], subRange[1]);
       b = utils.randInt(subRange[0], subRange[1]);
-      if (!stage.allowNegResult && b > a) {
+      if ((!stage.allowNegResult || !negativesAllowed()) && b > a) {
         [a, b] = [b, a];
       }
       answer = a - b;
@@ -465,9 +479,10 @@
   function uniqueWrongs(correct) {
     const stage = currentStage();
     const set = new Set([correct]);
+    const blockNegativeOptions = stage.noNegOptions || !negativesAllowed();
 
     function ok(value) {
-      return !(stage.noNegOptions && value < 0);
+      return !(blockNegativeOptions && value < 0);
     }
 
     let guard = 0;
@@ -632,13 +647,16 @@
   }
 
   async function start(diffKey) {
-    selected = diffKey;
+    selected = resolveHudDiffKey(diffKey);
     await ensureAssetsReady();
     meta.hideOverlay();
+    shell.refreshLayout();
+    await waitForNextFrame();
     paused = false;
     levelPausePending = false;
     coinAwardPending = false;
     pauseBtn.classList.remove("paused");
+    setHUD();
     syncCheckpointState();
     session.beginLevel();
     prevCorrectIdx = -1;
@@ -650,7 +668,7 @@
 
   async function handleStartRequested(payload) {
     audio.ensureAudio();
-    return start(payload.diffKey || selected);
+    return start((payload && payload.diffKey) || resolveHudDiffKey(selected));
   }
 
   function togglePause() {
