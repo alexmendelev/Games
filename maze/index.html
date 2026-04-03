@@ -171,6 +171,44 @@
       cursor: pointer;
     }
 
+    .quiz-card {
+      width: min(680px, calc(100vw - 32px));
+      text-align: left;
+      background: rgba(31, 45, 27, 0.95);
+    }
+
+    .quiz-card h2 {
+      font-size: clamp(1.3rem, 3vw, 1.8rem);
+      margin-bottom: 12px;
+    }
+
+    .quiz-card p {
+      margin-bottom: 18px;
+      color: #e7f0dc;
+    }
+
+    .quiz-answers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .quiz-answer {
+      width: 100%;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(227, 238, 213, 0.16);
+      background: rgba(241, 250, 231, 0.08);
+      color: #f3f7ef;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .quiz-answer:hover {
+      background: rgba(241, 209, 107, 0.18);
+    }
+
     .crosshair {
       position: absolute;
       top: 50%;
@@ -188,9 +226,26 @@
       position: absolute;
       inset: 0;
       z-index: 1;
-      display: none;
-      pointer-events: none;
+      display: block;
+      pointer-events: auto;
       touch-action: none;
+    }
+
+    .hotspot-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .hotspot-button {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border: 0;
+      padding: 0;
+      background: transparent;
+      pointer-events: auto;
+      cursor: pointer;
     }
 
     .touch-indicator {
@@ -295,14 +350,13 @@
         bottom: 16px;
         max-width: min(260px, calc(100vw - 32px));
       }
+
+      .quiz-answers {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (pointer: coarse) {
-      .touch-surface {
-        display: block;
-        pointer-events: auto;
-      }
-
       .touch-hint {
         display: block;
       }
@@ -310,13 +364,13 @@
   </style>
 </head>
 <body>
-  <div id="app">
+  <div id="app" tabindex="0" role="application" aria-label="Hedge maze game">
     <div class="hud">
       <section class="panel info">
         <h1>Hedge Maze Prototype</h1>
         <p><strong>Move:</strong> W/S or Up/Down</p>
         <p><strong>Turn:</strong> A/D or Left/Right</p>
-        <p><strong>Touch:</strong> Drag up, down, left, or right to issue maze commands. Longer drags queue more movement.</p>
+        <p><strong>Drag:</strong> Touch or left-click and drag up, down, left, or right to issue maze commands. Longer drags queue more movement.</p>
         <p>Reach a highlighted exit cell to escape.</p>
       </section>
 
@@ -336,9 +390,11 @@
         </div>
       </div>
 
+      <div id="sign-hotspot-layer" class="hotspot-layer" aria-hidden="true"></div>
+
       <section class="panel touch-hint" aria-hidden="true">
-        <h2>Touch Controls</h2>
-        <p>Drag up to move forward, down to step back, and left or right to turn. Longer drags queue extra steps or turns.</p>
+        <h2>Drag Controls</h2>
+        <p>Touch or left-click and drag up to move forward, down to step back, and left or right to turn. Longer drags queue extra steps or turns.</p>
       </section>
 
       <div class="crosshair" aria-hidden="true"></div>
@@ -348,6 +404,14 @@
           <h2>Escaped</h2>
           <p>You found one of the maze exits. Press restart to begin again from the entrance.</p>
           <button id="restart-button" type="button">Restart</button>
+        </div>
+      </div>
+
+      <div id="quiz-overlay" class="overlay" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="overlay-card quiz-card">
+          <h2 id="quiz-title">Junction Quiz</h2>
+          <p id="quiz-question">Answer correctly to reveal the exit direction.</p>
+          <div id="quiz-answers" class="quiz-answers"></div>
         </div>
       </div>
     </div>
@@ -626,7 +690,30 @@ const maze = {
     const EXIT_RADIUS = CELL_SIZE * 0.3;
     const FOG_NEAR = 12;
     const FOG_FAR = 42;
-
+    const HEDGE_TEXTURE_PATHS = {
+      color: "./textures/hedge_color_v6.png",
+      normal: "./textures/hedge_normal_v2.jpg",
+      roughness: "./textures/hedge_roughness_v3.png"
+    };
+    const HEDGE_TEXTURE_SCALE = {
+      width: 1.45,
+      height: 1.2
+    };
+    const HEDGE_NORMAL_STRENGTH = 0.45;
+    const HEDGE_ROUGHNESS = 0.92;
+    const HEDGE_TOP_PROFILE_HEIGHT = 0.045;
+    const HEDGE_TOP_PROFILE_INSET = 0.028;
+    const HEDGE_TOP_PROFILE_BAND = 0.2;
+    const HEDGE_TOP_SHADE_START = 0.8;
+    const HEDGE_TOP_SHADE_STRENGTH = 0.09;
+    const HEDGE_TOP_SHADE_NOISE = 0.025;
+    const HEDGE_TOP_HIGHLIGHT_START = 0.7;
+    const HEDGE_TOP_HIGHLIGHT_STRENGTH = 0.09;
+    const HEDGE_EDGE_SHADE_WIDTH = 0.11;
+    const HEDGE_EDGE_SHADE_STRENGTH = 0.05;
+    const HEDGE_BASE_SHADE_END = 0.16;
+    const HEDGE_BASE_SHADE_STRENGTH = 0.03;
+    const HEDGE_SHADE_NOISE_SCALE = 14;
     const DIRECTION_META = {
       N: { opposite: "S", dx: 0, dy: -1, yaw: 0 },
       E: { opposite: "W", dx: 1, dy: 0, yaw: -Math.PI / 2 },
@@ -643,6 +730,11 @@ const maze = {
     const touchSurface = document.querySelector("#touch-surface");
     const touchIndicator = document.querySelector("#touch-indicator");
     const touchStick = document.querySelector("#touch-stick");
+    const signHotspotLayer = document.querySelector("#sign-hotspot-layer");
+    const quizOverlay = document.querySelector("#quiz-overlay");
+    const quizTitle = document.querySelector("#quiz-title");
+    const quizQuestion = document.querySelector("#quiz-question");
+    const quizAnswers = document.querySelector("#quiz-answers");
 
     const clock = new THREE.Clock();
     const keyState = new Map();
@@ -650,6 +742,58 @@ const maze = {
     const floorCenters = new Map();
     const minimapWalls = [];
     const coordinateToNodeId = new Map();
+    const decisionSigns = new Map();
+    const clickableDecisionSigns = [];
+    const clickableDecisionArrows = [];
+    const raycaster = new THREE.Raycaster();
+    const pointerNdc = new THREE.Vector2();
+    const quizState = {
+      active: false,
+      signId: null
+    };
+    let interactionCooldownUntil = 0;
+    const QUIZ_QUESTIONS = [
+      {
+        prompt: "Which season comes after spring?",
+        answers: ["Summer", "Winter", "Autumn", "Rainy"],
+        correctIndex: 0
+      },
+      {
+        prompt: "How many legs does a spider have?",
+        answers: ["Six", "Eight", "Ten", "Four"],
+        correctIndex: 1
+      },
+      {
+        prompt: "Which one is a fruit?",
+        answers: ["Carrot", "Potato", "Apple", "Onion"],
+        correctIndex: 2
+      },
+      {
+        prompt: "What color do blue and yellow make?",
+        answers: ["Orange", "Purple", "Red", "Green"],
+        correctIndex: 3
+      },
+      {
+        prompt: "Which animal can hop and has long ears?",
+        answers: ["Rabbit", "Turtle", "Fish", "Bear"],
+        correctIndex: 0
+      },
+      {
+        prompt: "What do bees make?",
+        answers: ["Milk", "Honey", "Jam", "Bread"],
+        correctIndex: 1
+      },
+      {
+        prompt: "Which shape has three sides?",
+        answers: ["Square", "Circle", "Triangle", "Star"],
+        correctIndex: 2
+      },
+      {
+        prompt: "Which one shines in the daytime sky?",
+        answers: ["Moon", "Cloud", "Comet", "Sun"],
+        correctIndex: 3
+      }
+    ];
     const touchInput = {
       activePointerId: null,
       startX: 0,
@@ -657,6 +801,7 @@ const maze = {
       lastX: 0,
       lastY: 0,
       startTime: 0,
+      interactionTarget: null,
       move: 0,
       turn: 0
     };
@@ -666,42 +811,51 @@ const maze = {
     };
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x93bdd8);
-    scene.fog = new THREE.Fog(0x93bdd8, FOG_NEAR, FOG_FAR);
+    scene.background = new THREE.Color(0xa6cde7);
+    scene.fog = new THREE.Fog(0xa6cde7, FOG_NEAR, FOG_FAR);
 
     const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 200);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1;
+    renderer.toneMappingExposure = 1.08;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.classList.add("webgl");
+    renderer.domElement.setAttribute("aria-hidden", "true");
     app.prepend(renderer.domElement);
 
+    const wallRenderResources = await loadWallRenderResources(renderer);
     const player = createPlayer(maze);
     const mazeMetrics = computeMazeMetrics(maze);
 
     validateMaze(maze);
     buildEnvironment(scene, mazeMetrics);
     buildCoordinateIndex(maze);
-    buildMazeMeshes(maze, scene, wallColliders, minimapWalls);
+    buildMazeMeshes(maze, mazeMetrics, scene, wallColliders, minimapWalls, wallRenderResources);
     updateCurrentNode();
     updateCameraFromPlayer();
     drawMinimap(maze, player, minimapContext, mazeMetrics, minimapWalls);
 
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keyup", handleKeyUp);
     window.addEventListener("resize", handleResize);
+    window.addEventListener("blur", clearKeyboardState);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    app.addEventListener("pointerdown", focusGameSurface);
+    app.addEventListener("click", handleSceneClick);
     restartButton.addEventListener("click", restartGame);
+    quizAnswers.addEventListener("click", handleQuizAnswerClick);
+    quizOverlay.addEventListener("click", handleQuizOverlayClick);
     touchSurface.addEventListener("pointerdown", handleTouchSurfaceDown);
     touchSurface.addEventListener("pointermove", handleTouchSurfaceMove);
     touchSurface.addEventListener("pointerup", handleTouchSurfaceUp);
     touchSurface.addEventListener("pointercancel", handleTouchSurfaceCancel);
 
+    focusGameSurface();
     animate();
 
     function validateMaze(mazeData) {
@@ -764,13 +918,16 @@ const maze = {
     }
 
     function buildEnvironment(sceneRef, metrics) {
-      const ambientLight = new THREE.AmbientLight(0xd8eed2, 1.3);
+      const ambientLight = new THREE.AmbientLight(0xfff3d7, 1.65);
       sceneRef.add(ambientLight);
 
-      const sun = new THREE.DirectionalLight(0xfff0cc, 1.6);
-      sun.position.set(18, 24, 10);
+      const skyLight = new THREE.HemisphereLight(0xe4f5ff, 0xb5c979, 0.92);
+      sceneRef.add(skyLight);
+
+      const sun = new THREE.DirectionalLight(0xffe4b5, 2.15);
+      sun.position.set(20, 26, 12);
       sun.castShadow = true;
-      sun.shadow.mapSize.set(1024, 1024);
+      sun.shadow.mapSize.set(1536, 1536);
       sun.shadow.camera.near = 1;
       sun.shadow.camera.far = 80;
       sun.shadow.camera.left = -30;
@@ -779,17 +936,21 @@ const maze = {
       sun.shadow.camera.bottom = -30;
       sceneRef.add(sun);
 
-      const groundTexture = createGroundTexture();
-      groundTexture.repeat.set(10, 10);
+      const fillLight = new THREE.DirectionalLight(0xfff5df, 0.52);
+      fillLight.position.set(-16, 14, -10);
+      sceneRef.add(fillLight);
+
+      const meadowTexture = createMeadowTexture();
+      meadowTexture.repeat.set(10, 10);
 
       const groundWidth = (metrics.width + 6) * CELL_SIZE;
       const groundDepth = (metrics.height + 6) * CELL_SIZE;
       const ground = new THREE.Mesh(
         new THREE.PlaneGeometry(groundWidth, groundDepth, 24, 24),
         new THREE.MeshStandardMaterial({
-          color: 0x6a8750,
-          map: groundTexture,
-          roughness: 0.98,
+          color: 0x9dbe76,
+          map: meadowTexture,
+          roughness: 0.97,
           metalness: 0.02
         })
       );
@@ -797,18 +958,6 @@ const maze = {
       ground.position.y = 0;
       ground.receiveShadow = true;
       sceneRef.add(ground);
-
-      const dirtPatch = new THREE.Mesh(
-        new THREE.CircleGeometry(Math.max(groundWidth, groundDepth) * 0.13, 56),
-        new THREE.MeshStandardMaterial({
-          color: 0x7c674f,
-          roughness: 1,
-          metalness: 0
-        })
-      );
-      dirtPatch.rotation.x = -Math.PI / 2;
-      dirtPatch.position.set(0, 0.01, 0);
-      sceneRef.add(dirtPatch);
     }
 
     function buildCoordinateIndex(mazeData) {
@@ -817,37 +966,36 @@ const maze = {
       });
     }
 
-    function buildMazeMeshes(mazeData, sceneRef, colliders, mapWalls) {
+    function buildMazeMeshes(mazeData, metrics, sceneRef, colliders, mapWalls, wallResources) {
       const mazeGroup = new THREE.Group();
-      const floorTexture = createGroundTexture();
-      floorTexture.repeat.set(1.2, 1.2);
+      const floorTexture = createPathTexture();
+      floorTexture.repeat.set(
+        Math.max(metrics.width * 0.9, 1),
+        Math.max(metrics.height * 0.9, 1)
+      );
 
-      const hedgeTexture = createHedgeTexture();
-      hedgeTexture.repeat.set(1, 1.6);
-
-      const floorGeometry = new THREE.BoxGeometry(CELL_SIZE * 0.96, 0.06, CELL_SIZE * 0.96);
-      const horizontalWallGeometry = new THREE.BoxGeometry(CELL_SIZE + WALL_THICKNESS, WALL_HEIGHT, WALL_THICKNESS);
-      const verticalWallGeometry = new THREE.BoxGeometry(WALL_THICKNESS, WALL_HEIGHT, CELL_SIZE + WALL_THICKNESS);
+      const horizontalWallDimensions = { width: CELL_SIZE + WALL_THICKNESS, height: WALL_HEIGHT, depth: WALL_THICKNESS };
+      const verticalWallDimensions = { width: WALL_THICKNESS, height: WALL_HEIGHT, depth: CELL_SIZE + WALL_THICKNESS };
+      const horizontalWallGeometry = createProfiledWallGeometry(horizontalWallDimensions);
+      const verticalWallGeometry = createProfiledWallGeometry(verticalWallDimensions);
+      const exitHintDirections = computeExitHintDirections(mazeData);
+      const decisionNodeIds = getDecisionNodeIds(mazeData);
 
       const floorMaterial = new THREE.MeshStandardMaterial({
-        color: 0x86a85a,
+        color: 0xa9bc83,
         map: floorTexture,
-        roughness: 0.96,
+        roughness: 0.9,
         metalness: 0.01
       });
       const exitMaterial = new THREE.MeshStandardMaterial({
-        color: 0xc5ab5d,
-        emissive: 0x5e4718,
+        color: 0xb9ca92,
+        emissive: 0x42401f,
         map: floorTexture,
-        roughness: 0.9,
+        roughness: 0.86,
         metalness: 0.02
       });
-      const wallMaterial = new THREE.MeshStandardMaterial({
-        color: 0x4f7338,
-        map: hedgeTexture,
-        roughness: 0.95,
-        metalness: 0.01
-      });
+      const mazeFloor = buildMazeFloor(metrics, floorMaterial);
+      mazeGroup.add(mazeFloor);
 
       const seenWalls = new Set();
 
@@ -857,16 +1005,31 @@ const maze = {
 
         const isExit = mazeData.exits.includes(nodeId);
         const exitDirection = isExit ? getExitOpeningDirection(mazeData, nodeId, node) : null;
-        const tile = buildFloorTile(center, isExit ? exitMaterial : floorMaterial, floorGeometry);
-        mazeGroup.add(tile);
 
         if (isExit) {
+          mazeGroup.add(buildExitFloorGlow(center, exitMaterial));
           mazeGroup.add(buildExitMarker(center, exitDirection));
+        }
+
+        if (decisionNodeIds.has(nodeId)) {
+          const advancePath = computeDecisionAdvancePath(mazeData, nodeId, exitHintDirections, decisionNodeIds);
+          const signState = buildDecisionSign(
+            center,
+            nodeId,
+            node,
+            exitHintDirections.get(nodeId),
+            getQuizQuestionForNode(nodeId),
+            advancePath
+          );
+          mazeGroup.add(signState.group);
+          decisionSigns.set(nodeId, signState);
+          clickableDecisionSigns.push(signState.hitArea, signState.board, signState.face);
+          clickableDecisionArrows.push(signState.arrow);
         }
 
         ["N", "E", "S", "W"].forEach((direction) => {
           if (exitDirection === direction) {
-            const exitOpening = buildExitOpening(center, direction);
+            const exitOpening = buildExitOpening(center, direction, wallResources);
             exitOpening.meshes.forEach((part) => mazeGroup.add(part));
             colliders.push(...exitOpening.colliders);
             return;
@@ -885,9 +1048,10 @@ const maze = {
           const segment = buildWallSegment(
             wallSpec,
             wallSpec.orientation === "horizontal" ? horizontalWallGeometry : verticalWallGeometry,
-            wallMaterial
+            wallSpec.orientation === "horizontal" ? horizontalWallDimensions : verticalWallDimensions,
+            wallResources
           );
-          mazeGroup.add(segment.mesh);
+          segment.meshes.forEach((part) => mazeGroup.add(part));
           colliders.push(segment.collider);
           mapWalls.push(wallSpec.mapLine);
         });
@@ -896,30 +1060,380 @@ const maze = {
       sceneRef.add(mazeGroup);
     }
 
-    function buildFloorTile(center, material, geometry) {
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(center.x, 0.03, center.z);
+    function buildMazeFloor(metrics, material) {
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(metrics.width * CELL_SIZE, metrics.height * CELL_SIZE, 1, 1),
+        material
+      );
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(
+        ((metrics.minX + metrics.maxX) * CELL_SIZE) * 0.5,
+        0.031,
+        ((metrics.minY + metrics.maxY) * CELL_SIZE) * 0.5
+      );
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function buildExitFloorGlow(center, material) {
+      const mesh = new THREE.Mesh(
+        new THREE.CircleGeometry(CELL_SIZE * 0.24, 24),
+        material.clone()
+      );
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(center.x, 0.035, center.z);
+      mesh.material.color = new THREE.Color(0xc7d495);
+      mesh.material.emissive = new THREE.Color(0x39371a);
+      mesh.material.roughness = 0.82;
       mesh.receiveShadow = true;
       return mesh;
     }
 
     function buildExitMarker(center, direction) {
-      const marker = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.24, 0.34, 0.35, 12),
+      const group = new THREE.Group();
+      const outward = directionToVector(direction);
+      const lateral = new THREE.Vector3(-outward.z, 0, outward.x);
+      const base = center.clone()
+        .addScaledVector(outward, CELL_SIZE * 0.32)
+        .addScaledVector(lateral, 0.62);
+
+      const post = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.045, 0.055, 0.78, 10),
         new THREE.MeshStandardMaterial({
-          color: 0xffd987,
-          emissive: 0x6b5320,
-          roughness: 0.55,
-          metalness: 0.08
+          color: 0x8a5c31,
+          roughness: 0.96,
+          metalness: 0.04
         })
       );
-      const outward = directionToVector(direction).multiplyScalar(CELL_SIZE * 0.3);
-      marker.position.set(center.x + outward.x, 0.22, center.z + outward.z);
-      marker.castShadow = true;
-      return marker;
+      post.position.copy(base).setY(0.39);
+      post.castShadow = true;
+      group.add(post);
+
+      const board = new THREE.Mesh(
+        new THREE.BoxGeometry(0.48, 0.22, 0.06),
+        new THREE.MeshStandardMaterial({
+          color: 0xf4d98c,
+          emissive: 0x5b471c,
+          roughness: 0.82,
+          metalness: 0.03
+        })
+      );
+      board.position.copy(base).addScaledVector(outward, 0.12).setY(0.62);
+      board.lookAt(board.position.clone().add(outward));
+      board.castShadow = true;
+      group.add(board);
+
+      return group;
     }
 
-    function buildExitOpening(center, direction) {
+    function getDecisionNodeIds(mazeData) {
+      return new Set(
+        Object.entries(mazeData.nodes)
+          .filter(([, node]) => countOpenSides(node) >= 3)
+          .map(([id]) => id)
+      );
+    }
+
+    function computeExitHintDirections(mazeData) {
+      const hints = new Map();
+
+      Object.keys(mazeData.nodes).forEach((startId) => {
+        if (mazeData.exits.includes(startId)) {
+          return;
+        }
+
+        const queue = [startId];
+        const visited = new Set([startId]);
+        const firstStep = new Map([[startId, null]]);
+
+        while (queue.length > 0) {
+          const currentId = queue.shift();
+
+          if (currentId !== startId && mazeData.exits.includes(currentId)) {
+            hints.set(startId, firstStep.get(currentId));
+            break;
+          }
+
+          const currentNode = mazeData.nodes[currentId];
+          for (const direction of ["N", "E", "S", "W"]) {
+            const neighborId = currentNode[direction];
+            if (!neighborId || visited.has(neighborId)) {
+              continue;
+            }
+
+            visited.add(neighborId);
+            firstStep.set(neighborId, currentId === startId ? direction : firstStep.get(currentId));
+            queue.push(neighborId);
+          }
+        }
+      });
+
+      return hints;
+    }
+
+    function getQuizQuestionForNode(nodeId) {
+      const numericId = Number.parseInt(nodeId.replace(/\D/g, ""), 10) || 0;
+      return QUIZ_QUESTIONS[numericId % QUIZ_QUESTIONS.length];
+    }
+
+    function computeDecisionAdvancePath(mazeData, startId, exitHintDirections, decisionNodeIds) {
+      const path = [startId];
+      const visited = new Set([startId]);
+      let currentId = startId;
+
+      while (true) {
+        const direction = exitHintDirections.get(currentId);
+        if (!direction) {
+          return path;
+        }
+
+        const nextId = mazeData.nodes[currentId]?.[direction];
+        if (!nextId || visited.has(nextId)) {
+          return path;
+        }
+
+        path.push(nextId);
+        if (mazeData.exits.includes(nextId) || decisionNodeIds.has(nextId)) {
+          return path;
+        }
+
+        visited.add(nextId);
+        currentId = nextId;
+      }
+    }
+
+    function buildDecisionSign(center, nodeId, node, hintDirection, question, advancePath) {
+      const placement = getDecisionSignPlacement(node);
+      const faceState = createDecisionSignFaceState();
+      drawDecisionSignFace(faceState.context, false);
+      faceState.texture.needsUpdate = true;
+
+      const group = new THREE.Group();
+      group.position.copy(center).add(placement.offset);
+      group.rotation.y = placement.idleRotationY;
+
+      const post = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.055, 0.065, 0.82, 12),
+        new THREE.MeshStandardMaterial({
+          color: 0x8c6239,
+          roughness: 0.96,
+          metalness: 0.03
+        })
+      );
+      post.position.set(0, 0.41, 0);
+      post.castShadow = true;
+      group.add(post);
+
+      const board = new THREE.Mesh(
+        new THREE.BoxGeometry(0.72, 0.46, 0.08),
+        new THREE.MeshStandardMaterial({
+          color: 0xa97848,
+          roughness: 0.9,
+          metalness: 0.02
+        })
+      );
+      board.position.set(0, 0.82, 0.02);
+      board.castShadow = true;
+      board.userData.signId = nodeId;
+      group.add(board);
+
+      const hitArea = new THREE.Mesh(
+        new THREE.BoxGeometry(1.05, 1.1, 0.34),
+        new THREE.MeshBasicMaterial({
+          transparent: true,
+          opacity: 0,
+          depthWrite: false
+        })
+      );
+      hitArea.position.set(0, 0.84, 0.02);
+      hitArea.userData.signId = nodeId;
+      group.add(hitArea);
+
+      const face = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.62, 0.36),
+        new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          map: faceState.texture,
+          transparent: true,
+          side: THREE.DoubleSide,
+          roughness: 0.82,
+          metalness: 0.02
+        })
+      );
+      face.position.set(0, 0.82, 0.051);
+      face.castShadow = true;
+      face.userData.signId = nodeId;
+      group.add(face);
+
+      const arrow = createDecisionArrow();
+      arrow.visible = false;
+      arrow.position.set(0, 1.6, 0);
+      arrow.setDirection(getLocalArrowDirection(placement.idleRotationY, hintDirection));
+      arrow.userData.signId = nodeId;
+      arrow.line.userData.signId = nodeId;
+      arrow.cone.userData.signId = nodeId;
+      group.add(arrow);
+
+      return {
+        id: nodeId,
+        group,
+        board,
+        face,
+        hitArea,
+        arrow,
+        boardFaceState: faceState,
+        hintDirection,
+        question,
+        advancePath,
+        solved: false,
+        idleRotationY: placement.idleRotationY,
+        hoverPhase: placement.hoverPhase,
+        hotspots: createDecisionSignHotspots(nodeId)
+      };
+    }
+
+    function getDecisionSignPlacement(node) {
+      const closed = ["N", "E", "S", "W"].filter((dir) => !node[dir]);
+      let offset;
+
+      if (closed.includes("N")) {
+        offset = new THREE.Vector3(-0.92, 0, -1.02);
+      } else if (closed.includes("S")) {
+        offset = new THREE.Vector3(0.92, 0, 1.02);
+      } else if (closed.includes("W")) {
+        offset = new THREE.Vector3(-1.02, 0, 0.92);
+      } else if (closed.includes("E")) {
+        offset = new THREE.Vector3(1.02, 0, -0.92);
+      } else {
+        offset = new THREE.Vector3(-1.02, 0, -1.02);
+      }
+
+      return {
+        offset,
+        idleRotationY: Math.atan2(-offset.x, -offset.z),
+        hoverPhase: (Math.abs(offset.x) + Math.abs(offset.z)) * 1.4
+      };
+    }
+
+    function createDecisionArrow() {
+      const arrow = new THREE.ArrowHelper(
+        new THREE.Vector3(0, 0, -1),
+        new THREE.Vector3(0, 0, 0),
+        0.78,
+        0xf7d36d,
+        0.24,
+        0.16
+      );
+      arrow.line.material.transparent = true;
+      arrow.line.material.opacity = 0.95;
+      arrow.line.material.depthWrite = false;
+      arrow.cone.material.transparent = true;
+      arrow.cone.material.opacity = 0.98;
+      arrow.cone.material.depthWrite = false;
+      arrow.cone.castShadow = true;
+      return arrow;
+    }
+
+    function createDecisionSignHotspots(nodeId) {
+      const signButton = document.createElement("button");
+      signButton.type = "button";
+      signButton.className = "hotspot-button";
+      signButton.setAttribute("aria-label", "Open sign question");
+      signButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!quizState.active && !player.escaped) {
+          openQuizForSign(nodeId);
+        }
+      });
+      signHotspotLayer.appendChild(signButton);
+
+      const arrowButton = document.createElement("button");
+      arrowButton.type = "button";
+      arrowButton.className = "hotspot-button";
+      arrowButton.setAttribute("aria-label", "Follow exit direction");
+      arrowButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!quizState.active && !player.escaped) {
+          moveToNextDecisionFromSign(nodeId);
+        }
+      });
+      signHotspotLayer.appendChild(arrowButton);
+
+      return {
+        signButton,
+        arrowButton
+      };
+    }
+
+    function getLocalArrowDirection(parentRotationY, direction) {
+      return directionToVector(direction)
+        .clone()
+        .normalize()
+        .applyAxisAngle(new THREE.Vector3(0, 1, 0), -parentRotationY);
+    }
+
+    function createDecisionSignFaceState() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 160;
+      return {
+        canvas,
+        context: canvas.getContext("2d"),
+        texture: createCanvasTexture(canvas)
+      };
+    }
+
+    function drawDecisionSignFace(context, solved) {
+      const { canvas } = context;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      const woodGradient = context.createLinearGradient(0, 0, 0, canvas.height);
+      woodGradient.addColorStop(0, "#d7b37a");
+      woodGradient.addColorStop(1, "#b47e48");
+      context.fillStyle = woodGradient;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let x = 18; x < canvas.width; x += 46) {
+        context.fillStyle = "rgba(125, 78, 42, 0.12)";
+        context.fillRect(x, 0, 5, canvas.height);
+      }
+
+      context.strokeStyle = "rgba(86, 53, 28, 0.34)";
+      context.lineWidth = 6;
+      context.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
+
+      context.fillStyle = solved ? "#2a4c24" : "#4e3219";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+
+      if (solved) {
+        context.font = "700 34px Segoe UI";
+        context.fillText("EXIT", canvas.width / 2, 44);
+        context.lineWidth = 12;
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.strokeStyle = "#2a4c24";
+        context.beginPath();
+        context.moveTo(canvas.width / 2, 116);
+        context.lineTo(canvas.width / 2, 62);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(canvas.width / 2, 62);
+        context.lineTo(canvas.width / 2 - 24, 86);
+        context.lineTo(canvas.width / 2 + 24, 86);
+        context.closePath();
+        context.fill();
+      } else {
+        context.font = "700 30px Segoe UI";
+        context.fillText("QUESTION", canvas.width / 2, 42);
+        context.font = "700 70px Segoe UI";
+        context.fillText("?", canvas.width / 2, 102);
+      }
+    }
+
+    function buildExitOpening(center, direction, wallResources) {
       const meshes = [];
       const colliders = [];
       const openingWidth = 1.35;
@@ -928,53 +1442,39 @@ const maze = {
       const lintelHeight = Math.max(WALL_HEIGHT - openingHeight, 0.4);
       const outward = directionToVector(direction).multiplyScalar(CELL_SIZE * 0.5);
       const axisIsNorthSouth = direction === "N" || direction === "S";
+      const postDimensions = axisIsNorthSouth
+        ? { width: postWidth, height: openingHeight, depth: WALL_THICKNESS }
+        : { width: WALL_THICKNESS, height: openingHeight, depth: postWidth };
+      const lintelDimensions = axisIsNorthSouth
+        ? { width: CELL_SIZE + WALL_THICKNESS, height: lintelHeight, depth: WALL_THICKNESS }
+        : { width: WALL_THICKNESS, height: lintelHeight, depth: CELL_SIZE + WALL_THICKNESS };
 
-      const hedgeTexture = createHedgeTexture();
-      hedgeTexture.repeat.set(1, 1.2);
-      const material = new THREE.MeshStandardMaterial({
-        color: 0x50743a,
-        map: hedgeTexture,
-        roughness: 0.95,
-        metalness: 0.01
-      });
-
-      const postGeometry = axisIsNorthSouth
-        ? new THREE.BoxGeometry(postWidth, openingHeight, WALL_THICKNESS)
-        : new THREE.BoxGeometry(WALL_THICKNESS, openingHeight, postWidth);
-      const lintelGeometry = axisIsNorthSouth
-        ? new THREE.BoxGeometry(CELL_SIZE + WALL_THICKNESS, lintelHeight, WALL_THICKNESS)
-        : new THREE.BoxGeometry(WALL_THICKNESS, lintelHeight, CELL_SIZE + WALL_THICKNESS);
+      const postGeometry = createProfiledWallGeometry(postDimensions);
+      const lintelGeometry = createProfiledWallGeometry(lintelDimensions);
 
       const lateral = axisIsNorthSouth ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, 1);
       const postOffset = (openingWidth + postWidth) * 0.5;
 
-      const leftPost = new THREE.Mesh(postGeometry, material.clone());
-      leftPost.material.color.multiplyScalar(0.94);
-      leftPost.position.copy(center)
+      const leftPostPosition = center.clone()
         .add(outward)
         .addScaledVector(lateral, -postOffset)
         .setY(openingHeight * 0.5);
-      leftPost.castShadow = true;
-      leftPost.receiveShadow = true;
+      const leftPostMeshes = buildHedgeWall(postGeometry, postDimensions, leftPostPosition, wallResources);
 
-      const rightPost = new THREE.Mesh(postGeometry, material.clone());
-      rightPost.material.color.multiplyScalar(1.06);
-      rightPost.position.copy(center)
+      const rightPostPosition = center.clone()
         .add(outward)
         .addScaledVector(lateral, postOffset)
         .setY(openingHeight * 0.5);
-      rightPost.castShadow = true;
-      rightPost.receiveShadow = true;
+      const rightPostMeshes = buildHedgeWall(postGeometry, postDimensions, rightPostPosition, wallResources);
 
-      const lintel = new THREE.Mesh(lintelGeometry, material.clone());
-      lintel.material.color.multiplyScalar(1.02);
-      lintel.position.copy(center).add(outward).setY(openingHeight + lintelHeight * 0.5);
-      lintel.castShadow = true;
-      lintel.receiveShadow = true;
+      const lintelPosition = center.clone()
+        .add(outward)
+        .setY(openingHeight + lintelHeight * 0.5);
+      const lintelMeshes = buildHedgeWall(lintelGeometry, lintelDimensions, lintelPosition, wallResources);
 
-      meshes.push(leftPost, rightPost, lintel);
-      colliders.push(makeMeshCollider(leftPost, axisIsNorthSouth ? postWidth : WALL_THICKNESS, axisIsNorthSouth ? WALL_THICKNESS : postWidth));
-      colliders.push(makeMeshCollider(rightPost, axisIsNorthSouth ? postWidth : WALL_THICKNESS, axisIsNorthSouth ? WALL_THICKNESS : postWidth));
+      meshes.push(...leftPostMeshes, ...rightPostMeshes, ...lintelMeshes);
+      colliders.push(makeMeshCollider(leftPostPosition, axisIsNorthSouth ? postWidth : WALL_THICKNESS, axisIsNorthSouth ? WALL_THICKNESS : postWidth));
+      colliders.push(makeMeshCollider(rightPostPosition, axisIsNorthSouth ? postWidth : WALL_THICKNESS, axisIsNorthSouth ? WALL_THICKNESS : postWidth));
       return { meshes, colliders };
     }
 
@@ -1008,12 +1508,12 @@ const maze = {
       return new THREE.Vector3(-1, 0, 0);
     }
 
-    function makeMeshCollider(mesh, width, depth) {
+    function makeMeshCollider(position, width, depth) {
       return {
-        minX: mesh.position.x - width * 0.5,
-        maxX: mesh.position.x + width * 0.5,
-        minZ: mesh.position.z - depth * 0.5,
-        maxZ: mesh.position.z + depth * 0.5
+        minX: position.x - width * 0.5,
+        maxX: position.x + width * 0.5,
+        minZ: position.z - depth * 0.5,
+        maxZ: position.z + depth * 0.5
       };
     }
 
@@ -1057,46 +1557,73 @@ const maze = {
       };
     }
 
-    function buildWallSegment(wallSpec, geometry, baseMaterial) {
-      const mesh = new THREE.Mesh(geometry, baseMaterial.clone());
-      mesh.material.color.multiplyScalar(0.92 + Math.random() * 0.16);
-      mesh.position.set(wallSpec.worldX, WALL_HEIGHT / 2, wallSpec.worldZ);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-
-      const dimensions =
-        wallSpec.orientation === "horizontal"
-          ? { width: CELL_SIZE + WALL_THICKNESS, depth: WALL_THICKNESS }
-          : { width: WALL_THICKNESS, depth: CELL_SIZE + WALL_THICKNESS };
+    function buildWallSegment(wallSpec, geometry, dimensions, wallResources) {
+      const wallPosition = new THREE.Vector3(wallSpec.worldX, WALL_HEIGHT / 2, wallSpec.worldZ);
+      const meshes = buildHedgeWall(geometry, dimensions, wallPosition, wallResources);
 
       const collider = {
-        minX: mesh.position.x - dimensions.width / 2,
-        maxX: mesh.position.x + dimensions.width / 2,
-        minZ: mesh.position.z - dimensions.depth / 2,
-        maxZ: mesh.position.z + dimensions.depth / 2
+        minX: wallPosition.x - dimensions.width / 2,
+        maxX: wallPosition.x + dimensions.width / 2,
+        minZ: wallPosition.z - dimensions.depth / 2,
+        maxZ: wallPosition.z + dimensions.depth / 2
       };
 
-      return { mesh, collider };
+      return { meshes, collider };
     }
 
-    function createGroundTexture() {
+    function createMeadowTexture() {
       const canvas = document.createElement("canvas");
       canvas.width = 128;
       canvas.height = 128;
       const context = canvas.getContext("2d");
 
-      context.fillStyle = "#69864d";
+      context.fillStyle = "#85a95d";
       context.fillRect(0, 0, canvas.width, canvas.height);
 
-      for (let i = 0; i < 1300; i += 1) {
+      for (let i = 0; i < 900; i += 1) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;
-        const size = 1 + Math.random() * 3;
-        const tone = i % 5 === 0 ? "rgba(109, 84, 55, 0.35)" : "rgba(157, 189, 101, 0.32)";
+        const size = 2 + Math.random() * 4;
+        const tone = i % 6 === 0 ? "rgba(122, 153, 79, 0.2)" : "rgba(196, 220, 132, 0.18)";
         context.fillStyle = tone;
         context.fillRect(x, y, size, size);
       }
 
+      return createCanvasTexture(canvas);
+    }
+
+    function createPathTexture() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 160;
+      canvas.height = 160;
+      const context = canvas.getContext("2d");
+      const imageData = context.createImageData(canvas.width, canvas.height);
+      const data = imageData.data;
+
+      for (let y = 0; y < canvas.height; y += 1) {
+        for (let x = 0; x < canvas.width; x += 1) {
+          const u = x / canvas.width;
+          const v = y / canvas.height;
+          const bandA = Math.sin(u * Math.PI * 2 + 0.2) * 0.45 + Math.cos(v * Math.PI * 2 - 0.4) * 0.35;
+          const bandB = Math.sin((u + v) * Math.PI * 4 + 0.7) * 0.22 + Math.cos((u - v) * Math.PI * 4 - 0.3) * 0.18;
+          const bandC = Math.sin(u * Math.PI * 8 + 1.4) * Math.cos(v * Math.PI * 8 - 0.9) * 0.1;
+          const moss = Math.sin((u * 3 + v * 2) * Math.PI * 2 + 0.25) * 0.5 + 0.5;
+          const tone = bandA + bandB + bandC;
+          const index = (y * canvas.width + x) * 4;
+
+          data[index] = THREE.MathUtils.clamp(Math.round(167 + tone * 9 + moss * 7), 0, 255);
+          data[index + 1] = THREE.MathUtils.clamp(Math.round(186 + tone * 12 + moss * 10), 0, 255);
+          data[index + 2] = THREE.MathUtils.clamp(Math.round(123 + tone * 7 + moss * 5), 0, 255);
+          data[index + 3] = 255;
+        }
+      }
+
+      context.putImageData(imageData, 0, 0);
+
+      return createCanvasTexture(canvas);
+    }
+
+    function createCanvasTexture(canvas) {
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.wrapS = THREE.RepeatWrapping;
@@ -1104,31 +1631,219 @@ const maze = {
       return texture;
     }
 
-    function createHedgeTexture() {
-      const canvas = document.createElement("canvas");
-      canvas.width = 128;
-      canvas.height = 128;
-      const context = canvas.getContext("2d");
+    async function loadWallRenderResources(rendererRef) {
+      const loader = new THREE.TextureLoader();
+      const [colorMap, normalMap, roughnessMap] = await Promise.all([
+        loader.loadAsync(HEDGE_TEXTURE_PATHS.color),
+        loader.loadAsync(HEDGE_TEXTURE_PATHS.normal),
+        loader.loadAsync(HEDGE_TEXTURE_PATHS.roughness)
+      ]);
 
-      context.fillStyle = "#3f612d";
-      context.fillRect(0, 0, canvas.width, canvas.height);
+      prepareWallTexture(colorMap, true, rendererRef);
+      prepareWallTexture(normalMap, false, rendererRef);
+      prepareWallTexture(roughnessMap, false, rendererRef);
 
-      for (let i = 0; i < 1400; i += 1) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        const radius = 1 + Math.random() * 3.8;
-        const green = 78 + Math.floor(Math.random() * 70);
-        context.fillStyle = `rgba(${28 + Math.floor(Math.random() * 30)}, ${green}, ${23 + Math.floor(Math.random() * 25)}, 0.34)`;
-        context.beginPath();
-        context.arc(x, y, radius, 0, Math.PI * 2);
-        context.fill();
-      }
+      return {
+        textures: {
+          colorMap,
+          normalMap,
+          roughnessMap
+        },
+        materialCache: new Map()
+      };
+    }
 
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
+    function prepareWallTexture(texture, isColorTexture, rendererRef) {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
+      if (isColorTexture) {
+        texture.colorSpace = THREE.SRGBColorSpace;
+      }
+      texture.anisotropy = Math.min(rendererRef.capabilities.getMaxAnisotropy(), 8);
+    }
+
+    function getWallMaterialSet(dimensions, wallResources) {
+      const key = [
+        dimensions.width.toFixed(3),
+        dimensions.height.toFixed(3),
+        dimensions.depth.toFixed(3)
+      ].join(":");
+
+      if (!wallResources.materialCache.has(key)) {
+        wallResources.materialCache.set(
+          key,
+          createWallMaterialSet(dimensions, wallResources.textures)
+        );
+      }
+
+      return wallResources.materialCache.get(key);
+    }
+
+    function buildHedgeWall(geometry, dimensions, position, wallResources) {
+      const wallMesh = new THREE.Mesh(geometry, getWallMaterialSet(dimensions, wallResources));
+      wallMesh.position.copy(position);
+      wallMesh.castShadow = true;
+      wallMesh.receiveShadow = true;
+
+      return [wallMesh];
+    }
+
+    function createWallMaterialSet(dimensions, textures) {
+      return getWallFaceSizes(dimensions).map((faceSize, faceIndex) => {
+        const repeat = computeWallTextureRepeat(faceSize.width, faceSize.height);
+        const material = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          map: cloneWallTexture(textures.colorMap, repeat, true),
+          roughness: HEDGE_ROUGHNESS,
+          metalness: 0.02
+        });
+        const isVerticalFace = faceIndex === 0 || faceIndex === 1 || faceIndex === 4 || faceIndex === 5;
+
+        if (isVerticalFace) {
+          applyPainterlyHedgeShading(material);
+        }
+
+        return material;
+      });
+    }
+
+    function getWallFaceSizes(dimensions) {
+      return [
+        { width: dimensions.depth, height: dimensions.height },
+        { width: dimensions.depth, height: dimensions.height },
+        { width: dimensions.width, height: dimensions.depth },
+        { width: dimensions.width, height: dimensions.depth },
+        { width: dimensions.width, height: dimensions.height },
+        { width: dimensions.width, height: dimensions.height }
+      ];
+    }
+
+    function computeWallTextureRepeat(faceWidth, faceHeight) {
+      return {
+        x: Math.max(faceWidth / HEDGE_TEXTURE_SCALE.width, 1),
+        y: Math.max(faceHeight / HEDGE_TEXTURE_SCALE.height, 1)
+      };
+    }
+
+    function createProfiledWallGeometry(dimensions) {
+      const lengthAxis = dimensions.width >= dimensions.depth ? "x" : "z";
+      const length = Math.max(lengthAxis === "x" ? dimensions.width : dimensions.depth, 0.01);
+      const lengthSegments = Math.min(Math.max(Math.round(length * 4), 8), 24);
+      const thicknessSegments = 3;
+      const geometry = new THREE.BoxGeometry(
+        dimensions.width,
+        dimensions.height,
+        dimensions.depth,
+        lengthAxis === "x" ? lengthSegments : thicknessSegments,
+        1,
+        lengthAxis === "z" ? lengthSegments : thicknessSegments
+      );
+      const positions = geometry.attributes.position;
+      const halfHeight = dimensions.height * 0.5;
+      const halfThickness = Math.max((lengthAxis === "x" ? dimensions.depth : dimensions.width) * 0.5, 0.001);
+      const topBand = Math.min(HEDGE_TOP_PROFILE_BAND, dimensions.height * 0.4);
+      const maxWave = Math.min(HEDGE_TOP_PROFILE_HEIGHT, dimensions.height * 0.08);
+      const maxInset = Math.min(HEDGE_TOP_PROFILE_INSET, halfThickness * 0.35);
+
+      for (let index = 0; index < positions.count; index += 1) {
+        const x = positions.getX(index);
+        const y = positions.getY(index);
+        const z = positions.getZ(index);
+        const topBlend = smoothstep01((y - (halfHeight - topBand)) / Math.max(topBand, 0.001));
+
+        if (topBlend <= 0) {
+          continue;
+        }
+
+        const lengthCoord = lengthAxis === "x" ? x : z;
+        const thicknessCoord = lengthAxis === "x" ? z : x;
+        const edgeBlend = Math.pow(Math.min(Math.abs(thicknessCoord) / halfThickness, 1), 1.15);
+        const wave = (
+          Math.sin((lengthCoord / length) * Math.PI * 2.0 + 0.35) * 0.55 +
+          Math.sin((lengthCoord / length) * Math.PI * 5.0 + 1.1) * 0.28 +
+          Math.sin((lengthCoord / length) * Math.PI * 9.0 + 2.4) * 0.17
+        ) * maxWave;
+        const yOffset = wave * topBlend - edgeBlend * topBlend * maxWave * 0.42;
+        const inset = edgeBlend * topBlend * maxInset;
+        const adjustedThickness = Math.sign(thicknessCoord) * Math.max(Math.abs(thicknessCoord) - inset, 0);
+
+        positions.setY(index, y + yOffset);
+        if (lengthAxis === "x") {
+          positions.setZ(index, adjustedThickness);
+        } else {
+          positions.setX(index, adjustedThickness);
+        }
+      }
+
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
+    function smoothstep01(value) {
+      const t = THREE.MathUtils.clamp(value, 0, 1);
+      return t * t * (3 - 2 * t);
+    }
+
+    function cloneWallTexture(baseTexture, repeat, isColorTexture, wrapping = null) {
+      const texture = baseTexture.clone();
+      texture.wrapS = wrapping?.wrapS ?? baseTexture.wrapS ?? THREE.RepeatWrapping;
+      texture.wrapT = wrapping?.wrapT ?? baseTexture.wrapT ?? THREE.RepeatWrapping;
+      texture.repeat.set(repeat.x, repeat.y);
+      texture.anisotropy = baseTexture.anisotropy;
+      if (isColorTexture) {
+        texture.colorSpace = THREE.SRGBColorSpace;
+      }
+      texture.needsUpdate = true;
       return texture;
+    }
+
+    function applyPainterlyHedgeShading(material) {
+      material.customProgramCacheKey = () => "painterly-hedge-v1";
+      material.onBeforeCompile = (shader) => {
+        shader.vertexShader = shader.vertexShader.replace(
+          "#include <common>",
+          `#include <common>
+varying vec2 vPainterlyUv;`
+        );
+
+        shader.vertexShader = shader.vertexShader.replace(
+          "#include <uv_vertex>",
+          `#include <uv_vertex>
+vPainterlyUv = uv;`
+        );
+
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "#include <common>",
+          `#include <common>
+varying vec2 vPainterlyUv;
+
+float hedgeHash(vec2 p) {
+  p = fract(p * vec2(123.34, 345.45));
+  p += dot(p, p + 34.345);
+  return fract(p.x * p.y);
+}`
+        );
+
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "#include <map_fragment>",
+          `#include <map_fragment>
+vec2 hedgeUv = clamp(vPainterlyUv, 0.0, 1.0);
+float hedgeNoise = hedgeHash(floor(hedgeUv * vec2(${HEDGE_SHADE_NOISE_SCALE.toFixed(1)}, ${(HEDGE_SHADE_NOISE_SCALE * 0.75).toFixed(1)}))) - 0.5;
+float topMask = smoothstep(${HEDGE_TOP_SHADE_START.toFixed(2)}, 1.0, hedgeUv.y);
+float topShade = clamp(${HEDGE_TOP_SHADE_STRENGTH.toFixed(2)} + hedgeNoise * ${HEDGE_TOP_SHADE_NOISE.toFixed(2)}, 0.0, 0.35);
+float topLipMask = smoothstep(0.94, 1.0, hedgeUv.y);
+float highlightMask = smoothstep(${HEDGE_TOP_HIGHLIGHT_START.toFixed(2)}, 1.0, hedgeUv.y) * (1.0 - topMask * 0.72);
+float leafyHighlight = clamp(highlightMask * (0.55 + hedgeNoise * 0.9), 0.0, 1.0);
+float edgeDistance = min(hedgeUv.x, 1.0 - hedgeUv.x);
+float edgeMask = 1.0 - smoothstep(0.0, ${HEDGE_EDGE_SHADE_WIDTH.toFixed(2)}, edgeDistance);
+float baseMask = 1.0 - smoothstep(0.0, ${HEDGE_BASE_SHADE_END.toFixed(2)}, hedgeUv.y);
+diffuseColor.rgb *= 1.0 - topMask * topShade;
+diffuseColor.rgb *= 1.0 - topLipMask * 0.08;
+diffuseColor.rgb *= 1.0 - edgeMask * ${HEDGE_EDGE_SHADE_STRENGTH.toFixed(2)} * (1.0 - topMask * 0.3);
+diffuseColor.rgb *= 1.0 - baseMask * ${HEDGE_BASE_SHADE_STRENGTH.toFixed(2)};
+diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.06, 1.09, 1.03), leafyHighlight * ${HEDGE_TOP_HIGHLIGHT_STRENGTH.toFixed(2)});`
+        );
+      };
     }
 
     function createPlayer(mazeData) {
@@ -1170,7 +1885,211 @@ const maze = {
       return new THREE.Vector3(node.x * CELL_SIZE, 0, node.y * CELL_SIZE);
     }
 
+    function directionToYaw(direction) {
+      const vector = directionToVector(direction);
+      return Math.atan2(vector.x, vector.z);
+    }
+
+    function focusGameSurface() {
+      app.focus({ preventScroll: true });
+    }
+
+    function clearKeyboardState() {
+      keyState.clear();
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        clearKeyboardState();
+        return;
+      }
+
+      focusGameSurface();
+    }
+
+    function handleSceneClick(event) {
+      if (quizState.active || player.escaped || performance.now() < interactionCooldownUntil) {
+        return;
+      }
+
+      if (tryHandleSceneInteraction(event, touchInput.interactionTarget)) {
+        event.preventDefault();
+      }
+    }
+
+    function tryHandleSceneInteraction(event, preferredTarget = null) {
+      if (performance.now() < interactionCooldownUntil) {
+        return false;
+      }
+
+      const target = preferredTarget ?? getSceneInteractionTarget(event);
+      if (!target) {
+        return false;
+      }
+
+      if (target.type === "arrow") {
+        moveToNextDecisionFromSign(target.signId);
+        return true;
+      }
+
+      openQuizForSign(target.signId);
+      return true;
+    }
+
+    function getSceneInteractionTarget(event) {
+      const arrowSignId = pickDecisionArrowSignId(event);
+      if (arrowSignId) {
+        return { type: "arrow", signId: arrowSignId };
+      }
+
+      const sign = pickDecisionSign(event);
+      if (!sign) {
+        return null;
+      }
+
+      return {
+        type: "sign",
+        signId: sign.userData.signId
+      };
+    }
+
+    function pickDecisionSign(event) {
+      if (clickableDecisionSigns.length === 0) {
+        return null;
+      }
+
+      const bounds = renderer.domElement.getBoundingClientRect();
+      pointerNdc.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+      pointerNdc.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+      raycaster.setFromCamera(pointerNdc, camera);
+
+      return raycaster.intersectObjects(clickableDecisionSigns, false)[0]?.object ?? null;
+    }
+
+    function pickDecisionArrowSignId(event) {
+      if (clickableDecisionArrows.length === 0) {
+        return null;
+      }
+
+      const bounds = renderer.domElement.getBoundingClientRect();
+      pointerNdc.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+      pointerNdc.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+      raycaster.setFromCamera(pointerNdc, camera);
+
+      const hit = raycaster.intersectObjects(clickableDecisionArrows, true)[0]?.object ?? null;
+      if (!hit) {
+        return null;
+      }
+
+      let current = hit;
+      while (current) {
+        if (current.userData?.signId) {
+          return current.userData.signId;
+        }
+        current = current.parent;
+      }
+
+      return null;
+    }
+
+    function openQuizForSign(signId) {
+      const signState = decisionSigns.get(signId);
+      if (!signState) {
+        return;
+      }
+
+      quizState.active = true;
+      quizState.signId = signId;
+      clearKeyboardState();
+      stopTouchMotion();
+      renderTouchIndicator(touchInput.lastX, touchInput.lastY, 0, 0, false);
+
+      quizTitle.textContent = signState.solved ? "Direction Refresher" : "Junction Quiz";
+      quizQuestion.textContent = signState.question.prompt;
+      quizAnswers.textContent = "";
+
+      signState.question.answers.forEach((answer, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "quiz-answer";
+        button.dataset.answerIndex = String(index);
+        button.textContent = answer;
+        quizAnswers.appendChild(button);
+      });
+
+      quizOverlay.classList.add("visible");
+      quizOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeQuizOverlay() {
+      quizState.active = false;
+      quizState.signId = null;
+      quizOverlay.classList.remove("visible");
+      quizOverlay.setAttribute("aria-hidden", "true");
+      focusGameSurface();
+    }
+
+    function handleQuizAnswerClick(event) {
+      const button = event.target.closest(".quiz-answer");
+      if (!button || !quizState.signId) {
+        return;
+      }
+
+      const signState = decisionSigns.get(quizState.signId);
+      const answerIndex = Number.parseInt(button.dataset.answerIndex, 10);
+      const isCorrect = signState && answerIndex === signState.question.correctIndex;
+
+      if (isCorrect) {
+        signState.solved = true;
+        signState.arrow.setDirection(getLocalArrowDirection(signState.group.rotation.y, signState.hintDirection));
+        signState.arrow.visible = true;
+        drawDecisionSignFace(signState.boardFaceState.context, true);
+        signState.boardFaceState.texture.needsUpdate = true;
+      }
+
+      interactionCooldownUntil = performance.now() + 300;
+      closeQuizOverlay();
+    }
+
+    function handleQuizOverlayClick(event) {
+      if (event.target === quizOverlay) {
+        interactionCooldownUntil = performance.now() + 150;
+        closeQuizOverlay();
+      }
+    }
+
+    function moveToNextDecisionFromSign(signId) {
+      const signState = decisionSigns.get(signId);
+      if (!signState || !signState.solved || !Array.isArray(signState.advancePath) || signState.advancePath.length < 2) {
+        return;
+      }
+
+      scriptedAction.current = null;
+      scriptedAction.queue.length = 0;
+      stopTouchMotion();
+      renderTouchIndicator(touchInput.lastX, touchInput.lastY, 0, 0, false);
+
+      const waypoints = signState.advancePath.map((nodeId) => floorCenters.get(nodeId)?.clone()).filter(Boolean);
+      if (waypoints.length < 2) {
+        return;
+      }
+
+      scriptedAction.current = {
+        type: "pathFollow",
+        waypoints,
+        waypointIndex: 0,
+        speed: CELL_SIZE / 0.34
+      };
+    }
+
     function handleKeyDown(event) {
+      if (quizState.active) {
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(event.code)) {
+          event.preventDefault();
+        }
+        return;
+      }
+
       keyState.set(event.code, true);
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(event.code)) {
         event.preventDefault();
@@ -1186,11 +2105,20 @@ const maze = {
     }
 
     function handleTouchSurfaceDown(event) {
-      if (!isTouchLikePointer(event) || player.escaped || scriptedAction.current || touchInput.activePointerId !== null) {
+      if (!isGesturePointer(event) || player.escaped || quizState.active || scriptedAction.current || touchInput.activePointerId !== null) {
+        return;
+      }
+
+      const interactionTarget = getSceneInteractionTarget(event);
+      if (interactionTarget) {
+        touchInput.interactionTarget = interactionTarget;
+        tryHandleSceneInteraction(event, interactionTarget);
+        event.preventDefault();
         return;
       }
 
       stopTouchMotion();
+      touchInput.interactionTarget = null;
       touchInput.activePointerId = event.pointerId;
       touchInput.startX = event.clientX;
       touchInput.startY = event.clientY;
@@ -1217,6 +2145,13 @@ const maze = {
       }
 
       updateTouchInputFromEvent(event);
+      const tapDistance = Math.hypot(event.clientX - touchInput.startX, event.clientY - touchInput.startY);
+      if (tapDistance < 18 && tryHandleSceneInteraction(event, touchInput.interactionTarget)) {
+        clearTouchPointer(event.pointerId);
+        event.preventDefault();
+        return;
+      }
+
       queueCommandsFromTouchDrag(event);
       clearTouchPointer(event.pointerId);
       event.preventDefault();
@@ -1262,13 +2197,18 @@ const maze = {
       touchIndicator.classList.toggle("visible", visible);
     }
 
-    function isTouchLikePointer(event) {
-      return event.pointerType === "touch" || event.pointerType === "pen";
+    function isGesturePointer(event) {
+      if (event.pointerType === "touch" || event.pointerType === "pen") {
+        return true;
+      }
+
+      return event.pointerType === "mouse" && event.button === 0;
     }
 
     function clearTouchPointer(pointerId) {
       stopTouchMotion();
       touchInput.activePointerId = null;
+      touchInput.interactionTarget = null;
       touchSurface.releasePointerCapture?.(pointerId);
       renderTouchIndicator(touchInput.lastX, touchInput.lastY, 0, 0, false);
     }
@@ -1279,7 +2219,7 @@ const maze = {
     }
 
     function queueCommandsFromTouchDrag(event) {
-      if (player.escaped || scriptedAction.current) {
+      if (player.escaped || quizState.active || scriptedAction.current) {
         return;
       }
 
@@ -1387,6 +2327,36 @@ const maze = {
         return false;
       }
 
+      if (action.type === "pathFollow") {
+        while (action.waypointIndex < action.waypoints.length) {
+          const target = action.waypoints[action.waypointIndex];
+          const toTarget = target.clone().sub(player.position);
+          toTarget.y = 0;
+          const remaining = toTarget.length();
+
+          if (remaining <= 0.03) {
+            player.position.x = target.x;
+            player.position.z = target.z;
+            action.waypointIndex += 1;
+            continue;
+          }
+
+          const heading = Math.atan2(-toTarget.x, -toTarget.z);
+          player.yaw = heading;
+          const stepDistance = Math.min(remaining, action.speed * dt);
+          const step = toTarget.normalize().multiplyScalar(stepDistance);
+          player.position.x += step.x;
+          player.position.z += step.z;
+          updateCurrentNode();
+          return true;
+        }
+
+        scriptedAction.current = null;
+        updateCurrentNode();
+        beginNextQueuedAction();
+        return true;
+      }
+
       if (action.type === "turn") {
         action.elapsed += dt;
         const t = THREE.MathUtils.clamp(action.elapsed / action.duration, 0, 1);
@@ -1428,7 +2398,7 @@ const maze = {
     }
 
     function updatePlayer(dt) {
-      if (player.escaped) {
+      if (player.escaped || quizState.active) {
         return;
       }
 
@@ -1448,6 +2418,55 @@ const maze = {
       attemptMove(delta.x, 0);
       attemptMove(0, delta.z);
       updateCurrentNode();
+    }
+
+    function updateDecisionSignAnimations(elapsedTime) {
+      decisionSigns.forEach((signState) => {
+        if (!signState.solved) {
+          signState.arrow.visible = false;
+          return;
+        }
+
+        signState.arrow.visible = true;
+        signState.arrow.position.y = 1.6 + Math.sin(elapsedTime * 2.2 + signState.hoverPhase) * 0.05;
+      });
+    }
+
+    function updateDecisionSignHotspots() {
+      const appWidth = app.clientWidth;
+      const appHeight = app.clientHeight;
+
+      decisionSigns.forEach((signState) => {
+        updateHotspotButtonForObject(signState.board, signState.hotspots.signButton, appWidth, appHeight, 2.4, 96, 180);
+        if (signState.solved) {
+          updateHotspotButtonForObject(signState.arrow, signState.hotspots.arrowButton, appWidth, appHeight, 1.7, 72, 140);
+          signState.hotspots.arrowButton.style.display = "block";
+        } else {
+          signState.hotspots.arrowButton.style.display = "none";
+        }
+      });
+    }
+
+    function updateHotspotButtonForObject(object3d, button, appWidth, appHeight, sizeMultiplier, minSize, maxSize) {
+      const worldPosition = new THREE.Vector3();
+      object3d.getWorldPosition(worldPosition);
+      const screen = worldPosition.project(camera);
+
+      if (screen.z < -1 || screen.z > 1) {
+        button.style.display = "none";
+        return;
+      }
+
+      const x = (screen.x * 0.5 + 0.5) * appWidth;
+      const y = (-screen.y * 0.5 + 0.5) * appHeight;
+      const distance = Math.max(camera.position.distanceTo(worldPosition), 1);
+      const size = THREE.MathUtils.clamp((220 / distance) * sizeMultiplier, minSize, maxSize);
+
+      button.style.display = "block";
+      button.style.left = `${x}px`;
+      button.style.top = `${y}px`;
+      button.style.width = `${size}px`;
+      button.style.height = `${size}px`;
     }
 
     function attemptMove(dx, dz) {
@@ -1615,13 +2634,25 @@ const maze = {
       player.yaw = freshPlayer.yaw;
       player.currentNodeId = freshPlayer.currentNodeId;
       player.escaped = false;
+      clearKeyboardState();
       scriptedAction.current = null;
       scriptedAction.queue.length = 0;
       touchInput.activePointerId = null;
       stopTouchMotion();
       renderTouchIndicator(touchInput.lastX, touchInput.lastY, 0, 0, false);
+      closeQuizOverlay();
+      decisionSigns.forEach((signState) => {
+        signState.solved = false;
+        signState.group.rotation.y = signState.idleRotationY;
+        signState.arrow.setDirection(getLocalArrowDirection(signState.idleRotationY, signState.hintDirection));
+        signState.arrow.visible = false;
+        signState.arrow.position.y = 1.6;
+        drawDecisionSignFace(signState.boardFaceState.context, false);
+        signState.boardFaceState.texture.needsUpdate = true;
+      });
       overlay.classList.remove("visible");
       overlay.setAttribute("aria-hidden", "true");
+      focusGameSurface();
       updateCameraFromPlayer();
       drawMinimap(maze, player, minimapContext, mazeMetrics, minimapWalls);
     }
@@ -1633,6 +2664,8 @@ const maze = {
       updatePlayer(dt);
       checkExitReached(maze);
       updateCameraFromPlayer();
+      updateDecisionSignAnimations(clock.elapsedTime);
+      updateDecisionSignHotspots();
       drawMinimap(maze, player, minimapContext, mazeMetrics, minimapWalls);
       renderer.render(scene, camera);
     }

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <link rel="stylesheet" href="/games_v4/shared/styles/tokens.css">
+  <link rel="stylesheet" href="/games_v4/shared/styles/falling-game.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at top, rgba(96, 165, 250, 0.22), transparent 38%),
+        linear-gradient(180deg, #0f172a, #020617);
+    }
+
+    .demo {
+      width: min(92vw, 520px);
+      padding: 16px;
+      border-radius: 24px;
+      background: rgba(8, 15, 36, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.36);
+    }
+  </style>
+</head>
+<body>
+  <div class="demo">
+    <div class="levelStrip" data-active-diff="hard" aria-label="רמת קושי נבחרת">
+      <div class="levelStep" data-diff="easy" title="קל"><img src="/games_v4/shared/assets/ui/level-bike.svg" alt=""></div>
+      <div class="levelStep" data-diff="medium" title="בינוני"><img src="/games_v4/shared/assets/ui/level-car.svg" alt=""></div>
+      <div class="levelStep" data-diff="hard" title="קשה"><img src="/games_v4/shared/assets/ui/level-plane.svg" alt=""></div>
+      <div class="levelStep" data-diff="super" title="סופר"><img src="/games_v4/shared/assets/ui/level-rocket.svg" alt=""></div>
+    </div>
+  </div>
+  <script src="/games_v4/shared/scripts/level-indicator.js"></script>
+</body>
+</html>
