@@ -1,4 +1,114 @@
 window.GAMES_V2_SHELL = (function (utils) {
+  const DIFFICULTY_REWARD_ALIASES = {
+    difficult: "hard",
+    upTo5: "hard",
+    upTo10: "super"
+  };
+  const DIFFICULTY_REWARD_PROFILES = {
+    easy: {
+      completionBonus: 1,
+      specialChanceMul: 0.65,
+      weightMultipliers: {
+        silver: 1,
+        gold: 0.7,
+        diamond: 0.35
+      }
+    },
+    medium: {
+      completionBonus: 2,
+      specialChanceMul: 1,
+      weightMultipliers: {
+        silver: 1,
+        gold: 1,
+        diamond: 1
+      }
+    },
+    hard: {
+      completionBonus: 4,
+      specialChanceMul: 1.25,
+      weightMultipliers: {
+        silver: 1,
+        gold: 1.35,
+        diamond: 1.9
+      }
+    },
+    super: {
+      completionBonus: 8,
+      specialChanceMul: 1.55,
+      weightMultipliers: {
+        silver: 1,
+        gold: 1.7,
+        diamond: 2.8
+      }
+    }
+  };
+
+  function normalizeDifficultyRewardKey(diffKey) {
+    const rawKey = String(diffKey || "").trim();
+    const normalizedKey = DIFFICULTY_REWARD_ALIASES[rawKey] || rawKey;
+    return Object.prototype.hasOwnProperty.call(DIFFICULTY_REWARD_PROFILES, normalizedKey)
+      ? normalizedKey
+      : "medium";
+  }
+
+  function getDifficultyRewardProfile(diffKey) {
+    return DIFFICULTY_REWARD_PROFILES[normalizeDifficultyRewardKey(diffKey)];
+  }
+
+  function getCompletionBonus(diffKey, options) {
+    const profile = getDifficultyRewardProfile(diffKey);
+    const gameKey = options && options.gameKey;
+    if (gameKey === "shapes") {
+      return Math.max(1, Math.floor(profile.completionBonus / 2));
+    }
+    return profile.completionBonus;
+  }
+
+  function buildTabletRewardSettings(baseRules, diffKey, options) {
+    const safeRules = baseRules && typeof baseRules === "object" ? baseRules : {};
+    const profile = getDifficultyRewardProfile(diffKey);
+    const gameKey = options && options.gameKey;
+    const consecutiveGameCount = Math.max(0, Number(options && options.consecutiveGameCount) || 0);
+    let chanceMultiplier = profile.specialChanceMul;
+    let rewardMultiplier = 1;
+    if (gameKey === "shapes") {
+      const streakPenalty = Math.max(0, 1 - (Math.min(10, consecutiveGameCount) / 10));
+      chanceMultiplier *= 0.55 * streakPenalty;
+      rewardMultiplier = 0.4;
+    }
+    return {
+      specialChance: utils.clamp((Number(safeRules.specialChance) || 0) * chanceMultiplier, 0, 1),
+      specialTablets: (Array.isArray(safeRules.specialTablets) ? safeRules.specialTablets : []).map((tablet) => {
+        const tabletType = String(tablet && tablet.tabletType || "simple");
+        const weightMultiplier = profile.weightMultipliers[tabletType] || 1;
+        return {
+          tabletType,
+          rewardCoins: Math.max(1, Math.round(Math.max(0, Number(tablet && tablet.rewardCoins) || 0) * rewardMultiplier)),
+          weight: Math.max(0, Number(tablet && tablet.weight) || 0) * weightMultiplier
+        };
+      }).filter((tablet) => tablet.weight > 0 && tablet.rewardCoins > 0)
+    };
+  }
+
+  function rollSpecialTablet(baseRules, diffKey, options) {
+    const rewardSettings = buildTabletRewardSettings(baseRules, diffKey, options);
+    if (!rewardSettings.specialTablets.length || Math.random() >= rewardSettings.specialChance) {
+      return { tabletType: "simple", rewardCoins: 0 };
+    }
+    const totalWeight = rewardSettings.specialTablets.reduce((sum, tablet) => sum + tablet.weight, 0);
+    if (totalWeight <= 0) {
+      return { tabletType: "simple", rewardCoins: 0 };
+    }
+    let roll = Math.random() * totalWeight;
+    for (const tablet of rewardSettings.specialTablets) {
+      roll -= tablet.weight;
+      if (roll <= 0) {
+        return tablet;
+      }
+    }
+    return rewardSettings.specialTablets[0];
+  }
+
   function createFallingShell(options) {
     const settings = Object.assign({
       gameEl: null,
@@ -422,6 +532,7 @@ window.GAMES_V2_SHELL = (function (utils) {
 
     window.addEventListener("resize", refreshLayout);
     window.addEventListener("orientationchange", refreshLayout);
+    window.addEventListener("games:meta-overlay-change", refreshLayout);
     if (window.ResizeObserver && settings.gameEl) {
       const observer = new ResizeObserver(() => {
         captureRect();
@@ -448,6 +559,11 @@ window.GAMES_V2_SHELL = (function (utils) {
   }
 
   return {
-    createFallingShell
+    createFallingShell,
+    normalizeDifficultyRewardKey,
+    getDifficultyRewardProfile,
+    getCompletionBonus,
+    buildTabletRewardSettings,
+    rollSpecialTablet
   };
 })(window.GAMES_V2_UTILS);

@@ -18,6 +18,8 @@
   const exitBtn = document.getElementById("exitBtn");
   const coinEl = document.getElementById("coins");
   const coinIconEl = document.getElementById("coinIcon");
+  const difficultyLabelEl = document.getElementById("difficultyLabel");
+  const difficultyValueEl = document.getElementById("difficultyValue");
   const mascotEl = document.getElementById("mascot");
   const streakMeterEl = document.getElementById("streakMeter");
   const streakFillEl = document.getElementById("streakFill");
@@ -94,6 +96,12 @@
   let levelPausePending = false;
   let coinAwardPending = false;
   session.loadCheckpoint(initialSnapshot, selected);
+
+  function waitForNextFrame() {
+    return new Promise((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+  }
 
   function syncWaterReflection(tile, rectArg) {
     if (!tile) {
@@ -175,9 +183,14 @@
 
   function setHUD() {
     coinEl.textContent = String(coins);
+    const languageId = document.documentElement.lang === "en" ? "en" : "he";
+    if (metaApi && typeof metaApi.applyHudDifficulty === "function") {
+      metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, selected, languageId);
+    }
   }
 
   function syncSessionUi(state) {
+    selected = state.diffKey || selected;
     coins = state.coins;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
@@ -267,18 +280,9 @@
   }
 
   function rollSpecialTablet() {
-    if (Math.random() >= gameplayRules.specialChance) {
-      return { tabletType: "simple", rewardCoins: 0 };
-    }
-    const totalWeight = gameplayRules.specialTablets.reduce((sum, tabletType) => sum + tabletType.weight, 0);
-    let roll = Math.random() * totalWeight;
-    for (const tabletType of gameplayRules.specialTablets) {
-      roll -= tabletType.weight;
-      if (roll <= 0) {
-        return tabletType;
-      }
-    }
-    return gameplayRules.specialTablets[0];
+    return shellApi.rollSpecialTablet(gameplayRules, selected, {
+      gameKey: "multiply"
+    });
   }
 
   function awardTabletBonus(burstX, burstY, rewardCoins) {
@@ -585,6 +589,8 @@
     selected = diffKey;
     await ensureAssetsReady();
     meta.hideOverlay();
+    shell.refreshLayout();
+    await waitForNextFrame();
     paused = false;
     levelPausePending = false;
     coinAwardPending = false;

@@ -22,6 +22,8 @@
   const mascotEl = document.getElementById("mascot");
   const coinEl = document.getElementById("coins");
   const coinIconEl = document.getElementById("coinIcon");
+  const difficultyLabelEl = document.getElementById("difficultyLabel");
+  const difficultyValueEl = document.getElementById("difficultyValue");
   const streakMeterEl = document.getElementById("streakMeter");
   const streakFillEl = document.getElementById("streakFill");
   const answersEl = document.getElementById("answers");
@@ -112,6 +114,7 @@
   let running = false;
   let paused = false;
   let coins = initialSnapshot.player.coins;
+  let shapesRunStreak = Math.max(0, Number(initialSnapshot.economy && initialSnapshot.economy.shapesRunStreak) || 0);
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let task = null;
@@ -243,18 +246,10 @@
   }
 
   function rollSpecialTablet() {
-    if (Math.random() >= gameplayRules.specialChance) {
-      return { tabletType: "simple", rewardCoins: 0 };
-    }
-    const totalWeight = gameplayRules.specialTablets.reduce((sum, tabletType) => sum + tabletType.weight, 0);
-    let roll = Math.random() * totalWeight;
-    for (const tabletType of gameplayRules.specialTablets) {
-      roll -= tabletType.weight;
-      if (roll <= 0) {
-        return tabletType;
-      }
-    }
-    return gameplayRules.specialTablets[0];
+    return shellApi.rollSpecialTablet(gameplayRules, selected, {
+      gameKey: "shapes",
+      consecutiveGameCount: shapesRunStreak
+    });
   }
 
   function awardTabletBonus(burstX, burstY, rewardCoins) {
@@ -350,9 +345,14 @@
 
   function setHUD() {
     coinEl.textContent = String(coins);
+    const languageId = document.documentElement.lang === "en" ? "en" : "he";
+    if (metaApi && typeof metaApi.applyHudDifficulty === "function") {
+      metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, selected, languageId);
+    }
   }
 
   function syncSessionUi(state) {
+    selected = state.diffKey || selected;
     coins = state.coins;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
@@ -362,7 +362,9 @@
 
   function syncCheckpointState() {
     selected = meta.getSelectedDiff() || selected;
-    session.loadCheckpoint(meta.getSnapshot(), selected);
+    const snapshot = meta.getSnapshot();
+    shapesRunStreak = Math.max(0, Number(snapshot.economy && snapshot.economy.shapesRunStreak) || 0);
+    session.loadCheckpoint(snapshot, selected);
   }
 
   async function showLevelResults() {
@@ -651,12 +653,16 @@
     clearAnswerMarks();
   }
 
-  function startGame() {
+  async function startGame() {
     syncGameplayMetrics();
     running = false;
     paused = false;
     pauseBtn.classList.remove("paused");
     meta.hideOverlay();
+    shell.refreshLayout();
+    await new Promise((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
     resetState();
     session.beginLevel();
     running = true;
@@ -668,7 +674,7 @@
     applyAnswerCount(currentDiff().answerCount);
     audio.ensureAudio();
     await ensureAssetsReady();
-    startGame();
+    await startGame();
   }
 
   function togglePause() {
