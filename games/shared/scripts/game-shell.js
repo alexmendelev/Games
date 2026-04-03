@@ -218,7 +218,9 @@ window.GAMES_V2_SHELL = (function (utils) {
       }
       const ui = getUi();
       const rockWidth = Math.min(360 * ui, r.width * 0.54);
-      const leftClear = Math.max(margin, Math.round(rockWidth + Math.max(12, 20 * ui)));
+      // Keep tablets away from the mascot/rock cluster without forcing them too far right.
+      const leftSafeBand = Math.min(rockWidth * 0.58, r.width * 0.34);
+      const leftClear = Math.max(margin, Math.round(leftSafeBand + Math.max(12, 20 * ui)));
       const rightClear = Math.max(margin, Math.round(24 * ui));
       const rawMaxX = Math.max(0, Math.floor(r.width - tileWidth - rightClear));
       const minX = Math.max(0, Math.min(leftClear, rawMaxX));
