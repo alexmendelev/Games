@@ -88,7 +88,7 @@ for (const gameCase of GAME_CASES) {
     await expectLeaderboardRowAligned(page.locator(".metaStartLeaderboardRow").first());
   });
 
-  test(`${gameCase.name} uses the shared split start dialog on low portrait`, async ({ page }) => {
+  test(`${gameCase.name} keeps the shared start dialog stacked on wider screens`, async ({ page }) => {
     await page.setViewportSize({ width: 820, height: 900 });
     await page.goto(gameCase.path);
     await waitForStartDialog(page);
@@ -104,10 +104,8 @@ for (const gameCase of GAME_CASES) {
     expect(cardBox.x + cardBox.width).toBeLessThanOrEqual(820);
     expect(cardBox.y + cardBox.height).toBeLessThanOrEqual(900);
 
-    expect(summaryBox.x).toBeGreaterThanOrEqual(logoBox.x + logoBox.width - 1);
-    expect(leaderboardBox.x).toBeGreaterThanOrEqual(summaryBox.x + summaryBox.width - 1);
-    expect(actionsBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
-    expect(actionsBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
+    expect(summaryBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
+    expect(leaderboardBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
     expect(actionsBox.y).toBeGreaterThanOrEqual(leaderboardBox.y + leaderboardBox.height - 1);
 
     const avatarBox = await getBox(page.locator('[data-action="open-profile"]'));
@@ -115,12 +113,9 @@ for (const gameCase of GAME_CASES) {
     const levelBox = await getBox(page.locator(".metaStatusChip").nth(1));
     const settingsBox = await getBox(page.locator('[data-action="open-settings"]'));
 
-    expect(coinsBox.y).toBeGreaterThanOrEqual(avatarBox.y + avatarBox.height - 1);
-    expect(levelBox.y).toBeGreaterThanOrEqual(coinsBox.y + coinsBox.height - 1);
-    expect(settingsBox.y).toBeGreaterThanOrEqual(levelBox.y + levelBox.height - 1);
-    expect(Math.abs(avatarBox.x - coinsBox.x)).toBeLessThan(24);
-    expect(Math.abs(coinsBox.x - levelBox.x)).toBeLessThan(24);
-    expect(Math.abs(levelBox.x - settingsBox.x)).toBeLessThan(24);
+    expect(Math.abs(avatarBox.y - coinsBox.y)).toBeLessThan(16);
+    expect(Math.abs(coinsBox.y - levelBox.y)).toBeLessThan(16);
+    expect(Math.abs(levelBox.y - settingsBox.y)).toBeLessThan(16);
 
     const leaderboardMetrics = await page.locator(".metaStartLeaderboardList").evaluate((el) => ({
       clientHeight: el.clientHeight,
@@ -159,5 +154,18 @@ for (const gameCase of GAME_CASES) {
 
     expect(gapToActions).toBeLessThanOrEqual(20);
     expect(firstRowBox.height).toBeLessThanOrEqual(72);
+  });
+
+  test(`${gameCase.name} uses the shared portrait start dialog on wide screens by default`, async ({ page }) => {
+    await page.setViewportSize({ width: 1365, height: 768 });
+    await page.goto(gameCase.path);
+    await waitForStartDialog(page);
+
+    const logoBox = await getBox(page.locator(".metaDashboardPanel--logo"));
+    const summaryBox = await getBox(page.locator(".metaDashboardPanel--summary"));
+    const leaderboardBox = await getBox(page.locator(".metaDashboardSection--leaderboard"));
+
+    expect(summaryBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
+    expect(leaderboardBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
   });
 }

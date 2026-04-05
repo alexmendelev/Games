@@ -25,8 +25,9 @@ async function startFirstLevel(page) {
   await page.locator("[data-diff]").first().click();
 }
 
-async function openResultsPreview(page, path) {
-  await page.goto(`${path}?testMode=1`);
+async function openResultsPreview(page, path, extraQuery = "") {
+  const query = extraQuery ? `&${extraQuery}` : "";
+  await page.goto(`${path}?testMode=1${query}`);
   await page.locator('[data-action="preview-results"]').click();
   await expect(page.locator(".metaCard--dashboard-results")).toBeVisible();
 }
@@ -111,7 +112,7 @@ for (const gameCase of GAME_CASES) {
     await expect(page.locator(".metaCard--dashboard-results .metaDashboardSettingsLabel")).toBeHidden();
   });
 
-  test(`${gameCase.name} uses the shared split results dialog on low portrait`, async ({ page }) => {
+  test(`${gameCase.name} keeps the shared results dialog stacked on wider screens`, async ({ page }) => {
     await page.setViewportSize({ width: 820, height: 900 });
     await openResultsPreview(page, gameCase.path);
 
@@ -126,10 +127,32 @@ for (const gameCase of GAME_CASES) {
     expect(cardBox.x + cardBox.width).toBeLessThanOrEqual(820);
     expect(cardBox.y + cardBox.height).toBeLessThanOrEqual(900);
 
-    expect(summaryBox.x).toBeGreaterThanOrEqual(logoBox.x + logoBox.width - 1);
-    expect(leaderboardBox.x).toBeGreaterThanOrEqual(summaryBox.x + summaryBox.width - 1);
-    expect(actionsBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
-    expect(actionsBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
+    expect(summaryBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
+    expect(leaderboardBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
     expect(actionsBox.y).toBeGreaterThanOrEqual(leaderboardBox.y + leaderboardBox.height - 1);
+  });
+
+  test(`${gameCase.name} uses the shared portrait results dialog on wide screens by default`, async ({ page }) => {
+    await page.setViewportSize({ width: 1365, height: 768 });
+    await openResultsPreview(page, gameCase.path);
+
+    const logoBox = await getBox(page.locator(".metaDashboardPanel--logo"));
+    const summaryBox = await getBox(page.locator(".metaDashboardPanel--summary"));
+    const leaderboardBox = await getBox(page.locator(".metaDashboardSection--leaderboard"));
+
+    expect(summaryBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
+    expect(leaderboardBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
+  });
+
+  test(`${gameCase.name} keeps the shared results dialog stacked on slight portrait`, async ({ page }) => {
+    await page.setViewportSize({ width: 630, height: 790 });
+    await openResultsPreview(page, gameCase.path);
+
+    const logoBox = await getBox(page.locator(".metaDashboardPanel--logo"));
+    const summaryBox = await getBox(page.locator(".metaDashboardPanel--summary"));
+    const leaderboardBox = await getBox(page.locator(".metaDashboardSection--leaderboard"));
+
+    expect(summaryBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
+    expect(leaderboardBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
   });
 }

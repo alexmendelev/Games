@@ -3036,7 +3036,196 @@ html[data-overlay-actions="stack"] .metaCard--dashboard .metaDashboardActions {
 
 }
 
+html[data-dashboard-layout="portrait"] .metaCard--dashboard {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  gap: calc(8px * var(--ui, 1));
+  padding: calc(6px * var(--ui, 1));
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html[data-dashboard-layout="portrait"] .metaDashboardBoard {
+  min-height: 0;
+  height: 100%;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: calc(6px * var(--ui, 1));
+  align-content: stretch;
+}
+
+html[data-dashboard-layout="portrait"] .metaDashboardPanel--logo {
+  min-height: 0;
+  padding: 0;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaGameBadge--art {
+  width: min(100%, calc(176px * var(--ui, 1)));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaGameBadgeArt {
+  width: min(100%, calc(142px * var(--ui, 1)));
+  max-height: calc(142px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaDashboardPanel--summary {
+  gap: calc(6px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaDashboardPanel,
+html[data-dashboard-layout="portrait"] .metaDashboardSection--leaderboard {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaStatusChip,
+html[data-dashboard-layout="portrait"] .metaDashboardSettingsCard {
+  min-height: calc(68px * var(--ui, 1));
+  padding: calc(8px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaStatusIcon {
+  width: calc(22px * var(--ui, 1));
+  height: calc(22px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaStatusValue {
+  font-size: calc(24px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaStatusLabel,
+html[data-dashboard-layout="portrait"] .metaDashboardSettingsLabel,
+html[data-dashboard-layout="portrait"] .metaProfileButton--dashboard .metaProfileHint {
+  font-size: calc(12px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaProfileButton--dashboard {
+  gap: calc(8px * var(--ui, 1));
+  padding: calc(6px * var(--ui, 1)) calc(8px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaProfileButton--dashboard .metaHeroAvatar {
+  width: calc(42px * var(--ui, 1));
+  height: calc(42px * var(--ui, 1));
+  border-radius: calc(14px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaProfileButton--dashboard .metaProfileName {
+  font-size: calc(18px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaProfileButton--dashboard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaStatusChip,
+html[data-dashboard-layout="portrait"] .metaDashboardSettingsCard {
+  border: 0;
+  box-shadow: none;
+}
+
+html[data-dashboard-layout="portrait"] .metaDashboardSection--leaderboard {
+  display: flex;
+  flex-direction: column;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList {
+  gap: calc(4px * var(--ui, 1));
+  margin-top: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] {
+  align-content: stretch;
+  grid-template-rows: repeat(5, minmax(calc(48px * var(--ui, 1)), 1fr));
+  grid-auto-rows: auto;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow {
+  gap: calc(8px * var(--ui, 1));
+  min-height: calc(50px * var(--ui, 1));
+  padding: calc(5px * var(--ui, 1)) calc(9px * var(--ui, 1));
+  border-radius: calc(14px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRank {
+  width: calc(34px * var(--ui, 1));
+  font-size: calc(18px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardAvatar {
+  width: calc(38px * var(--ui, 1));
+  height: calc(38px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardTitleRow {
+  gap: calc(9px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardName {
+  font-size: calc(15px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaInlineIcon {
+  width: calc(14px * var(--ui, 1));
+  height: calc(14px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardCoins strong {
+  font-size: calc(20px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow {
+  min-height: 0;
+  gap: calc(10px * var(--ui, 1));
+  padding: calc(10px * var(--ui, 1)) calc(12px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRank {
+  width: calc(46px * var(--ui, 1));
+  font-size: calc(24px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardAvatar {
+  width: calc(48px * var(--ui, 1));
+  height: calc(48px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardPlayer {
+  width: 100%;
+  gap: calc(12px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardName {
+  font-size: clamp(18px, calc(18px * var(--ui, 1)), 22px);
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaInlineIcon {
+  width: calc(16px * var(--ui, 1));
+  height: calc(16px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins strong {
+  font-size: clamp(24px, calc(24px * var(--ui, 1)), 28px);
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins {
+  gap: calc(8px * var(--ui, 1));
+}
+
 html[data-layout-aspect-band="portrait-wide"] .metaCard--dashboard .metaGameBadge--art {
+  width: min(100%, calc(200px * var(--ui, 1)));
+}
+
+html[data-dashboard-aspect-band="portrait-wide"] .metaCard--dashboard .metaGameBadge--art {
   width: min(100%, calc(200px * var(--ui, 1)));
 }
 
@@ -3045,11 +3234,24 @@ html[data-layout-aspect-band="portrait-wide"] .metaCard--dashboard .metaGameBadg
   max-height: calc(162px * var(--ui, 1));
 }
 
+html[data-dashboard-aspect-band="portrait-wide"] .metaCard--dashboard .metaGameBadgeArt {
+  width: min(100%, calc(162px * var(--ui, 1)));
+  max-height: calc(162px * var(--ui, 1));
+}
+
 html[data-layout-aspect-band="portrait-wide"] .metaCard--dashboard .metaLeaderboardRow {
   min-height: calc(50px * var(--ui, 1));
 }
 
+html[data-dashboard-aspect-band="portrait-wide"] .metaCard--dashboard .metaLeaderboardRow {
+  min-height: calc(50px * var(--ui, 1));
+}
+
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaGameBadge--art {
+  width: min(100%, calc(148px * var(--ui, 1)));
+}
+
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard .metaGameBadge--art {
   width: min(100%, calc(148px * var(--ui, 1)));
 }
 
@@ -3058,7 +3260,16 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaGameBa
   max-height: calc(118px * var(--ui, 1));
 }
 
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard .metaGameBadgeArt {
+  width: min(100%, calc(118px * var(--ui, 1)));
+  max-height: calc(118px * var(--ui, 1));
+}
+
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeaderboardRow {
+  min-height: calc(46px * var(--ui, 1));
+}
+
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeaderboardRow {
   min-height: calc(46px * var(--ui, 1));
 }
 
@@ -3445,6 +3656,163 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
   }
 }
 
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaDashboardPanel--summary {
+  gap: calc(8px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaProfileButton--dashboard .metaHeroAvatar {
+  width: clamp(40px, 8vw, 52px);
+  height: clamp(40px, 8vw, 52px);
+}
+
+html[data-dashboard-layout="portrait"] .metaProfileButton--dashboard .metaProfileName {
+  font-size: clamp(16px, 3.2vw, 20px);
+  line-height: 1.15;
+}
+
+html[data-dashboard-layout="portrait"] .metaProfileButton--dashboard .metaProfileHint,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaStatusLabel,
+html[data-dashboard-layout="portrait"] .metaDashboardSettingsLabel {
+  font-size: clamp(11px, 2.2vw, 14px);
+  line-height: 1.15;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaStatusValue {
+  font-size: clamp(22px, 4.4vw, 30px);
+  line-height: 1;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaStatusIcon,
+html[data-dashboard-layout="portrait"] .metaDashboardSettingsCard .metaDashboardToolIcon svg {
+  width: clamp(22px, 4.5vw, 28px);
+  height: clamp(22px, 4.5vw, 28px);
+}
+
+html[data-dashboard-layout="portrait"] .metaGhostButton,
+html[data-dashboard-layout="portrait"] .metaPrimaryButton--level {
+  font-size: clamp(16px, 3.2vw, 20px);
+}
+
+html[data-dashboard-layout="portrait"] .metaPrimaryButton--level {
+  min-height: clamp(56px, 10vw, 70px);
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaDashboardSection--leaderboard {
+  max-height: 50%;
+  min-height: 0;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: calc(6px * var(--ui, 1));
+  margin-top: 0;
+  grid-template-rows: none !important;
+  grid-auto-rows: max-content;
+  overflow: auto;
+  overflow-x: hidden;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] {
+  align-content: stretch;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow {
+  direction: ltr;
+  display: grid;
+  grid-template-columns:
+    calc(42px * var(--ui, 1))
+    clamp(34px, 7vw, 46px)
+    minmax(0, 1fr)
+    auto
+    clamp(13px, 2.6vw, 17px);
+  align-items: center;
+  min-height: clamp(56px, 8.8vw, 72px);
+  gap: calc(8px * var(--ui, 1));
+  padding: calc(8px * var(--ui, 1)) calc(12px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow {
+  min-height: 0;
+  padding: calc(8px * var(--ui, 1)) calc(12px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRank,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRank {
+  grid-column: 1;
+  width: auto;
+  font-size: clamp(18px, 3.6vw, 24px);
+  line-height: 1.1;
+  text-align: center;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardAvatarCell,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardAvatarCell {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardNameCell,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardNameCell {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardName,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardName {
+  font-size: clamp(16px, 3vw, 20px);
+  line-height: 1.2;
+  display: block;
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardCoins,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins {
+  grid-column: 4;
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardCoinIcon,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoinIcon {
+  grid-column: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaInlineIcon,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaInlineIcon {
+  width: clamp(13px, 2.6vw, 17px);
+  height: clamp(13px, 2.6vw, 17px);
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardCoins strong,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins strong {
+  font-size: clamp(18px, 3.6vw, 24px);
+  line-height: 1.1;
+}
+
 /* Final explicit leaderboard direction rules.
    Use the rendered row class instead of inherited dir selectors. */
 .metaLeaderboardRow.is-ltr .metaLeaderboardNameCell {
@@ -3530,6 +3898,47 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
   .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardCoinIcon {
     grid-column: 1;
   }
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow.is-rtl,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl {
+  grid-template-columns:
+    clamp(13px, 2.6vw, 17px)
+    auto
+    minmax(0, 1fr)
+    clamp(34px, 7vw, 46px)
+    calc(42px * var(--ui, 1));
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardRank,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardRank {
+  grid-column: 5;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardAvatarCell,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardAvatarCell {
+  grid-column: 4;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardNameCell,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardNameCell {
+  grid-column: 3;
+  justify-content: flex-end;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardName,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardName {
+  text-align: right;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardCoins,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardCoins {
+  grid-column: 2;
+}
+
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardCoinIcon,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardCoinIcon {
+  grid-column: 1;
 }
 
 /* Full-screen shared start/results dashboard */
@@ -3876,7 +4285,11 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardBoard,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardBoard {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardBoard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardBoard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaDashboardBoard,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardBoard,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardBoard {
   grid-template-columns: 1fr;
   grid-template-rows: auto auto minmax(0, 1fr);
   grid-template-areas:
@@ -3886,14 +4299,22 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .me
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPanel--summary,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardPanel--summary {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardPanel--summary,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardPanel--summary,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaDashboardPanel--summary,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPanel--summary,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardPanel--summary {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-auto-rows: minmax(0, 1fr);
   gap: calc(6px * var(--ui, 1));
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardIdentityCard {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardIdentityCard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardIdentityCard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaDashboardIdentityCard,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardIdentityCard {
   flex-direction: column;
   justify-content: center;
   text-align: center;
@@ -3904,19 +4325,35 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .me
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard .metaProfileButtonText,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValueWrap,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardIdentityCard .metaProfileButtonText,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValueWrap {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValueWrap,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardIdentityCard .metaProfileButtonText,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaStatusValueWrap,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaDashboardIdentityCard .metaProfileButtonText,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaStatusValueWrap,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard .metaProfileButtonText,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValueWrap,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardIdentityCard .metaProfileButtonText,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValueWrap {
   align-items: center;
   text-align: center;
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar {
   width: clamp(40px, 10vw, 52px);
   height: clamp(40px, 10vw, 52px);
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileName {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileName,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileName,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileName {
   font-size: clamp(14px, 3.6vw, 18px);
 }
 
@@ -3925,19 +4362,43 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .meta
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsLabel,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileHint,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusLabel,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsLabel {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsLabel,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileHint,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaStatusLabel,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardSettingsLabel,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileHint,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaStatusLabel,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaDashboardSettingsLabel,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileHint,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusLabel,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsLabel,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileHint,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusLabel,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsLabel {
   font-size: clamp(10px, 2.6vw, 13px);
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValue,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValue {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValue,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaStatusValue,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaStatusValue,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValue,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValue {
   font-size: clamp(18px, 4.6vw, 24px);
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusIcon,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusIcon,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard .metaDashboardToolIcon svg {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard .metaDashboardToolIcon svg,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaStatusIcon,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaStatusIcon,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaDashboardSettingsCard .metaDashboardToolIcon svg,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusIcon,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusIcon,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard .metaDashboardToolIcon svg {
   width: clamp(20px, 4.4vw, 26px);
   height: clamp(20px, 4.4vw, 26px);
 }
@@ -3947,16 +4408,34 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .meta
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusChip,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaProfileButton--dashboard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaStatusChip,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardSettingsCard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaProfileButton--dashboard,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaStatusChip,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaDashboardSettingsCard,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusChip,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusChip,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard {
   padding: calc(8px * var(--ui, 1));
 }
 
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPreviewButton {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPreviewButton,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardPreviewButton,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPreviewButton {
   grid-column: 1 / -1;
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardActions,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardActions {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardActions,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaDashboardActions,
+html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaDashboardActions,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardActions,
+html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardActions {
   grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
 }
 

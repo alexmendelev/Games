@@ -194,13 +194,21 @@ window.GAMES_V2_META = (function (utils) {
     return normalized === "" || normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
   }
 
+  function getSearchParams() {
+    try {
+      return new window.URLSearchParams((window.location && window.location.search) || "");
+    } catch (_) {
+      return null;
+    }
+  }
+
   function isTestModeEnabled() {
     try {
-      const params = new window.URLSearchParams((window.location && window.location.search) || "");
-      if (params.has("testMode")) {
+      const params = getSearchParams();
+      if (params && params.has("testMode")) {
         return isTruthyFlag(params.get("testMode"));
       }
-      if (params.has("test")) {
+      if (params && params.has("test")) {
         return isTruthyFlag(params.get("test"));
       }
     } catch (_) {}
@@ -213,6 +221,36 @@ window.GAMES_V2_META = (function (utils) {
       }
     } catch (_) {}
     return false;
+  }
+
+  function getDashboardLayoutOverride() {
+    const params = getSearchParams();
+    if (!params) {
+      return "portrait";
+    }
+    const layoutValue = String(params.get("dashboardLayout") || "").trim().toLowerCase();
+    if (layoutValue === "portrait") {
+      return "portrait";
+    }
+    if (layoutValue === "auto" || layoutValue === "default") {
+      return "";
+    }
+    if (params.has("dashboardPortrait")) {
+      return isTruthyFlag(params.get("dashboardPortrait")) ? "portrait" : "";
+    }
+    return "portrait";
+  }
+
+  function getForcedDashboardAspectBand(layoutOverride) {
+    if (layoutOverride !== "portrait") {
+      return "";
+    }
+    const width = Math.max(0, Number(window && window.innerWidth) || 0);
+    const height = Math.max(0, Number(window && window.innerHeight) || 0);
+    const longSide = Math.max(width, height);
+    const shortSide = Math.min(width, height);
+    const portraitAspectRatio = longSide > 0 ? (shortSide / longSide) : 1;
+    return portraitAspectRatio >= 0.84 ? "portrait-wide" : "portrait-narrow";
   }
 
   function getCopy(languageId) {
@@ -1459,6 +1497,7 @@ window.GAMES_V2_META = (function (utils) {
     if (!Object.prototype.hasOwnProperty.call(rawOptions, "initialSoundEnabled") && settings.audio && settings.audio.bgm && typeof settings.audio.bgm.isMuted === "function") {
       settings.initialSoundEnabled = !settings.audio.bgm.isMuted();
     }
+    const dashboardLayoutOverride = getDashboardLayoutOverride();
     const overlayEl = settings.overlayEl;
     const diffOptions = (settings.diffOptions || []).map((option) => ({
       key: option.key,
@@ -1563,6 +1602,13 @@ window.GAMES_V2_META = (function (utils) {
       }
       document.documentElement.setAttribute("data-meta-screen", currentScreen || "start");
       document.documentElement.setAttribute("data-meta-overlay", isVisible ? "open" : "closed");
+      if (!isVisible || dashboardLayoutOverride !== "portrait") {
+        document.documentElement.removeAttribute("data-dashboard-layout");
+        document.documentElement.removeAttribute("data-dashboard-aspect-band");
+        return;
+      }
+      document.documentElement.setAttribute("data-dashboard-layout", dashboardLayoutOverride);
+      document.documentElement.setAttribute("data-dashboard-aspect-band", getForcedDashboardAspectBand(dashboardLayoutOverride));
     }
 
     function hideOverlay() {
@@ -1911,6 +1957,17 @@ window.GAMES_V2_META = (function (utils) {
       }
       draftProfile.name = String(inputEl.value || "").slice(0, 18);
     });
+
+    if (window && typeof window.addEventListener === "function") {
+      const syncDashboardLayoutOverrideState = () => {
+        const isVisible = document && document.documentElement
+          ? document.documentElement.getAttribute("data-meta-overlay") === "open"
+          : false;
+        syncOverlayUiState(isVisible);
+      };
+      window.addEventListener("resize", syncDashboardLayoutOverrideState);
+      window.addEventListener("orientationchange", syncDashboardLayoutOverrideState);
+    }
 
     if (diffOptions.length) {
       const currentBounds = getDifficultyBounds(state, settings.gameKey, diffOptions);
