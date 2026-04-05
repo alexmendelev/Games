@@ -164,8 +164,11 @@ for (const gameCase of GAME_CASES) {
     const logoBox = await getBox(page.locator(".metaDashboardPanel--logo"));
     const summaryBox = await getBox(page.locator(".metaDashboardPanel--summary"));
     const leaderboardBox = await getBox(page.locator(".metaDashboardSection--leaderboard"));
+    const actionsBox = await getBox(page.locator(".metaDashboardActions"));
+    const gapToActions = actionsBox.y - (leaderboardBox.y + leaderboardBox.height);
 
     expect(summaryBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
     expect(leaderboardBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
+    expect(gapToActions).toBeLessThanOrEqual(20);
   });
 }

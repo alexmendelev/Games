@@ -111,6 +111,30 @@
   let coinAwardPending = false;
   session.loadCheckpoint(initialSnapshot, selected);
 
+  function currentTileMetrics(rectArg) {
+    const ui = shell.getUi();
+    return shell.responsiveTabletMetrics({
+      baseWidth: cfg.gameplay.tileWBase,
+      baseHeight: cfg.gameplay.tileHBase,
+      widthRatio: 0.58,
+      minWidth: 210 * ui,
+      maxWidth: cfg.gameplay.tileWBase * ui,
+      fontScale: 0.16,
+      fontMin: 34 * ui,
+      fontMax: 56 * ui,
+      paddingScale: 0.06,
+      paddingMin: 12 * ui,
+      paddingMax: 24 * ui
+    }, rectArg);
+  }
+
+  function applyTileMetrics(metrics) {
+    tileEl.style.width = `${metrics.width}px`;
+    tileEl.style.height = `${metrics.height}px`;
+    tileEl.style.fontSize = `${metrics.fontSize}px`;
+    tileEl.style.paddingInline = `${metrics.paddingX}px`;
+  }
+
   function resolveHudDiffKey(diffKey) {
     const metaDiff = meta && typeof meta.getSelectedDiff === "function" ? meta.getSelectedDiff() : "";
     const sessionDiff = session && typeof session.getState === "function" ? session.getState().diffKey : "";
@@ -214,11 +238,8 @@
     return selected === "super";
   }
 
-  function speedPxPerSec() {
-    const base = cfg.gameplay.baseSpeed + (level() - 1) * cfg.gameplay.speedIncPerLevel;
-    const rect = shell.rect();
-    const heightMul = Math.max(0.72, Math.min(1.15, rect.height / 650));
-    return base * currentPreset().speedMul * heightMul;
+  function speedPxPerSec(item) {
+    return shell.speedForFallDuration(item, 12);
   }
 
   function setHUD() {
@@ -437,14 +458,14 @@
   function randomTileX() {
     const rect = shell.rect();
     const ui = shell.getUi();
-    const tileWidth = cfg.gameplay.tileWBase * ui;
+    const tileWidth = currentTileMetrics(rect).width;
     const margin = cfg.gameplay.marginBase * ui;
     const lane = shell.fallLane(tileWidth, margin, rect);
     return utils.randInt(Math.round(lane.minX), Math.round(lane.maxX));
   }
 
   function spawnStartY() {
-    return -(cfg.gameplay.tileHBase * shell.getUi() * spawnYOffsetRatio);
+    return -(currentTileMetrics().height * spawnYOffsetRatio);
   }
 
   function makeTask() {
@@ -629,11 +650,13 @@
   }
 
   function createTask() {
-    const ui = shell.getUi();
+    const tileMetrics = currentTileMetrics();
     const tabletReward = rollSpecialTablet();
     return Object.assign(buildEquationTask(), {
-      width: cfg.gameplay.tileWBase * ui,
-      height: cfg.gameplay.tileHBase * ui,
+      width: tileMetrics.width,
+      height: tileMetrics.height,
+      fontSize: tileMetrics.fontSize,
+      paddingX: tileMetrics.paddingX,
       x: randomTileX(),
       y: spawnStartY(),
       tabletType: tabletReward.tabletType,
@@ -649,6 +672,7 @@
     }
     if (phase !== "frame") {
       tileEl.textContent = task.text;
+      applyTileMetrics(task);
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
       if (task.rewardCoins > 0) {
         tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
@@ -668,6 +692,19 @@
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
     syncWaterReflection(task, rectArg);
   }
+
+  const initialTileMetrics = currentTileMetrics();
+  applyTileMetrics(initialTileMetrics);
+  window.addEventListener("resize", () => {
+    const resizedMetrics = currentTileMetrics();
+    if (task) {
+      task.width = resizedMetrics.width;
+      task.height = resizedMetrics.height;
+      task.fontSize = resizedMetrics.fontSize;
+      task.paddingX = resizedMetrics.paddingX;
+    }
+    applyTileMetrics(resizedMetrics);
+  });
 
   function playSplashAtTile(rect, currentTask) {
     const centerX = currentTask.x + (currentTask.width / 2);

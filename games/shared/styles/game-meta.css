@@ -3698,8 +3698,14 @@ html[data-dashboard-layout="portrait"] .metaPrimaryButton--level {
 }
 
 html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaDashboardSection--leaderboard {
-  max-height: 50%;
   min-height: 0;
+}
+
+@media (orientation: landscape) {
+  html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaDashboardSection--leaderboard {
+    flex: 1 1 auto;
+    max-height: none;
+  }
 }
 
 html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList,

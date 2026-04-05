@@ -482,6 +482,45 @@ window.GAMES_V2_SHELL = (function (utils) {
       return baseWaterY + shadowTouchOffset;
     }
 
+    function responsiveTabletMetrics(options, rectArg) {
+      const r = rectArg || rect();
+      const ui = getUi();
+      const baseWidth = Math.max(1, Number(options && options.baseWidth) || 240);
+      const baseHeight = Math.max(1, Number(options && options.baseHeight) || 78);
+      const widthRatio = utils.clamp(Number(options && options.widthRatio) || 0.5, 0.2, 0.95);
+      const maxWidth = Math.max(1, Number(options && options.maxWidth) || (baseWidth * ui));
+      const minWidth = Math.min(maxWidth, Math.max(1, Number(options && options.minWidth) || (maxWidth * 0.72)));
+      const width = utils.clamp((Number(r && r.width) || 0) * widthRatio, minWidth, maxWidth);
+      const aspectRatio = baseWidth / baseHeight;
+      const height = width / aspectRatio;
+      const fontScale = Math.max(0.05, Number(options && options.fontScale) || 0.18);
+      const maxFontSize = Math.max(1, Number(options && options.fontMax) || (42 * ui));
+      const minFontSize = Math.min(maxFontSize, Math.max(1, Number(options && options.fontMin) || (maxFontSize * 0.72)));
+      const fontSize = utils.clamp(width * fontScale, minFontSize, maxFontSize);
+      const maxPaddingX = Math.max(0, Number(options && options.paddingMax) || (24 * ui));
+      const minPaddingX = Math.min(maxPaddingX, Math.max(0, Number(options && options.paddingMin) || (12 * ui)));
+      const paddingX = utils.clamp(width * (Number(options && options.paddingScale) || 0.07), minPaddingX, maxPaddingX);
+      return {
+        width,
+        height,
+        fontSize,
+        paddingX
+      };
+    }
+
+    function speedForFallDuration(item, durationSeconds, rectArg) {
+      if (!item) return 0;
+      const duration = Math.max(0.001, Number(durationSeconds) || 0);
+      if (!Number.isFinite(item.__fallSpeedPxPerSec)) {
+        const startY = Number.isFinite(item.y) ? item.y : 0;
+        const itemHeight = Math.max(0, Number(item.height) || 0);
+        const targetY = splashContactY(itemHeight, rectArg) - itemHeight;
+        const distance = Math.max(0, targetY - startY);
+        item.__fallSpeedPxPerSec = distance / duration;
+      }
+      return item.__fallSpeedPxPerSec;
+    }
+
     function createFallingRunner(options) {
       const runnerSettings = Object.assign({
         createItem: null,
@@ -694,6 +733,8 @@ window.GAMES_V2_SHELL = (function (utils) {
       waterY,
       fallLane,
       splashContactY,
+      responsiveTabletMetrics,
+      speedForFallDuration,
       createFallingRunner,
       updateWaterShadow,
       hideWaterShadow,

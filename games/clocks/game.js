@@ -322,11 +322,8 @@
     }
   }
 
-  function getSpeed() {
-    const base = cfg.gameplay.baseSpeed + (level() - 1) * cfg.gameplay.speedIncPerLevel;
-    const rect = shell.rect();
-    const heightMul = Math.max(0.72, Math.min(1.15, rect.height / 650));
-    return base * currentDiff().speedMul * heightMul;
+  function getSpeed(item) {
+    return shell.speedForFallDuration(item, 12);
   }
 
   function rollSpecialTablet() {
