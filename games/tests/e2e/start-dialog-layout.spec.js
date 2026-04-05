@@ -73,6 +73,10 @@ for (const gameCase of GAME_CASES) {
     expect(Math.abs(coinsBox.y - levelBox.y)).toBeLessThan(12);
     expect(Math.abs(levelBox.y - settingsBox.y)).toBeLessThan(12);
 
+    await expect(page.locator(".metaCard--dashboard-start .metaProfileHint")).toBeHidden();
+    await expect(page.locator(".metaCard--dashboard-start .metaStatusLabel")).toBeHidden();
+    await expect(page.locator(".metaCard--dashboard-start .metaDashboardSettingsLabel")).toBeHidden();
+
     const leaderboardMetrics = await page.locator(".metaStartLeaderboardList").evaluate((el) => ({
       clientHeight: el.clientHeight,
       scrollHeight: el.scrollHeight,
@@ -140,5 +144,20 @@ for (const gameCase of GAME_CASES) {
 
     expect(summaryBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
     expect(leaderboardBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
+  });
+
+  test(`${gameCase.name} keeps the portrait start leaderboard compact on shorter phones`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 700 });
+    await page.goto(gameCase.path);
+    await waitForStartDialog(page);
+
+    const leaderboardBox = await getBox(page.locator(".metaDashboardSection--leaderboard"));
+    const actionsBox = await getBox(page.locator(".metaDashboardActions"));
+    const firstRowBox = await getBox(page.locator(".metaStartLeaderboardRow").first());
+
+    const gapToActions = actionsBox.y - (leaderboardBox.y + leaderboardBox.height);
+
+    expect(gapToActions).toBeLessThanOrEqual(20);
+    expect(firstRowBox.height).toBeLessThanOrEqual(72);
   });
 }

@@ -105,6 +105,10 @@ for (const gameCase of GAME_CASES) {
     expect(summaryBox.y).toBeGreaterThanOrEqual(logoBox.y + logoBox.height - 1);
     expect(leaderboardBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height - 1);
     expect(actionsBox.y).toBeGreaterThanOrEqual(leaderboardBox.y + leaderboardBox.height - 1);
+
+    await expect(page.locator(".metaCard--dashboard-results .metaProfileHint")).toBeHidden();
+    await expect(page.locator(".metaCard--dashboard-results .metaStatusLabel")).toBeHidden();
+    await expect(page.locator(".metaCard--dashboard-results .metaDashboardSettingsLabel")).toBeHidden();
   });
 
   test(`${gameCase.name} uses the shared split results dialog on low portrait`, async ({ page }) => {

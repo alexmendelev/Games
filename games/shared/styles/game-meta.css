@@ -3658,6 +3658,33 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
 .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileHint,
 .metaCard--dashboard-results .metaStatusLabel,
 .metaCard--dashboard-results .metaDashboardSettingsLabel {
+  display: none;
+}
+
+.metaCard--dashboard-start .metaProfileButtonText,
+.metaCard--dashboard-start .metaStatusValueWrap,
+.metaCard--dashboard-results .metaProfileButtonText,
+.metaCard--dashboard-results .metaStatusValueWrap {
+  gap: 0;
+}
+
+.metaCard--dashboard-start .metaStatusValueWrap,
+.metaCard--dashboard-results .metaStatusValueWrap {
+  justify-content: center;
+  align-items: center;
+}
+
+.metaCard--dashboard-start .metaDashboardSettingsCard,
+.metaCard--dashboard-results .metaDashboardSettingsCard {
+  gap: 0;
+}
+
+.metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileHint,
+.metaCard--dashboard-start .metaStatusLabel,
+.metaCard--dashboard-start .metaDashboardSettingsLabel,
+.metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileHint,
+.metaCard--dashboard-results .metaStatusLabel,
+.metaCard--dashboard-results .metaDashboardSettingsLabel {
   font-size: clamp(12px, 1.3vw, 16px);
   line-height: 1.15;
 }
@@ -3700,16 +3727,18 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
 .metaCard--dashboard-start .metaStartLeaderboardList {
   flex: 1 1 auto;
   min-height: 0;
-  height: 100%;
+  height: auto;
   display: grid;
-  grid-template-rows: repeat(5, minmax(0, 1fr));
+  align-content: start;
+  grid-template-rows: repeat(5, minmax(calc(44px * var(--ui, 1)), max-content));
+  grid-auto-rows: max-content;
   gap: calc(8px * var(--ui, 1));
 }
 
 .metaCard--dashboard-start .metaStartLeaderboardRow {
   display: grid;
   align-items: center;
-  min-height: 0;
+  min-height: calc(44px * var(--ui, 1));
   direction: ltr;
   border-radius: calc(18px * var(--ui, 1));
   overflow: hidden;
@@ -3837,6 +3866,13 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
 .metaCard--dashboard-start .metaResultsContinueButton,
 .metaCard--dashboard-results .metaResultsContinueButton {
   font-size: clamp(19px, 2.1vw, 30px);
+}
+
+@media (orientation: portrait) {
+  .metaCard--dashboard-start .metaDashboardSection--leaderboard {
+    max-height: none;
+    align-self: stretch;
+  }
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardBoard,
