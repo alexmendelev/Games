@@ -5,7 +5,8 @@ const GAME_CASES = [
   { name: "multiply", path: "/multiply/" },
   { name: "words", path: "/words/" },
   { name: "shapes", path: "/shapes/" },
-  { name: "clocks", path: "/clocks/" }
+  { name: "clocks", path: "/clocks/" },
+  { name: "equations", path: "/equations/" }
 ];
 
 async function startFirstLevel(page) {

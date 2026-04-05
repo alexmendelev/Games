@@ -61,6 +61,9 @@ window.GAMES_V2_SHELL = (function (utils) {
     if (gameKey === "shapes") {
       return Math.max(1, Math.floor(profile.completionBonus / 2));
     }
+    if (gameKey === "equations") {
+      return Math.max(2, Math.ceil(profile.completionBonus * 1.5));
+    }
     return profile.completionBonus;
   }
 

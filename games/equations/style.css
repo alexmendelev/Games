@@ -1,0 +1,23 @@
+.tile.tile--equation {
+  width: calc(330px * var(--ui, 1));
+  height: calc(98px * var(--ui, 1));
+  padding: 0 calc(24px * var(--ui, 1));
+  font-size: calc(30px * var(--ui, 1));
+  line-height: 1.05;
+  text-align: center;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .tile.tile--equation {
+    font-size: calc(27px * var(--ui, 1));
+  }
+}
+
+@media (max-width: 640px) {
+  .tile.tile--equation {
+    font-size: calc(24px * var(--ui, 1));
+    padding: 0 calc(18px * var(--ui, 1));
+  }
+}

@@ -24,7 +24,7 @@ Browser testing:
 
 Shared layout system:
 - `shared/scripts/layout.js` is the single gameplay layout engine. It computes orientation, frame gaps, game/panel sizing, HUD height, controls height, answer-grid sizing, mascot safe zone, fall lane padding, and shared overlay sizing from viewport + config.
-- `shared/scripts/game-shell.js` applies that computed layout to the DOM and is the shared integration point used by all five games.
+- `shared/scripts/game-shell.js` applies that computed layout to the DOM and is the shared integration point used by all six games.
 - Each game now passes only a small `config.layout.answers` object:
   `type`, `count`, `activeCount`, `min/max button size`, `aspectRatio`, and optional `itemClass` or `content`.
 - To add a new answer layout type, add a preset in `shared/scripts/layout.js` under `ANSWER_PRESETS`, then add any content-only styling in `shared/styles/answers.css` or a game-specific stylesheet.
