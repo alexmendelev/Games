@@ -21,3 +21,12 @@ Browser testing:
 - Install the browser binaries with `npm run test:e2e:install`.
 - Run the smoke tests with `npm run test:e2e`.
 - Use `npm run test:e2e:headed` if you want to watch the browser while tests run.
+
+Shared layout system:
+- `shared/scripts/layout.js` is the single gameplay layout engine. It computes orientation, frame gaps, game/panel sizing, HUD height, controls height, answer-grid sizing, mascot safe zone, fall lane padding, and shared overlay sizing from viewport + config.
+- `shared/scripts/game-shell.js` applies that computed layout to the DOM and is the shared integration point used by all six games.
+- Each game now passes only a small `config.layout.answers` object:
+  `type`, `count`, `activeCount`, `min/max button size`, `aspectRatio`, and optional `itemClass` or `content`.
+- To add a new answer layout type, add a preset in `shared/scripts/layout.js` under `ANSWER_PRESETS`, then add any content-only styling in `shared/styles/answers.css` or a game-specific stylesheet.
+- To add a new game, give it the standard shell DOM structure, include `shared/scripts/layout.js`, pass `layout: cfg.layout` into `createFallingShell(...)`, and let the shell create the answer buttons with `shell.getAnswerButtons()`.
+- The leaderboard/results modal remains shared in `shared/scripts/game-meta.js`; the layout engine now also feeds its max width, max height, spacing, row sizing, and action stacking through shared CSS variables in `shared/styles/game-meta.css`.

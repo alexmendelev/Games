@@ -222,7 +222,6 @@
       }
 
       event.preventDefault();
-      await requestFullscreenForApp();
       openEmbeddedGame(card.getAttribute("href"));
     });
   }

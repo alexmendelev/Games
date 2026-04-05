@@ -3,6 +3,17 @@ window.GAME_V2_WORDS_CONFIG = {
   waterYRatio: 0.82,
   splashYOffset: 120,
   answerLockMs: 120,
+  layout: {
+    answers: {
+      type: "FourLargeCards",
+      content: "image",
+      count: 4,
+      activeCount: 4,
+      minButtonSize: 96,
+      maxButtonSize: 210,
+      aspectRatio: 1
+    }
+  },
   assets: {
     splashSheet: { url: "../shared/assets/fx/splash_sheet.png", sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.75 },
     burstSheet: { url: "../shared/assets/fx/burst_sheet.png", sheetW: 1024, sheetH: 1024, cols: 4, rows: 4, frames: 16, fps: 30, scale: 0.65 },

@@ -7,7 +7,7 @@
   const fxApi = window.GAMES_V2_FX;
   const metaApi = window.GAMES_V2_META;
   const sessionApi = window.GAMES_V2_SESSION;
-  const cfg = window.GAME_V3_MULTIPLY_CONFIG;
+  const cfg = window.GAME_V3_EQUATIONS_CONFIG;
 
   const gameEl = document.getElementById("game");
   const wrapEl = document.querySelector(".wrap");
@@ -64,7 +64,7 @@
     onExitRequested: () => shell.exitGame(),
     audio,
     fx,
-    gameKey: "multiply"
+    gameKey: "equations"
   });
   const initialSnapshot = meta.getSnapshot();
   const gameplayRules = {
@@ -92,13 +92,14 @@
   const session = sessionApi.createArcadeSession({
     getLevelRules: () => {
       const goals = cfg.gameplay.levelGoals || {};
-      return goals[selected] || goals.upTo5 || { correctTarget: 10, timeLimitMs: 60000 };
+      return goals[selected] || goals.easy || { correctTarget: 10, timeLimitMs: 75000 };
     },
     onStateChange: syncSessionUi
   });
   let running = false;
   let paused = false;
   let coins = initialSnapshot.player.coins;
+  let correctAnswers = 0;
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let prevCorrectIdx = -1;
@@ -109,6 +110,12 @@
   let levelPausePending = false;
   let coinAwardPending = false;
   session.loadCheckpoint(initialSnapshot, selected);
+
+  function resolveHudDiffKey(diffKey) {
+    const metaDiff = meta && typeof meta.getSelectedDiff === "function" ? meta.getSelectedDiff() : "";
+    const sessionDiff = session && typeof session.getState === "function" ? session.getState().diffKey : "";
+    return String(diffKey || metaDiff || sessionDiff || "medium");
+  }
 
   function waitForNextFrame() {
     return new Promise((resolve) => {
@@ -187,24 +194,45 @@
     return session.getState().levelNumber;
   }
 
+  function currentPreset() {
+    return cfg.presets[selected] || cfg.presets.easy;
+  }
+
+  function currentStageIndex() {
+    const startStage = currentPreset().startStage || 0;
+    const stageLevelStep = Math.max(1, Number(cfg.gameplay.stageLevelStep) || 2);
+    const levelStage = Math.floor(Math.max(0, level() - 1) / stageLevelStep);
+    const correctStage = Math.floor(Math.max(0, correctAnswers) / Math.max(1, levelProgressTarget));
+    return Math.min(cfg.progression.length - 1, startStage + levelStage + correctStage);
+  }
+
+  function currentStage() {
+    return cfg.progression[currentStageIndex()] || cfg.progression[0];
+  }
+
+  function negativesAllowed() {
+    return selected === "super";
+  }
+
   function speedPxPerSec() {
     const base = cfg.gameplay.baseSpeed + (level() - 1) * cfg.gameplay.speedIncPerLevel;
     const rect = shell.rect();
     const heightMul = Math.max(0.72, Math.min(1.15, rect.height / 650));
-    return base * cfg.diffs[selected].speedMul * heightMul;
+    return base * currentPreset().speedMul * heightMul;
   }
 
   function setHUD() {
     coinEl.textContent = String(coins);
     const languageId = document.documentElement.lang === "en" ? "en" : "he";
     if (metaApi && typeof metaApi.applyHudDifficulty === "function") {
-      metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, selected, languageId);
+      metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, resolveHudDiffKey(selected), languageId);
     }
   }
 
   function syncSessionUi(state) {
     selected = state.diffKey || selected;
     coins = state.coins;
+    correctAnswers = state.correctCount;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
     setHUD();
@@ -294,7 +322,7 @@
 
   function rollSpecialTablet() {
     return shellApi.rollSpecialTablet(gameplayRules, selected, {
-      gameKey: "multiply"
+      gameKey: "equations"
     });
   }
 
@@ -420,32 +448,158 @@
   }
 
   function makeTask() {
-    const diff = cfg.diffs[selected];
+    const stage = currentStage();
+    const op = utils.choice(stage.ops);
+
     let a;
     let b;
-    a = utils.randInt(diff.minFactor, diff.maxFactor);
-    b = utils.randInt(diff.minFactor, diff.maxFactor);
-    const answer = a * b;
-    const text = `${a}×${b}`;
+    let answer;
+    let text;
+
+    if (op === "+") {
+      const addRange = stage.addRange || [0, 10];
+      a = utils.randInt(addRange[0], addRange[1]);
+      b = utils.randInt(addRange[0], addRange[1]);
+      answer = a + b;
+      text = `${a}+${b}`;
+    } else if (op === "-") {
+      const subRange = stage.subRange || [0, 10];
+      a = utils.randInt(subRange[0], subRange[1]);
+      b = utils.randInt(subRange[0], subRange[1]);
+      if ((!stage.allowNegResult || !negativesAllowed()) && b > a) {
+        [a, b] = [b, a];
+      }
+      answer = a - b;
+      text = `${a}-${b}`;
+    } else if (op === "*") {
+      const mulRange = stage.mulRange || [1, 10];
+      a = utils.randInt(mulRange[0], mulRange[1]);
+      b = utils.randInt(mulRange[0], mulRange[1]);
+      answer = a * b;
+      text = `${a}×${b}`;
+    } else {
+      const divDivisorRange = stage.divDivisorRange || [1, 10];
+      const divAnswerRange = stage.divAnswerRange || [1, 10];
+      b = utils.randInt(divDivisorRange[0], divDivisorRange[1]);
+      answer = utils.randInt(divAnswerRange[0], divAnswerRange[1]);
+      a = answer * b;
+      text = `${a}÷${b}`;
+    }
 
     return { answer, text };
   }
 
+  function formatEquationValue(value) {
+    return value < 0 ? `\u2212${Math.abs(value)}` : String(value);
+  }
+
+  function formatEquation(op, missingSlot, left, right, result) {
+    const operator = op === "*" ? "\u00d7" : (op === "/" ? "\u00f7" : op);
+    const displayLeft = missingSlot === "left" ? "?" : formatEquationValue(left);
+    const displayRight = missingSlot === "right" ? "?" : formatEquationValue(right);
+    const displayResult = missingSlot === "result" ? "?" : formatEquationValue(result);
+    return `${displayLeft} ${operator} ${displayRight} = ${displayResult}`;
+  }
+
+  function chooseMissingSlot(stage) {
+    const missingSlots = Array.isArray(stage.missingSlots) && stage.missingSlots.length
+      ? stage.missingSlots
+      : ["left", "right", "result"];
+    return utils.choice(missingSlots);
+  }
+
+  function withinVisibleLimit(values, maxVisibleNumber) {
+    if (!Number.isFinite(maxVisibleNumber) || maxVisibleNumber <= 0) {
+      return true;
+    }
+    return values.every((value) => Math.abs(Number(value) || 0) <= maxVisibleNumber);
+  }
+
+  function buildEquationTask() {
+    const preset = currentPreset();
+    const maxVisibleNumber = Number(preset.maxVisibleNumber);
+
+    for (let attempt = 0; attempt < 160; attempt += 1) {
+      const stage = currentStage();
+      const op = utils.choice(stage.ops);
+      const missingSlot = chooseMissingSlot(stage);
+
+      let left;
+      let right;
+      let result;
+
+      if (op === "+") {
+        const addRange = stage.addRange || [0, 10];
+        left = utils.randInt(addRange[0], addRange[1]);
+        right = utils.randInt(addRange[0], addRange[1]);
+        result = left + right;
+      } else if (op === "-") {
+        const subRange = stage.subRange || [0, 10];
+        left = utils.randInt(subRange[0], subRange[1]);
+        right = utils.randInt(subRange[0], subRange[1]);
+        if ((!stage.allowNegativeAnswer || !negativesAllowed()) && right > left) {
+          [left, right] = [right, left];
+        }
+        result = left - right;
+      } else if (op === "*") {
+        const mulRange = stage.mulRange || [1, 10];
+        left = utils.randInt(mulRange[0], mulRange[1]);
+        right = utils.randInt(mulRange[0], mulRange[1]);
+        result = left * right;
+      } else {
+        const divDivisorRange = stage.divDivisorRange || [1, 10];
+        const divAnswerRange = stage.divAnswerRange || [1, 10];
+        right = utils.randInt(divDivisorRange[0], divDivisorRange[1]);
+        result = utils.randInt(divAnswerRange[0], divAnswerRange[1]);
+        left = result * right;
+      }
+
+      const answer = missingSlot === "left"
+        ? left
+        : (missingSlot === "right" ? right : result);
+
+      if (!withinVisibleLimit([left, right, result, answer], maxVisibleNumber)) {
+        continue;
+      }
+
+      return {
+        answer,
+        text: formatEquation(op, missingSlot, left, right, result)
+      };
+    }
+
+    const fallbackLeft = utils.randInt(0, Number.isFinite(maxVisibleNumber) && maxVisibleNumber > 0 ? maxVisibleNumber : 10);
+    const fallbackRight = utils.randInt(0, Math.max(0, (Number.isFinite(maxVisibleNumber) && maxVisibleNumber > 0 ? maxVisibleNumber : 10) - fallbackLeft));
+    const fallbackResult = fallbackLeft + fallbackRight;
+    const fallbackMissingSlot = utils.choice(["left", "right", "result"]);
+    const fallbackAnswer = fallbackMissingSlot === "left"
+      ? fallbackLeft
+      : (fallbackMissingSlot === "right" ? fallbackRight : fallbackResult);
+
+    return {
+      answer: fallbackAnswer,
+      text: formatEquation("+", fallbackMissingSlot, fallbackLeft, fallbackRight, fallbackResult)
+    };
+  }
+
   function uniqueWrongs(correct) {
-    const diff = cfg.diffs[selected];
+    const stage = currentStage();
     const set = new Set([correct]);
+    const blockNegativeOptions = stage.noNegOptions || !negativesAllowed();
 
     function ok(value) {
-      return !(diff.noNegOptions && value < 0);
+      return !(blockNegativeOptions && value < 0);
     }
 
     let guard = 0;
     while (set.size < 4 && guard < 200) {
       guard += 1;
-      const delta = utils.randInt(-diff.wrongNear, diff.wrongNear) || 1;
+      const near = Math.max(2, stage.wrongNear || 6);
+      const far = Math.max(near + 2, stage.wrongFar || 12);
+      const delta = utils.randInt(-near, near) || 1;
       let wrong = correct + delta;
       if (Math.random() < 0.25) {
-        wrong = correct + utils.randInt(-diff.wrongFar, diff.wrongFar);
+        wrong = correct + utils.randInt(-far, far);
       }
       if (!ok(wrong)) {
         continue;
@@ -477,7 +631,7 @@
   function createTask() {
     const ui = shell.getUi();
     const tabletReward = rollSpecialTablet();
-    return Object.assign(makeTask(), {
+    return Object.assign(buildEquationTask(), {
       width: cfg.gameplay.tileWBase * ui,
       height: cfg.gameplay.tileHBase * ui,
       x: randomTileX(),
@@ -599,7 +753,7 @@
   }
 
   async function start(diffKey) {
-    selected = diffKey;
+    selected = resolveHudDiffKey(diffKey);
     await ensureAssetsReady();
     meta.hideOverlay();
     shell.refreshLayout();
@@ -608,6 +762,7 @@
     levelPausePending = false;
     coinAwardPending = false;
     pauseBtn.classList.remove("paused");
+    setHUD();
     syncCheckpointState();
     session.beginLevel();
     prevCorrectIdx = -1;
@@ -619,7 +774,7 @@
 
   async function handleStartRequested(payload) {
     audio.ensureAudio();
-    return start(payload.diffKey || selected);
+    return start((payload && payload.diffKey) || resolveHudDiffKey(selected));
   }
 
   function togglePause() {

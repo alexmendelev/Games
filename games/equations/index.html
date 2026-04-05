@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8">
@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Words - Games</title>
+  <title>Equations - Games</title>
   <link rel="preload" href="../shared/assets/ui/background.png" as="image">
   <link rel="preload" href="../shared/assets/ui/rock.png" as="image">
   <link rel="preload" href="../shared/assets/ui/tablet.png" as="image">
@@ -17,6 +17,7 @@
   <link rel="preload" href="../shared/assets/ui/exit.png" as="image">
   <link rel="preload" href="../shared/assets/ui/coin.svg" as="image">
   <link rel="preload" href="../shared/assets/ui/star.svg" as="image">
+  <link rel="preload" href="../shared/assets/ui/equation.png" as="image">
   <link rel="preload" href="../shared/assets/mascot/kittydance.png" as="image">
   <link rel="preload" href="../shared/assets/mascot/kittysad.png" as="image">
   <link rel="preload" href="../shared/assets/audio/splash.mp3" as="audio" type="audio/mpeg">
@@ -25,13 +26,13 @@
   <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260404layout32">
   <link rel="stylesheet" href="../shared/styles/answers.css?v=20260403layout1">
   <link rel="stylesheet" href="../shared/styles/game-meta.css?v=20260405meta82">
-  <link rel="stylesheet" href="../shared/styles/falling-words.css?v=20260330layout2">
+  <link rel="stylesheet" href="style.css?v=20260405equations2">
 </head>
 <body>
   <div class="wrap">
     <div id="game" class="game">
       <div id="mascot" class="mascot" aria-hidden="true"></div>
-      <div id="tile" class="tile">&#1495;&#1514;&#1493;&#1500;</div>
+      <div id="tile" class="tile tile--equation">? + 1 = 4</div>
 
       <div id="overlay" class="overlay">
         <div class="card">
@@ -85,15 +86,14 @@
     </div>
   </div>
 
-  <script src="../shared/scripts/utils.js?v=20260314l"></script>
+  <script src="../shared/scripts/utils.js?v=20260314p"></script>
   <script src="../shared/scripts/layout.js?v=20260405layout6"></script>
   <script src="../shared/scripts/audio.js?v=20260320audio3"></script>
   <script src="../shared/scripts/fx.js?v=20260404fx1"></script>
   <script src="../shared/scripts/game-shell.js?v=20260404runner8"></script>
   <script src="../shared/scripts/game-meta.js?v=20260405meta48"></script>
   <script src="../shared/scripts/game-session.js?v=20260403level2"></script>
-  <script src="config.js?v=20260322mascot1"></script>
-  <script src="data/emoji-easy-oneword-he.js?v=20260317a"></script>
-  <script src="game.js?v=20260403balance5"></script>
+  <script src="config.js?v=20260405equations1"></script>
+  <script src="game.js?v=20260405equations1"></script>
 </body>
 </html>

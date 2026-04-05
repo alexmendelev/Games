@@ -24,9 +24,6 @@
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  height: 100%;
-  min-height: 0;
-  padding: calc(4px * var(--ui, 1));
 }
 
 .clockOption {
@@ -73,76 +70,9 @@
   fill: #0f172a;
 }
 
-@media (orientation: portrait), (max-aspect-ratio: 11/10) {
+@media (max-width: 640px) {
   .clockPrompt {
-    min-width: calc(188px * var(--ui, 1));
-    font-size: calc(52px * var(--ui, 1));
-  }
-
-}
-
-@media (max-width: 920px) and (min-aspect-ratio: 9/10) and (max-aspect-ratio: 11/10) {
-  #answers.answers {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    grid-template-rows: 1fr !important;
-    grid-auto-rows: 1fr !important;
-    gap: calc(4px * var(--ui, 1));
-  }
-
-}
-
-@media (max-height: 560px) and (min-aspect-ratio: 6/5) {
-  #answers.answers {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    grid-template-rows: 1fr !important;
-    grid-auto-rows: 1fr !important;
-    gap: calc(4px * var(--ui, 1));
-  }
-
-  .clockAns {
-    min-height: calc(70px * var(--ui, 1));
-    padding: calc(4px * var(--ui, 1));
-  }
-
-  .clockOption {
-    height: calc(100% - (6px * var(--ui, 1)));
-    max-height: calc(100% - (6px * var(--ui, 1)));
-    max-width: calc(100% - (8px * var(--ui, 1)));
-  }
-}
-
-@media (max-height: 880px) and (min-aspect-ratio: 1/1) {
-  .clockTile {
-    width: calc(292px * var(--ui, 1));
-    height: calc(102px * var(--ui, 1));
-  }
-
-  .clockPrompt {
-    font-size: calc(42px * var(--ui, 1));
-  }
-
-}
-
-@media (max-height: 760px) and (min-aspect-ratio: 1/1) {
-}
-
-@media ((orientation: portrait) and (min-height: 860px)), ((max-aspect-ratio: 11/10) and (min-height: 860px)) {
-}
-
-@media ((orientation: portrait) and (max-width: 640px)), ((max-aspect-ratio: 11/10) and (max-width: 820px)) {
-  #answers.answers {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(calc(84px * var(--ui, 1)), 1fr));
-    gap: calc(4px * var(--ui, 1));
-  }
-
-  .clockAns {
-    padding: calc(4px * var(--ui, 1)) calc(8px * var(--ui, 1));
-  }
-
-  .clockOption {
-    height: calc(100% - (6px * var(--ui, 1)));
-    max-height: calc(100% - (6px * var(--ui, 1)));
-    max-width: calc(100% - (12px * var(--ui, 1)));
+    min-width: calc(160px * var(--ui, 1));
+    font-size: calc(40px * var(--ui, 1));
   }
 }

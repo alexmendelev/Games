@@ -3,6 +3,17 @@ window.GAME_V3_CLOCKS_CONFIG = {
   waterYRatio: 0.9,
   splashYOffset: 120,
   answerLockMs: 160,
+  layout: {
+    answers: {
+      type: "FourLargeCards",
+      itemClass: "clockAns",
+      count: 4,
+      activeCount: 4,
+      minButtonSize: 94,
+      maxButtonSize: 210,
+      aspectRatio: 1
+    }
+  },
   assets: {
     splashSheet: {
       url: "../shared/assets/fx/splash_sheet.png",

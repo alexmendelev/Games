@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720" role="img" aria-labelledby="title desc">
+  <title id="title">Equations</title>
+  <desc id="desc">A game icon showing tablets with missing-value equations.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11233c"/>
+      <stop offset="1" stop-color="#1f4b7f"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6d49a"/>
+      <stop offset="1" stop-color="#b88643"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#081221" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <rect width="720" height="720" rx="72" fill="url(#bg)"/>
+  <circle cx="132" cy="124" r="78" fill="#f6c453" opacity="0.14"/>
+  <circle cx="610" cy="574" r="118" fill="#fff3bf" opacity="0.12"/>
+  <g filter="url(#shadow)">
+    <g transform="translate(92 112) rotate(-7 186 140)">
+      <rect x="0" y="0" width="372" height="280" rx="34" fill="url(#stone)" stroke="#8c5b20" stroke-width="10"/>
+      <rect x="18" y="18" width="336" height="244" rx="24" fill="#f8e2bf" opacity="0.58"/>
+      <text x="186" y="118" text-anchor="middle" font-family="Trebuchet MS, Arial Rounded MT Bold, Arial, sans-serif" font-size="58" font-weight="700" fill="#2e1f0f">? + 1 = 4</text>
+      <text x="186" y="196" text-anchor="middle" font-family="Trebuchet MS, Arial Rounded MT Bold, Arial, sans-serif" font-size="52" font-weight="700" fill="#5d431f">4 x ? = 20</text>
+    </g>
+    <g transform="translate(318 336) rotate(6 154 126)">
+      <rect x="0" y="0" width="308" height="252" rx="32" fill="url(#stone)" stroke="#8c5b20" stroke-width="10"/>
+      <rect x="18" y="18" width="272" height="216" rx="22" fill="#f8e2bf" opacity="0.58"/>
+      <text x="154" y="110" text-anchor="middle" font-family="Trebuchet MS, Arial Rounded MT Bold, Arial, sans-serif" font-size="54" font-weight="700" fill="#2e1f0f">30 - 43 = ?</text>
+      <text x="154" y="176" text-anchor="middle" font-family="Trebuchet MS, Arial Rounded MT Bold, Arial, sans-serif" font-size="40" font-weight="700" fill="#6a4b1e">Find the missing number</text>
+    </g>
+  </g>
+</svg>

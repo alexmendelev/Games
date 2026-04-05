@@ -37,6 +37,7 @@ window.GAMES_V2_META = (function (utils) {
     en: { id: "en", dir: "ltr", label: "English", flag: "🇬🇧" }
   };
   const GAME_BADGES = {
+    equations: { icon: "?", menuIcon: "../shared/assets/ui/equation.png", labelHe: "משוואות", labelEn: "Equations" },
     clocks: { icon: "🕒", menuIcon: "../shared/assets/ui/clocks.png", labelHe: "שעונים", labelEn: "Clocks" },
     math: { icon: "➕", menuIcon: "../shared/assets/ui/numbers.png", labelHe: "חשבון", labelEn: "Math" },
     multiply: { icon: "✖️", menuIcon: "../shared/assets/ui/multiply.png", labelHe: "כפל", labelEn: "Multiply" },
@@ -44,7 +45,7 @@ window.GAMES_V2_META = (function (utils) {
     words: { icon: "🔤", menuIcon: "../shared/assets/ui/words.png", labelHe: "מילים", labelEn: "Words" }
   };
   const GAME_KEYS = Object.keys(GAME_BADGES);
-  const MAX_VISIBLE_RESULT_ROWS = 4;
+  const MAX_VISIBLE_RESULT_ROWS = 5;
   const COPY = {
     he: {
       startTitle: "השלב הבא מחכה לך",
@@ -80,6 +81,7 @@ window.GAMES_V2_META = (function (utils) {
       accuracy: "דיוק",
       bestStreak: "רצף שיא",
       coinsEarned: "מטבעות שנצברו",
+      levelPassed: "שלב שהושלם",
       time: "זמן",
       targetReached: "היעד הושלם",
       timeUp: "הזמן נגמר",
@@ -137,6 +139,7 @@ window.GAMES_V2_META = (function (utils) {
       accuracy: "Accuracy",
       bestStreak: "Best streak",
       coinsEarned: "Coins earned",
+      levelPassed: "Level passed",
       time: "Time",
       targetReached: "Goal reached",
       timeUp: "Time up",
@@ -191,13 +194,21 @@ window.GAMES_V2_META = (function (utils) {
     return normalized === "" || normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
   }
 
+  function getSearchParams() {
+    try {
+      return new window.URLSearchParams((window.location && window.location.search) || "");
+    } catch (_) {
+      return null;
+    }
+  }
+
   function isTestModeEnabled() {
     try {
-      const params = new window.URLSearchParams((window.location && window.location.search) || "");
-      if (params.has("testMode")) {
+      const params = getSearchParams();
+      if (params && params.has("testMode")) {
         return isTruthyFlag(params.get("testMode"));
       }
-      if (params.has("test")) {
+      if (params && params.has("test")) {
         return isTruthyFlag(params.get("test"));
       }
     } catch (_) {}
@@ -210,6 +221,36 @@ window.GAMES_V2_META = (function (utils) {
       }
     } catch (_) {}
     return false;
+  }
+
+  function getDashboardLayoutOverride() {
+    const params = getSearchParams();
+    if (!params) {
+      return "portrait";
+    }
+    const layoutValue = String(params.get("dashboardLayout") || "").trim().toLowerCase();
+    if (layoutValue === "portrait") {
+      return "portrait";
+    }
+    if (layoutValue === "auto" || layoutValue === "default") {
+      return "";
+    }
+    if (params.has("dashboardPortrait")) {
+      return isTruthyFlag(params.get("dashboardPortrait")) ? "portrait" : "";
+    }
+    return "portrait";
+  }
+
+  function getForcedDashboardAspectBand(layoutOverride) {
+    if (layoutOverride !== "portrait") {
+      return "";
+    }
+    const width = Math.max(0, Number(window && window.innerWidth) || 0);
+    const height = Math.max(0, Number(window && window.innerHeight) || 0);
+    const longSide = Math.max(width, height);
+    const shortSide = Math.min(width, height);
+    const portraitAspectRatio = longSide > 0 ? (shortSide / longSide) : 1;
+    return portraitAspectRatio >= 0.84 ? "portrait-wide" : "portrait-narrow";
   }
 
   function getCopy(languageId) {
@@ -993,29 +1034,182 @@ window.GAMES_V2_META = (function (utils) {
     "</span>";
   }
 
-  function buildStatusPills(snapshot, languageId) {
+  function buildStatusPills(snapshot, languageId, resultContext) {
     const copy = getCopy(languageId);
-    const items = [];
-    if (snapshot.player.coins > 0) {
-      items.unshift(
-        "<div class=\"metaStatusChip\">" +
-          iconMarkup("../shared/assets/ui/coin.svg", copy.coins, "metaStatusIcon") +
-          "<div class=\"metaStatusValueWrap\"><span class=\"metaStatusLabel\">" + escapeHtml(copy.coins) + "</span><strong class=\"metaStatusValue\">" + escapeHtml(snapshot.player.coins) + "</strong></div>" +
-        "</div>"
-      );
-    }
-    if (snapshot.bestLevel > 0) {
-      items.push(
-        "<div class=\"metaStatusChip\">" +
-        iconMarkup("../shared/assets/ui/star.svg", copy.bestLevel, "metaStatusIcon") +
-        "<div class=\"metaStatusValueWrap\"><span class=\"metaStatusLabel\">" + escapeHtml(copy.bestLevel) + "</span><strong class=\"metaStatusValue\">" + escapeHtml(snapshot.bestLevel) + "</strong></div>" +
-        "</div>"
-      );
-    }
+    const metrics = resultContext && resultContext.metrics ? resultContext.metrics : null;
+    const coinsLabel = metrics ? copy.coinsEarned : copy.coins;
+    const coinsValue = metrics
+      ? "+" + Math.max(0, Number(metrics.coinsEarned) || 0)
+      : snapshot.player.coins;
+    const levelLabel = metrics ? copy.levelPassed : copy.bestLevel;
+    const levelValue = Math.max(0, Number(snapshot.bestLevel) || 0);
+    const items = [
+      "<div class=\"metaStatusChip\">" +
+        iconMarkup("../shared/assets/ui/coin.svg", coinsLabel, "metaStatusIcon") +
+        "<div class=\"metaStatusValueWrap\"><span class=\"metaStatusLabel\">" + escapeHtml(coinsLabel) + "</span><strong class=\"metaStatusValue\">" + escapeHtml(coinsValue) + "</strong></div>" +
+      "</div>",
+      "<div class=\"metaStatusChip\">" +
+        iconMarkup("../shared/assets/ui/star.svg", levelLabel, "metaStatusIcon") +
+        "<div class=\"metaStatusValueWrap\"><span class=\"metaStatusLabel\">" + escapeHtml(levelLabel) + "</span><strong class=\"metaStatusValue\">" + escapeHtml(levelValue) + "</strong></div>" +
+      "</div>"
+    ];
     return {
       count: items.length,
       markup: items.join("")
     };
+  }
+
+  function buildLeaderboardSectionMarkup(rows, languageId, copy, expandedRows, pinnedId) {
+    const listDirClass = getLanguage(languageId).dir === "rtl" ? " is-rtl" : " is-ltr";
+    const rowDirClass = getLanguage(languageId).dir === "rtl" ? " is-rtl" : " is-ltr";
+    const showAllRows = expandedRows === "all";
+    const visibleRows = showAllRows
+      ? { rows: Array.isArray(rows) ? rows.slice() : [] }
+      : getVisibleResultRows(rows, expandedRows, pinnedId);
+    const canToggleRows = !showAllRows && Array.isArray(rows) && rows.length > visibleRows.rows.length;
+    const rowsMarkup = visibleRows.rows.map((participant) => {
+      const avatar = getAvatar(participant.avatar);
+      const isCurrent = participant.id === pinnedId;
+      return "<div class=\"metaLeaderboardRow" + rowDirClass + (isCurrent ? " is-current" : "") + "\" data-participant-id=\"" + escapeHtml(participant.id) + "\" data-after-rank=\"" + escapeHtml(participant.rank) + "\">" +
+        "<div class=\"metaLeaderboardRank\">#" + escapeHtml(participant.rank) + "</div>" +
+        "<div class=\"metaLeaderboardAvatarCell\">" + avatarTokenMarkup(avatar.id, languageId, "metaLeaderboardAvatar") + "</div>" +
+        "<div class=\"metaLeaderboardNameCell\"><strong class=\"metaLeaderboardName\">" + escapeHtml(participant.name) + "</strong></div>" +
+        "<div class=\"metaLeaderboardCoins\"><strong>" + escapeHtml(participant.coins) + "</strong></div>" +
+        "<div class=\"metaLeaderboardCoinIcon\">" + iconMarkup("../shared/assets/ui/coin.svg", copy.coins, "metaInlineIcon") + "</div>" +
+      "</div>";
+    }).join("");
+    return {
+      markup: "<section class=\"metaDashboardSection metaDashboardSection--leaderboard\" aria-label=\"" + escapeHtml(copy.leaderboard) + "\">" +
+        "<div class=\"metaLeaderboardList" + listDirClass + "\" data-row-count=\"" + escapeHtml(visibleRows.rows.length) + "\">" + rowsMarkup + "</div>" +
+        (canToggleRows
+          ? "<button class=\"metaGhostButton metaLeaderboardMoreButton\" type=\"button\" data-action=\"toggle-results-rows\">" + escapeHtml(expandedRows ? copy.showLess : copy.showMore) + "</button>"
+          : "") +
+      "</section>",
+      visibleCount: visibleRows.rows.length
+    };
+  }
+
+  function getStartLeaderboardRows(rows, pinnedId, currentPlayer) {
+    const rankedRows = Array.isArray(rows) ? rows.slice() : [];
+    if (pinnedId && currentPlayer && !rankedRows.some((participant) => participant && participant.id === pinnedId)) {
+      rankedRows.push({
+        id: pinnedId,
+        name: String(currentPlayer.name || defaultPlayerName(currentPlayer.language || "he")),
+        avatar: currentPlayer.avatar || "lion",
+        coins: Math.max(0, Number(currentPlayer.coins) || 0),
+        rank: Math.max(1, Number(currentPlayer.currentRank) || (rankedRows.length + 1))
+      });
+      rankedRows.sort((left, right) => {
+        const leftRank = Math.max(0, Number(left && left.rank) || 0);
+        const rightRank = Math.max(0, Number(right && right.rank) || 0);
+        return leftRank - rightRank;
+      });
+    }
+    while (rankedRows.length < MAX_VISIBLE_RESULT_ROWS) {
+      const fallbackIndex = rankedRows.length + 1;
+      rankedRows.push({
+        id: "start-fallback-" + fallbackIndex,
+        name: "Player " + fallbackIndex,
+        avatar: AVATARS[fallbackIndex % AVATARS.length].id,
+        coins: 0,
+        rank: fallbackIndex
+      });
+    }
+    if (rankedRows.length <= MAX_VISIBLE_RESULT_ROWS) {
+      return rankedRows;
+    }
+    const cappedRows = rankedRows.slice(0, MAX_VISIBLE_RESULT_ROWS);
+    const pinnedIndex = rankedRows.findIndex((participant) => participant.id === pinnedId);
+    if (pinnedIndex === -1 || pinnedIndex < MAX_VISIBLE_RESULT_ROWS) {
+      return cappedRows;
+    }
+    cappedRows[MAX_VISIBLE_RESULT_ROWS - 1] = rankedRows[pinnedIndex];
+    return cappedRows;
+  }
+
+  function buildStartLeaderboardTableMarkup(rows, languageId, copy, pinnedId) {
+    const isRtl = getLanguage(languageId).dir === "rtl";
+    const rowsMarkup = (Array.isArray(rows) ? rows : []).map((participant) => {
+      const avatar = getAvatar(participant.avatar);
+      const isCurrent = participant.id === pinnedId;
+      const rankCell = "<div class=\"metaStartLeaderboardCell metaStartLeaderboardCell--rank\">#" + escapeHtml(participant.rank) + "</div>";
+      const avatarCell = "<div class=\"metaStartLeaderboardCell metaStartLeaderboardCell--avatar\">" + avatarTokenMarkup(avatar.id, languageId, "metaLeaderboardAvatar") + "</div>";
+      const nameCell = "<div class=\"metaStartLeaderboardCell metaStartLeaderboardCell--name\"><strong class=\"metaLeaderboardName\">" + escapeHtml(participant.name) + "</strong></div>";
+      const coinsCell = "<div class=\"metaStartLeaderboardCell metaStartLeaderboardCell--coins\"><strong>" + escapeHtml(participant.coins) + "</strong></div>";
+      const coinIconCell = "<div class=\"metaStartLeaderboardCell metaStartLeaderboardCell--coin-icon\">" + iconMarkup("../shared/assets/ui/coin.svg", copy.coins, "metaInlineIcon") + "</div>";
+      const cells = isRtl
+        ? [coinIconCell, coinsCell, nameCell, avatarCell, rankCell]
+        : [rankCell, avatarCell, nameCell, coinsCell, coinIconCell];
+      return "<div class=\"metaStartLeaderboardRow" + (isCurrent ? " is-current" : "") + (isRtl ? " is-rtl" : " is-ltr") + "\" data-participant-id=\"" + escapeHtml(participant.id) + "\">" +
+        cells.join("") +
+      "</div>";
+    }).join("");
+    return "<section class=\"metaDashboardSection metaDashboardSection--leaderboard\" aria-label=\"" + escapeHtml(copy.leaderboard) + "\">" +
+      "<div class=\"metaStartLeaderboardList" + (isRtl ? " is-rtl" : " is-ltr") + "\" dir=\"" + escapeHtml(isRtl ? "rtl" : "ltr") + "\">" +
+        rowsMarkup +
+      "</div>" +
+    "</section>";
+  }
+
+  function buildDashboardMarkup(state, selectedDiff, options) {
+    const safeOptions = options || {};
+    const languageId = state.player.language;
+    const copy = getCopy(languageId);
+    const language = getLanguage(languageId);
+    const snapshot = getStatusSnapshot(state, safeOptions.gameKey);
+    const playerName = String(state.player.name || "").replace(/\s+/g, " ").trim() || defaultPlayerName(languageId);
+    const difficultyText = diffLabel(selectedDiff, languageId);
+    const resultContext = safeOptions.resultContext || null;
+    const isResults = !!resultContext;
+    const statusPills = buildStatusPills(snapshot, languageId, resultContext);
+    const profileHint = difficultyText;
+    const primaryAction = isResults ? "continue-level" : "start-level";
+    const primaryLabel = isResults
+      ? copy.continueLevel(snapshot.nextLevel, difficultyText)
+      : copy.startLevel(snapshot.nextLevel, difficultyText);
+    const leaderboardSource = resultContext && Array.isArray(resultContext.afterRanks) && resultContext.afterRanks.length
+      ? resultContext.afterRanks
+      : snapshot.participants;
+    const leaderboardRows = isResults
+      ? leaderboardSource
+      : getStartLeaderboardRows(leaderboardSource, "me", snapshot.player);
+    const leaderboardSection = isResults
+      ? buildLeaderboardSectionMarkup(leaderboardRows, languageId, copy, "all", "me")
+      : { markup: buildStartLeaderboardTableMarkup(leaderboardRows, languageId, copy, "me") };
+    const previewButton = safeOptions.testMode && !isResults
+      ? "<button class=\"metaGhostButton metaDashboardPreviewButton\" type=\"button\" data-action=\"preview-results\">" + escapeHtml(copy.previewResults) + "</button>"
+      : "";
+    const cardClassName = isResults
+      ? "metaCard metaCard--results metaCard--dashboard metaCard--dashboard-results"
+      : "metaCard metaCard--dashboard metaCard--dashboard-start";
+
+    return "<div class=\"" + cardClassName + "\" dir=\"" + escapeHtml(language.dir) + "\">" +
+      "<div class=\"metaDashboardBoard\">" +
+        "<section class=\"metaDashboardPanel metaDashboardPanel--logo\">" +
+          buildGameBadgeMarkup(safeOptions.gameKey, languageId) +
+        "</section>" +
+        "<section class=\"metaDashboardPanel metaDashboardPanel--summary\">" +
+          "<button class=\"metaProfileButton metaProfileButton--dashboard metaDashboardIdentityCard\" type=\"button\" data-action=\"open-profile\">" +
+            avatarTokenMarkup(state.player.avatar, languageId, "metaHeroAvatar") +
+            "<span class=\"metaProfileButtonText\">" +
+              "<strong class=\"metaProfileName\">" + escapeHtml(playerName) + "</strong>" +
+              "<span class=\"metaProfileHint\">" + escapeHtml(profileHint) + "</span>" +
+            "</span>" +
+          "</button>" +
+          "<div class=\"metaStatusGrid metaStatusGrid--" + escapeHtml(statusPills.count) + "\">" + statusPills.markup + "</div>" +
+          "<button class=\"metaGhostButton metaDashboardSettingsCard\" type=\"button\" data-action=\"open-settings\" aria-label=\"" + escapeHtml(copy.settings) + "\" title=\"" + escapeHtml(copy.settings) + "\">" +
+            "<span class=\"metaDashboardToolIcon\" aria-hidden=\"true\">" + settingsIconMarkup() + "</span>" +
+            "<span class=\"metaDashboardSettingsLabel\">" + escapeHtml(copy.settings) + "</span>" +
+          "</button>" +
+          previewButton +
+        "</section>" +
+        leaderboardSection.markup +
+      "</div>" +
+      "<div class=\"metaResultsActions metaDashboardActions\">" +
+        "<button class=\"metaGhostButton metaResultsExitButton\" type=\"button\" data-action=\"exit-game\">" + escapeHtml(copy.exit) + "</button>" +
+        "<button class=\"metaPrimaryButton metaResultsContinueButton\" type=\"button\" data-action=\"" + primaryAction + "\">" + escapeHtml(primaryLabel) + "</button>" +
+      "</div>" +
+    "</div>";
   }
 
   function buildAvatarButtons(state, languageId, actionName, avatarOptions) {
@@ -1086,56 +1280,7 @@ window.GAMES_V2_META = (function (utils) {
   }
 
   function buildStartMarkup(state, selectedDiff, options) {
-    const languageId = state.player.language;
-    const copy = getCopy(languageId);
-    const language = getLanguage(languageId);
-    const snapshot = getStatusSnapshot(state, options.gameKey);
-    const statusPills = buildStatusPills(snapshot, languageId);
-    const difficultyText = diffLabel(selectedDiff, languageId);
-    const playerName = String(state.player.name || "").replace(/\s+/g, " ").trim() || defaultPlayerName(languageId);
-    const statusSection = statusPills.markup
-      ? "<div class=\"metaSection metaSection--start\">" +
-          "<div class=\"metaStatusGrid metaStatusGrid--" + escapeHtml(statusPills.count) + "\">" + statusPills.markup + "</div>" +
-        "</div>"
-      : "";
-    const testModeSection = options.testMode
-      ? "<section class=\"metaTestPanel\">" +
-          "<div class=\"metaTestPanelTitle\">" + escapeHtml(copy.testMode) + "</div>" +
-          "<button class=\"metaGhostButton metaTestActionButton\" type=\"button\" data-action=\"preview-results\">" + escapeHtml(copy.previewResults) + "</button>" +
-        "</section>"
-      : "";
-
-    return "<div class=\"metaCard metaCard--start\" dir=\"" + escapeHtml(language.dir) + "\">" +
-      "<div class=\"metaStartBrand metaStartBrand--top\">" +
-        buildGameBadgeMarkup(options.gameKey, languageId) +
-      "</div>" +
-      "<div class=\"metaStartHero metaStartHero--compact\">" +
-        "<button class=\"metaProfileButton metaProfileButton--start\" type=\"button\" data-action=\"open-profile\">" +
-            avatarTokenMarkup(state.player.avatar, languageId, "metaHeroAvatar") +
-            "<span class=\"metaProfileButtonText\">" +
-              "<strong class=\"metaProfileName\">" + escapeHtml(playerName) + "</strong>" +
-            "</span>" +
-          "</button>" +
-      "</div>" +
-      statusSection +
-      testModeSection +
-      "<div class=\"metaStartFooter\">" +
-        "<div class=\"metaStartToolbar\">" +
-          "<div class=\"metaStartActions\">" +
-            "<button class=\"metaGhostButton metaStartSecondaryButton metaStartSettingsButton\" type=\"button\" data-action=\"open-settings\" aria-label=\"" + escapeHtml(copy.settings) + "\" title=\"" + escapeHtml(copy.settings) + "\">" +
-              "<span class=\"metaStartSecondaryIcon\" aria-hidden=\"true\">" + settingsIconMarkup() + "</span>" +
-            "</button>" +
-            "<button class=\"metaGhostButton metaStartSecondaryButton metaStartExitButton\" type=\"button\" data-action=\"exit-game\" aria-label=\"" + escapeHtml(copy.exit) + "\" title=\"" + escapeHtml(copy.exit) + "\">" +
-              "<span class=\"metaStartSecondaryIcon\" aria-hidden=\"true\"><img class=\"metaStartSecondaryIconImage\" src=\"../shared/assets/ui/exit.png\" alt=\"\"></span>" +
-            "</button>" +
-          "</div>" +
-        "</div>" +
-        "<button class=\"metaPrimaryButton metaPrimaryButton--level\" type=\"button\" data-action=\"start-level\">" +
-          "<span class=\"metaPrimaryKicker\">" + escapeHtml(copy.levelOnly(snapshot.nextLevel)) + "</span>" +
-          "<strong class=\"metaPrimaryMain\">" + escapeHtml(difficultyText) + "</strong>" +
-        "</button>" +
-      "</div>" +
-    "</div>";
+    return buildDashboardMarkup(state, selectedDiff, options);
   }
 
   function buildSettingsMarkup(state, gameKey, diffOptions) {
@@ -1261,19 +1406,19 @@ window.GAMES_V2_META = (function (utils) {
       0
     );
     const isLandscape = viewportWidth > viewportHeight;
-    if (viewportHeight && viewportHeight <= 700) {
+    if (viewportHeight && viewportHeight <= 640) {
       return 2;
     }
-    if (isLandscape && viewportHeight && viewportHeight <= 860) {
+    if (isLandscape && viewportHeight && viewportHeight <= 760) {
       return 2;
     }
-    if (isLandscape && viewportHeight && viewportHeight <= 960) {
+    if (isLandscape && viewportHeight && viewportHeight <= 920) {
       return 3;
     }
-    if (viewportHeight && viewportHeight <= 820) {
+    if (viewportHeight && viewportHeight <= 760) {
       return 2;
     }
-    if (viewportHeight && viewportHeight <= 940) {
+    if (viewportHeight && viewportHeight <= 920) {
       return 3;
     }
     return MAX_VISIBLE_RESULT_ROWS;
@@ -1294,18 +1439,25 @@ window.GAMES_V2_META = (function (utils) {
       const focusIndexes = new Set([0, pinnedIndex - 1, pinnedIndex, pinnedIndex + 1].filter((index) => index >= 0 && index < rankedRows.length));
       let backfillOffset = 2;
       while (focusIndexes.size < Math.min(maxVisibleRows, rankedRows.length)) {
-        const candidate = pinnedIndex - backfillOffset;
-        if (candidate >= 0) {
-          focusIndexes.add(candidate);
+        const beforeCandidate = pinnedIndex - backfillOffset;
+        const afterCandidate = pinnedIndex + backfillOffset;
+        if (beforeCandidate >= 0) {
+          focusIndexes.add(beforeCandidate);
+        }
+        if (focusIndexes.size < Math.min(maxVisibleRows, rankedRows.length) && afterCandidate < rankedRows.length) {
+          focusIndexes.add(afterCandidate);
         }
         backfillOffset += 1;
-        if (candidate < 0 && pinnedIndex + backfillOffset >= rankedRows.length) {
+        if (beforeCandidate < 0 && afterCandidate >= rankedRows.length) {
           break;
         }
       }
-      const uniqueIndexes = Array.from(focusIndexes)
-        .sort((left, right) => left - right)
-        .slice(0, maxVisibleRows);
+      const sortedIndexes = Array.from(focusIndexes).sort((left, right) => left - right);
+      const windowSize = Math.min(maxVisibleRows, rankedRows.length);
+      let start = Math.max(0, sortedIndexes.indexOf(pinnedIndex) - Math.floor((windowSize - 1) / 2));
+      let end = Math.min(sortedIndexes.length, start + windowSize);
+      start = Math.max(0, end - windowSize);
+      const uniqueIndexes = sortedIndexes.slice(start, end);
       return {
         rows: uniqueIndexes.map((index) => rankedRows[index]),
         hasHiddenRows: true,
@@ -1320,55 +1472,11 @@ window.GAMES_V2_META = (function (utils) {
   }
 
   function buildResultsMarkup(resultContext, state, selectedDiff, gameKey, expandedRows) {
-    const languageId = state.player.language;
-    const copy = getCopy(languageId);
-    const language = getLanguage(languageId);
-    const snapshot = getStatusSnapshot(state, gameKey);
-    const afterRankMap = {};
-    resultContext.afterRanks.forEach((participant) => {
-      afterRankMap[participant.id] = participant.rank;
+    return buildDashboardMarkup(state, selectedDiff, {
+      gameKey,
+      expandedRows,
+      resultContext
     });
-    const nextLevel = snapshot.nextLevel;
-    const difficultyText = diffLabel(selectedDiff, languageId);
-    const visibleRows = getVisibleResultRows(resultContext.afterRanks, expandedRows, "me");
-    const canToggleRows = resultContext.afterRanks.length > visibleRows.rows.length;
-    const resultsCardClass = "metaCard metaCard--results" + (expandedRows ? " metaCard--results-expanded" : "");
-    const rowsMarkup = visibleRows.rows.map((participant) => {
-      const avatar = getAvatar(participant.avatar);
-      const isCurrent = participant.id === "me";
-      return "<div class=\"metaLeaderboardRow" + (isCurrent ? " is-current" : "") + "\" data-participant-id=\"" + escapeHtml(participant.id) + "\" data-after-rank=\"" + escapeHtml(participant.rank) + "\">" +
-        "<div class=\"metaLeaderboardRank\">#" + escapeHtml(participant.rank) + "</div>" +
-        "<div class=\"metaLeaderboardPlayer\">" +
-          avatarTokenMarkup(avatar.id, languageId, "metaLeaderboardAvatar") +
-          "<div class=\"metaLeaderboardIdentity\">" +
-            "<div class=\"metaLeaderboardTitleRow\">" +
-              "<strong class=\"metaLeaderboardName\">" + escapeHtml(participant.name) + "</strong>" +
-              "<span class=\"metaLeaderboardCoins metaLeaderboardCoins--inline\">" + iconMarkup("../shared/assets/ui/coin.svg", copy.coins, "metaInlineIcon") + "<strong>" + escapeHtml(participant.coins) + "</strong></span>" +
-            "</div>" +
-          "</div>" +
-        "</div>" +
-      "</div>";
-    }).join("");
-
-    return "<div class=\"" + resultsCardClass + "\" dir=\"" + escapeHtml(language.dir) + "\">" +
-      "<div class=\"metaCardHead\">" +
-        "<div>" +
-          "<h2 class=\"metaTitle\">" + escapeHtml(copy.resultsTitle(snapshot.player.highestCompletedLevel)) + "</h2>" +
-        "</div>" +
-      "</div>" +
-      buildResultsSummaryMarkup(resultContext, copy) +
-      "<div class=\"metaLeaderboardWrap\">" +
-        "<div class=\"metaSectionTitle\">" + escapeHtml(copy.leaderboard) + "</div>" +
-        "<div class=\"metaLeaderboardList\">" + rowsMarkup + "</div>" +
-        (canToggleRows
-          ? "<button class=\"metaGhostButton metaLeaderboardMoreButton\" type=\"button\" data-action=\"toggle-results-rows\">" + escapeHtml(expandedRows ? copy.showLess : copy.showMore) + "</button>"
-          : "") +
-      "</div>" +
-      "<div class=\"metaResultsActions\">" +
-        "<button class=\"metaGhostButton metaResultsExitButton\" type=\"button\" data-action=\"exit-game\">" + escapeHtml(copy.exit) + "</button>" +
-        "<button class=\"metaPrimaryButton metaResultsContinueButton\" type=\"button\" data-action=\"continue-level\">" + escapeHtml(copy.continueLevel(nextLevel, difficultyText)) + "</button>" +
-      "</div>" +
-    "</div>";
   }
 
   function createGameMeta(options) {
@@ -1389,6 +1497,7 @@ window.GAMES_V2_META = (function (utils) {
     if (!Object.prototype.hasOwnProperty.call(rawOptions, "initialSoundEnabled") && settings.audio && settings.audio.bgm && typeof settings.audio.bgm.isMuted === "function") {
       settings.initialSoundEnabled = !settings.audio.bgm.isMuted();
     }
+    const dashboardLayoutOverride = getDashboardLayoutOverride();
     const overlayEl = settings.overlayEl;
     const diffOptions = (settings.diffOptions || []).map((option) => ({
       key: option.key,
@@ -1493,6 +1602,13 @@ window.GAMES_V2_META = (function (utils) {
       }
       document.documentElement.setAttribute("data-meta-screen", currentScreen || "start");
       document.documentElement.setAttribute("data-meta-overlay", isVisible ? "open" : "closed");
+      if (!isVisible || dashboardLayoutOverride !== "portrait") {
+        document.documentElement.removeAttribute("data-dashboard-layout");
+        document.documentElement.removeAttribute("data-dashboard-aspect-band");
+        return;
+      }
+      document.documentElement.setAttribute("data-dashboard-layout", dashboardLayoutOverride);
+      document.documentElement.setAttribute("data-dashboard-aspect-band", getForcedDashboardAspectBand(dashboardLayoutOverride));
     }
 
     function hideOverlay() {
@@ -1528,7 +1644,7 @@ window.GAMES_V2_META = (function (utils) {
       document.documentElement.setAttribute("data-game-meta-lang", state.player.language);
     }
 
-    function animateResults() {
+  function animateResults() {
       const listEl = overlayEl.querySelector(".metaLeaderboardList");
       if (!listEl || !resultContext) {
         return;
@@ -1574,6 +1690,26 @@ window.GAMES_V2_META = (function (utils) {
       }
     }
 
+    function ensureCurrentPlayerRowVisible() {
+      const listEl = overlayEl.querySelector(".metaLeaderboardList");
+      if (!listEl || typeof listEl.querySelector !== "function") {
+        return;
+      }
+      const currentRow = listEl.querySelector(".metaLeaderboardRow.is-current");
+      if (!currentRow || !currentRow.getBoundingClientRect || !listEl.getBoundingClientRect) {
+        return;
+      }
+      const listRect = listEl.getBoundingClientRect();
+      const rowRect = currentRow.getBoundingClientRect();
+      if (rowRect.top >= listRect.top && rowRect.bottom <= listRect.bottom) {
+        return;
+      }
+      listEl.scrollTop = Math.max(
+        0,
+        currentRow.offsetTop - Math.max(0, Math.round((listEl.clientHeight - currentRow.offsetHeight) / 2))
+      );
+    }
+
     function render() {
       if (!overlayEl) {
         return;
@@ -1593,6 +1729,7 @@ window.GAMES_V2_META = (function (utils) {
       if (currentScreen === "results" && resultContext) {
         overlayEl.innerHTML = buildResultsMarkup(resultContext, resultsPreviewState || state, selectedDiff, settings.gameKey, resultRowsExpanded);
         showOverlay();
+        requestAnimationFrame(ensureCurrentPlayerRowVisible);
         if (animateResultsOnRender) {
           animateResultsOnRender = false;
           animateResults();
@@ -1820,6 +1957,17 @@ window.GAMES_V2_META = (function (utils) {
       }
       draftProfile.name = String(inputEl.value || "").slice(0, 18);
     });
+
+    if (window && typeof window.addEventListener === "function") {
+      const syncDashboardLayoutOverrideState = () => {
+        const isVisible = document && document.documentElement
+          ? document.documentElement.getAttribute("data-meta-overlay") === "open"
+          : false;
+        syncOverlayUiState(isVisible);
+      };
+      window.addEventListener("resize", syncDashboardLayoutOverrideState);
+      window.addEventListener("orientationchange", syncDashboardLayoutOverrideState);
+    }
 
     if (diffOptions.length) {
       const currentBounds = getDifficultyBounds(state, settings.gameKey, diffOptions);

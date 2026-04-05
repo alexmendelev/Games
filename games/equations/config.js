@@ -1,4 +1,4 @@
-window.GAME_V3_MATH_CONFIG = {
+window.GAME_V3_EQUATIONS_CONFIG = {
   menuUrl: "../index.html",
   waterYRatio: 0.9,
   splashOffsetBasePx: 150,
@@ -42,68 +42,74 @@ window.GAME_V3_MATH_CONFIG = {
     coinAudio: "../shared/assets/audio/coin_drop.mp3"
   },
   presets: {
-    easy: { label: "קל", speedMul: 0.24, startStage: 0 },
-    medium: { label: "בינוני", speedMul: 0.27, startStage: 1 },
-    hard: { label: "קשה", speedMul: 0.3, startStage: 2 },
-    super: { label: "סופר", speedMul: 0.34, startStage: 4 }
+    easy: { label: "easy", speedMul: 0.24, startStage: 0, maxVisibleNumber: 10 },
+    medium: { label: "medium", speedMul: 0.27, startStage: 1 },
+    hard: { label: "hard", speedMul: 0.3, startStage: 2 },
+    super: { label: "super", speedMul: 0.34, startStage: 4 }
   },
   progression: [
     {
-      label: "חיבור עד 5",
+      label: "addition up to 5",
       noNegOptions: true,
       wrongNear: 3,
       wrongFar: 6,
       ops: ["+"],
+      missingSlots: ["left", "right", "result"],
       addRange: [0, 5]
     },
     {
-      label: "חיבור וחיסור עד 10",
-      allowNegResult: false,
+      label: "addition and subtraction up to 10",
+      allowNegativeAnswer: false,
       noNegOptions: true,
       wrongNear: 4,
       wrongFar: 8,
       ops: ["+", "-"],
+      missingSlots: ["left", "right", "result"],
       addRange: [0, 10],
       subRange: [0, 10]
     },
     {
-      label: "חיבור וחיסור עד 20",
-      allowNegResult: false,
+      label: "addition and subtraction up to 20",
+      allowNegativeAnswer: false,
       noNegOptions: true,
       wrongNear: 5,
       wrongFar: 10,
       ops: ["+", "-"],
+      missingSlots: ["left", "right", "result"],
       addRange: [0, 20],
       subRange: [0, 20]
     },
     {
-      label: "חיסור עם תוצאות שליליות",
-      allowNegResult: true,
+      label: "subtraction with negative answers",
+      allowNegativeAnswer: true,
       noNegOptions: false,
       wrongNear: 6,
       wrongFar: 12,
       ops: ["+", "-"],
+      missingSlots: ["left", "right", "result"],
       addRange: [0, 25],
       subRange: [0, 25]
     },
     {
-      label: "כפל עד 5",
-      allowNegResult: false,
+      label: "multiplication up to 5",
+      allowNegativeAnswer: false,
       noNegOptions: true,
       wrongNear: 6,
       wrongFar: 12,
       ops: ["+", "-", "*"],
+      missingSlots: ["left", "right", "result"],
       addRange: [0, 20],
       subRange: [0, 20],
       mulRange: [1, 5]
     },
     {
-      label: "כפל וחילוק עד 10",
-      allowNegResult: true,
+      label: "multiply and divide up to 10",
+      allowNegativeAnswer: true,
       noNegOptions: false,
       wrongNear: 7,
       wrongFar: 14,
       ops: ["+", "-", "*", "/"],
+      missingSlots: ["left", "right", "result"],
       addRange: [0, 30],
       subRange: [0, 30],
       mulRange: [1, 10],
@@ -111,12 +117,13 @@ window.GAME_V3_MATH_CONFIG = {
       divDivisorRange: [1, 10]
     },
     {
-      label: "סופר",
-      allowNegResult: true,
+      label: "super",
+      allowNegativeAnswer: true,
       noNegOptions: false,
       wrongNear: 8,
       wrongFar: 18,
       ops: ["+", "-", "*", "/"],
+      missingSlots: ["left", "right", "result"],
       addRange: [0, 40],
       subRange: [0, 40],
       mulRange: [1, 12],
@@ -127,14 +134,14 @@ window.GAME_V3_MATH_CONFIG = {
   gameplay: {
     normalAttempts: 2,
     specialAttempts: 1,
-    specialChance: 1 / 6,
-    specialSilverWeight: 70,
-    specialGoldWeight: 25,
-    specialDiamondWeight: 5,
-    specialSilverCoins: 1,
-    specialGoldCoins: 5,
-    specialDiamondCoins: 20,
-    baseSpeed: 80,
+    specialChance: 1 / 4,
+    specialSilverWeight: 120,
+    specialGoldWeight: 70,
+    specialDiamondWeight: 4,
+    specialSilverCoins: 2,
+    specialGoldCoins: 8,
+    specialDiamondCoins: 24,
+    baseSpeed: 78,
     speedIncPerLevel: 6,
     stageLevelStep: 2,
     levelGoals: {
@@ -143,8 +150,8 @@ window.GAME_V3_MATH_CONFIG = {
       hard: { correctTarget: 12, timeLimitMs: 90000 },
       super: { correctTarget: 14, timeLimitMs: 90000 }
     },
-    tileWBase: 240,
-    tileHBase: 78,
+    tileWBase: 330,
+    tileHBase: 98,
     marginBase: 10,
     sfxGain: 0.1
   }

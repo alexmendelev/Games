@@ -10,6 +10,12 @@
   const cfg = window.GAME_V3_MATH_CONFIG;
 
   const gameEl = document.getElementById("game");
+  const wrapEl = document.querySelector(".wrap");
+  const sideEl = document.querySelector(".side");
+  const hudEl = document.querySelector(".hudPanel");
+  const answersPanelEl = document.querySelector(".answersPanel");
+  const answersEl = document.getElementById("answers");
+  const controlsEl = document.querySelector(".controlsPanel");
   const tileEl = document.getElementById("tile");
   const overlayEl = document.getElementById("overlay");
   const diffsEl = document.getElementById("diffs");
@@ -23,13 +29,20 @@
   const mascotEl = document.getElementById("mascot");
   const streakMeterEl = document.getElementById("streakMeter");
   const streakFillEl = document.getElementById("streakFill");
-  const ansBtns = Array.from(document.querySelectorAll(".ans"));
 
   const shell = shellApi.createFallingShell({
     gameEl,
+    wrapEl,
+    sideEl,
+    hudEl,
+    answersPanelEl,
+    answersEl,
+    controlsEl,
     menuUrl: cfg.menuUrl,
-    waterYRatio: cfg.waterYRatio
+    waterYRatio: cfg.waterYRatio,
+    layout: cfg.layout
   });
+  const ansBtns = shell.getAnswerButtons();
   const audio = audioApi.createArcadeAudio({
     sfxGain: cfg.gameplay.sfxGain,
     splashUrl: cfg.assets.splashAudio,
