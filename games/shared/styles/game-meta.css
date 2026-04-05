@@ -3532,17 +3532,23 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
   }
 }
 
-/* Full-screen shared start dialog */
+/* Full-screen shared start/results dashboard */
 
 .metaCard--dashboard-start,
 .metaCard--dashboard-start button,
 .metaCard--dashboard-start input,
 .metaCard--dashboard-start textarea,
-.metaCard--dashboard-start select {
+.metaCard--dashboard-start select,
+.metaCard--dashboard-results,
+.metaCard--dashboard-results button,
+.metaCard--dashboard-results input,
+.metaCard--dashboard-results textarea,
+.metaCard--dashboard-results select {
   font-family: "Rubik", Arial, "Arial Hebrew", sans-serif;
 }
 
-.metaCard--dashboard-start {
+.metaCard--dashboard-start,
+.metaCard--dashboard-results {
   width: 100%;
   max-width: none;
   height: 100%;
@@ -3563,7 +3569,8 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
     linear-gradient(180deg, rgba(29, 78, 216, 0.98), rgba(19, 54, 155, 0.98));
 }
 
-.metaCard--dashboard-start .metaDashboardBoard {
+.metaCard--dashboard-start .metaDashboardBoard,
+.metaCard--dashboard-results .metaDashboardBoard {
   height: 100%;
   min-height: 0;
   grid-template-columns: minmax(200px, 0.72fr) minmax(224px, 0.86fr) minmax(0, 1.36fr);
@@ -3574,7 +3581,9 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
 }
 
 .metaCard--dashboard-start .metaDashboardPanel,
-.metaCard--dashboard-start .metaDashboardSection--leaderboard {
+.metaCard--dashboard-start .metaDashboardSection--leaderboard,
+.metaCard--dashboard-results .metaDashboardPanel,
+.metaCard--dashboard-results .metaDashboardSection--leaderboard {
   min-height: 0;
   padding: calc(14px * var(--ui, 1));
   border-radius: calc(22px * var(--ui, 1));
@@ -3583,78 +3592,97 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.metaCard--dashboard-start .metaDashboardPanel--logo {
+.metaCard--dashboard-start .metaDashboardPanel--logo,
+.metaCard--dashboard-results .metaDashboardPanel--logo {
   min-height: 0;
   padding-block: calc(18px * var(--ui, 1));
 }
 
-.metaCard--dashboard-start .metaGameBadge--art {
+.metaCard--dashboard-start .metaGameBadge--art,
+.metaCard--dashboard-results .metaGameBadge--art {
   width: min(100%, clamp(150px, 20vw, 250px));
 }
 
-.metaCard--dashboard-start .metaGameBadgeArt {
+.metaCard--dashboard-start .metaGameBadgeArt,
+.metaCard--dashboard-results .metaGameBadgeArt {
   width: min(100%, clamp(126px, 17vw, 210px));
   max-height: clamp(126px, 17vw, 210px);
 }
 
-.metaCard--dashboard-start .metaDashboardPanel--summary {
+.metaCard--dashboard-start .metaDashboardPanel--summary,
+.metaCard--dashboard-results .metaDashboardPanel--summary {
   grid-template-columns: 1fr;
   grid-auto-rows: minmax(0, 1fr);
   gap: calc(10px * var(--ui, 1));
   align-content: stretch;
 }
 
-.metaCard--dashboard-start .metaDashboardPanel--summary > * {
+.metaCard--dashboard-start .metaDashboardPanel--summary > *,
+.metaCard--dashboard-results .metaDashboardPanel--summary > * {
   min-height: 0;
 }
 
 .metaCard--dashboard-start .metaProfileButton--dashboard,
 .metaCard--dashboard-start .metaStatusChip,
-.metaCard--dashboard-start .metaDashboardSettingsCard {
+.metaCard--dashboard-start .metaDashboardSettingsCard,
+.metaCard--dashboard-results .metaProfileButton--dashboard,
+.metaCard--dashboard-results .metaStatusChip,
+.metaCard--dashboard-results .metaDashboardSettingsCard {
   width: 100%;
   min-height: 0;
   padding: calc(12px * var(--ui, 1));
   border-radius: calc(20px * var(--ui, 1));
 }
 
-.metaCard--dashboard-start .metaProfileButton--dashboard {
+.metaCard--dashboard-start .metaProfileButton--dashboard,
+.metaCard--dashboard-results .metaProfileButton--dashboard {
   gap: calc(12px * var(--ui, 1));
 }
 
-.metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar {
+.metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar,
+.metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar {
   width: clamp(48px, 7vw, 74px);
   height: clamp(48px, 7vw, 74px);
   border-radius: calc(18px * var(--ui, 1));
 }
 
-.metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName {
+.metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName,
+.metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileName {
   font-size: clamp(18px, 2.1vw, 28px);
   line-height: 1.1;
 }
 
 .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileHint,
 .metaCard--dashboard-start .metaStatusLabel,
-.metaCard--dashboard-start .metaDashboardSettingsLabel {
+.metaCard--dashboard-start .metaDashboardSettingsLabel,
+.metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileHint,
+.metaCard--dashboard-results .metaStatusLabel,
+.metaCard--dashboard-results .metaDashboardSettingsLabel {
   font-size: clamp(12px, 1.3vw, 16px);
   line-height: 1.15;
 }
 
-.metaCard--dashboard-start .metaStatusChip {
+.metaCard--dashboard-start .metaStatusChip,
+.metaCard--dashboard-results .metaStatusChip {
   gap: calc(10px * var(--ui, 1));
 }
 
 .metaCard--dashboard-start .metaStatusIcon,
-.metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg {
+.metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg,
+.metaCard--dashboard-results .metaStatusIcon,
+.metaCard--dashboard-results .metaDashboardSettingsCard .metaDashboardToolIcon svg {
   width: clamp(24px, 3.1vw, 38px);
   height: clamp(24px, 3.1vw, 38px);
 }
 
-.metaCard--dashboard-start .metaStatusValue {
+.metaCard--dashboard-start .metaStatusValue,
+.metaCard--dashboard-results .metaStatusValue {
   font-size: clamp(24px, 2.8vw, 38px);
   line-height: 1;
 }
 
-.metaCard--dashboard-start .metaDashboardSettingsCard {
+.metaCard--dashboard-start .metaDashboardSettingsCard,
+.metaCard--dashboard-results .metaDashboardSettingsCard {
   min-height: 0;
 }
 
@@ -3663,7 +3691,8 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
   justify-self: stretch;
 }
 
-.metaCard--dashboard-start .metaDashboardSection--leaderboard {
+.metaCard--dashboard-start .metaDashboardSection--leaderboard,
+.metaCard--dashboard-results .metaDashboardSection--leaderboard {
   display: flex;
   flex-direction: column;
 }
@@ -3783,29 +3812,35 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeader
   gap: calc(8px * var(--ui, 1));
 }
 
-.metaCard--dashboard-start .metaDashboardActions {
+.metaCard--dashboard-start .metaDashboardActions,
+.metaCard--dashboard-results .metaDashboardActions {
   margin-top: 0;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: calc(10px * var(--ui, 1));
 }
 
 .metaCard--dashboard-start .metaDashboardActions .metaGhostButton,
-.metaCard--dashboard-start .metaDashboardActions .metaPrimaryButton {
+.metaCard--dashboard-start .metaDashboardActions .metaPrimaryButton,
+.metaCard--dashboard-results .metaDashboardActions .metaGhostButton,
+.metaCard--dashboard-results .metaDashboardActions .metaPrimaryButton {
   width: 100%;
   margin-top: 0;
   min-height: clamp(52px, 8vh, 74px);
   border-radius: calc(22px * var(--ui, 1));
 }
 
-.metaCard--dashboard-start .metaResultsExitButton {
+.metaCard--dashboard-start .metaResultsExitButton,
+.metaCard--dashboard-results .metaResultsExitButton {
   font-size: clamp(18px, 2vw, 28px);
 }
 
-.metaCard--dashboard-start .metaResultsContinueButton {
+.metaCard--dashboard-start .metaResultsContinueButton,
+.metaCard--dashboard-results .metaResultsContinueButton {
   font-size: clamp(19px, 2.1vw, 30px);
 }
 
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardBoard {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardBoard,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardBoard {
   grid-template-columns: 1fr;
   grid-template-rows: auto auto minmax(0, 1fr);
   grid-template-areas:
@@ -3814,13 +3849,15 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .meta
     "leaderboard";
 }
 
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPanel--summary {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPanel--summary,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardPanel--summary {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-auto-rows: minmax(0, 1fr);
   gap: calc(6px * var(--ui, 1));
 }
 
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardIdentityCard {
   flex-direction: column;
   justify-content: center;
   text-align: center;
@@ -3829,39 +3866,52 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .meta
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard .metaProfileButtonText,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValueWrap {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValueWrap,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardIdentityCard .metaProfileButtonText,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValueWrap {
   align-items: center;
   text-align: center;
 }
 
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar {
   width: clamp(40px, 10vw, 52px);
   height: clamp(40px, 10vw, 52px);
 }
 
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileName {
   font-size: clamp(14px, 3.6vw, 18px);
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileHint,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusLabel,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsLabel {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsLabel,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaProfileHint,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusLabel,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsLabel {
   font-size: clamp(10px, 2.6vw, 13px);
 }
 
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValue {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValue,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValue {
   font-size: clamp(18px, 4.6vw, 24px);
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusIcon,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusIcon,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard .metaDashboardToolIcon svg {
   width: clamp(20px, 4.4vw, 26px);
   height: clamp(20px, 4.4vw, 26px);
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard,
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusChip,
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusChip,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard {
   padding: calc(8px * var(--ui, 1));
 }
 
@@ -3869,12 +3919,14 @@ html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .meta
   grid-column: 1 / -1;
 }
 
-html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardActions {
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardActions,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardActions {
   grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
 }
 
 @media (max-width: 900px) {
-  .metaCard--dashboard-start .metaDashboardBoard {
+  .metaCard--dashboard-start .metaDashboardBoard,
+  .metaCard--dashboard-results .metaDashboardBoard {
     grid-template-columns: minmax(160px, 0.65fr) minmax(200px, 0.82fr) minmax(0, 1.28fr);
   }
 
