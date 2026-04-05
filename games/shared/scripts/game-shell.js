@@ -145,6 +145,16 @@ window.GAMES_V2_SHELL = (function (utils) {
       : null;
     let currentLayout = null;
 
+    function isScreenIndicatorEnabled() {
+      try {
+        const params = new window.URLSearchParams((window.location && window.location.search) || "");
+        const value = String(params.get("screenindicator") || "").trim().toLowerCase();
+        return value === "1" || value === "true";
+      } catch (_) {
+        return false;
+      }
+    }
+
     function measureLayoutContext() {
       return {
         viewport: layoutApi && typeof layoutApi.getViewport === "function"
@@ -190,6 +200,13 @@ window.GAMES_V2_SHELL = (function (utils) {
     }
 
     function ensureLayoutDebugBadge() {
+      if (!isScreenIndicatorEnabled()) {
+        if (layoutDebugBadgeEl && layoutDebugBadgeEl.parentNode) {
+          layoutDebugBadgeEl.parentNode.removeChild(layoutDebugBadgeEl);
+        }
+        layoutDebugBadgeEl = null;
+        return null;
+      }
       if (layoutDebugBadgeEl && layoutDebugBadgeEl.isConnected) {
         return layoutDebugBadgeEl;
       }
