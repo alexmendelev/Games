@@ -110,15 +110,23 @@ window.GAMES_V2_SHELL = (function (utils) {
   }
 
   function createFallingShell(options) {
+    const layoutApi = window.GAMES_V2_LAYOUT;
     const settings = Object.assign({
       gameEl: null,
+      wrapEl: null,
+      sideEl: null,
+      hudEl: null,
+      answersPanelEl: null,
+      answersEl: null,
+      controlsEl: null,
       menuUrl: "../index.html",
       waterYRatio: 0.8,
       uiBaseWidth: 900,
       uiBaseHeight: 650,
       uiPortraitMul: 0.92,
       uiMin: 0.58,
-      uiMax: 1
+      uiMax: 1,
+      layout: null
     }, options || {});
 
     let cachedRect = null;
@@ -127,6 +135,25 @@ window.GAMES_V2_SHELL = (function (utils) {
     let waterReflectionEl = null;
     let reflectionMarkup = "";
     let reflectionClassName = "";
+    let layoutDebugBadgeEl = null;
+    const baseDocumentTitle = document.title;
+    const layoutEngine = layoutApi && typeof layoutApi.createLayoutEngine === "function"
+      ? layoutApi.createLayoutEngine(settings.layout || {})
+      : null;
+    let currentLayout = null;
+
+    function measureLayoutContext() {
+      return {
+        viewport: layoutApi && typeof layoutApi.getViewport === "function"
+          ? layoutApi.getViewport()
+          : {
+              width: window.innerWidth,
+              height: window.innerHeight
+            },
+        hudEl: settings.hudEl,
+        controlsEl: settings.controlsEl
+      };
+    }
 
     function computeUi() {
       const vw = window.innerWidth;
@@ -159,10 +186,112 @@ window.GAMES_V2_SHELL = (function (utils) {
       return cachedRect;
     }
 
+    function ensureLayoutDebugBadge() {
+      if (layoutDebugBadgeEl && layoutDebugBadgeEl.isConnected) {
+        return layoutDebugBadgeEl;
+      }
+      const controlsHost = settings.controlsEl && settings.controlsEl.querySelector
+        ? (settings.controlsEl.querySelector(".actions") || settings.controlsEl.querySelector(".row"))
+        : null;
+      if (!controlsHost) {
+        return null;
+      }
+      layoutDebugBadgeEl = controlsHost.querySelector(".layoutDebugBadge");
+      if (!layoutDebugBadgeEl) {
+        layoutDebugBadgeEl = document.createElement("div");
+        layoutDebugBadgeEl.className = "layoutDebugBadge";
+        layoutDebugBadgeEl.setAttribute("aria-live", "polite");
+
+        const modeEl = document.createElement("div");
+        modeEl.className = "layoutDebugBadgeMode";
+        layoutDebugBadgeEl.appendChild(modeEl);
+
+        const ratioEl = document.createElement("div");
+        ratioEl.className = "layoutDebugBadgeRatio";
+        layoutDebugBadgeEl.appendChild(ratioEl);
+
+        controlsHost.appendChild(layoutDebugBadgeEl);
+      }
+      return layoutDebugBadgeEl;
+    }
+
+    function updateLayoutDebugBadge(layout) {
+      const badge = ensureLayoutDebugBadge();
+      if (!badge || !layout || !layout.viewport) {
+        return;
+      }
+      const width = Math.max(0, Math.round(Number(layout.viewport.width) || 0));
+      const height = Math.max(0, Math.round(Number(layout.viewport.height) || 0));
+      const aspectRatio = Number(layout.screen && layout.screen.aspectRatio);
+      const ratioText = Number.isFinite(aspectRatio) ? aspectRatio.toFixed(2) : "0.00";
+      const modeText = String(layout.mode || layout.orientation || "");
+      const layoutText = layout.orientation === "landscape" ? "split" : "stack";
+      const modeEl = badge.querySelector(".layoutDebugBadgeMode");
+      const ratioEl = badge.querySelector(".layoutDebugBadgeRatio");
+      badge.dataset.layoutMode = modeText;
+      badge.setAttribute("aria-label", `Layout ${modeText} ${layoutText}. Screen ${width} by ${height}. Ratio ${ratioText}.`);
+      if (modeEl) {
+        modeEl.textContent = `${modeText} / ${layoutText}`;
+      }
+      if (ratioEl) {
+        ratioEl.textContent = `${width}x${height} · ${ratioText}`;
+      }
+    }
+
+    function updateLayoutDebugTitle(layout) {
+      if (!layout || !layout.viewport) {
+        document.title = baseDocumentTitle;
+        return;
+      }
+      const width = Math.max(0, Math.round(Number(layout.viewport.width) || 0));
+      const height = Math.max(0, Math.round(Number(layout.viewport.height) || 0));
+      const aspectRatio = Number(layout.screen && layout.screen.aspectRatio);
+      const ratioText = Number.isFinite(aspectRatio) ? aspectRatio.toFixed(2) : "0.00";
+      const modeText = String(layout.mode || layout.orientation || "");
+      const layoutText = layout.orientation === "landscape" ? "split" : "stack";
+      document.title = `${baseDocumentTitle} [${modeText}/${layoutText} ${width}x${height} / ${ratioText}]`;
+    }
+
     function refreshLayout() {
       applyUi();
+      if (layoutEngine && layoutApi && typeof layoutApi.applyLayout === "function") {
+        currentLayout = layoutEngine.compute(measureLayoutContext());
+        layoutApi.applyLayout(currentLayout, {
+          wrapEl: settings.wrapEl,
+          sideEl: settings.sideEl,
+          gameEl: settings.gameEl,
+          hudEl: settings.hudEl,
+          answersPanelEl: settings.answersPanelEl,
+          answersEl: settings.answersEl,
+          controlsEl: settings.controlsEl
+        });
+        updateLayoutDebugBadge(currentLayout);
+        updateLayoutDebugTitle(currentLayout);
+      }
       captureRect();
       window.requestAnimationFrame(captureRect);
+    }
+
+    function ensureAnswerButtons() {
+      if (!settings.answersEl) {
+        return [];
+      }
+      if (!layoutApi || typeof layoutApi.ensureAnswerButtons !== "function") {
+        return Array.from(settings.answersEl.querySelectorAll(".ans"));
+      }
+      const layoutConfig = layoutEngine ? layoutEngine.getConfig() : (settings.layout || {});
+      return layoutApi.ensureAnswerButtons(settings.answersEl, layoutConfig.answers || {});
+    }
+
+    function setAnswerLayout(nextAnswerConfig) {
+      if (layoutEngine) {
+        layoutEngine.updateConfig({
+          answers: nextAnswerConfig || {}
+        });
+      }
+      const buttons = ensureAnswerButtons();
+      refreshLayout();
+      return buttons;
     }
 
     function ensureWaterShadow() {
@@ -327,11 +456,14 @@ window.GAMES_V2_SHELL = (function (utils) {
         return { minX: edge, maxX: edge };
       }
       const ui = getUi();
-      const rockWidth = Math.min(360 * ui, r.width * 0.54);
-      // Keep tablets away from the mascot/rock cluster without forcing them too far right.
-      const leftSafeBand = Math.min(rockWidth * 0.58, r.width * 0.34);
-      const leftClear = Math.max(margin, Math.round(leftSafeBand + Math.max(12, 20 * ui)));
-      const rightClear = Math.max(margin, Math.round(24 * ui));
+      const fallbackRockWidth = Math.min(360 * ui, r.width * 0.54);
+      const fallbackLeftSafeBand = Math.min(fallbackRockWidth * 0.58, r.width * 0.34);
+      const leftClear = currentLayout && currentLayout.fallLane
+        ? Math.max(margin, Math.round(currentLayout.fallLane.leftPadding))
+        : Math.max(margin, Math.round(fallbackLeftSafeBand + Math.max(12, 20 * ui)));
+      const rightClear = currentLayout && currentLayout.fallLane
+        ? Math.max(margin, Math.round(currentLayout.fallLane.rightPadding))
+        : Math.max(margin, Math.round(24 * ui));
       const rawMaxX = Math.max(0, Math.floor(r.width - tileWidth - rightClear));
       const minX = Math.max(0, Math.min(leftClear, rawMaxX));
       return {
@@ -530,20 +662,31 @@ window.GAMES_V2_SHELL = (function (utils) {
       window.location.href = settings.menuUrl;
     }
 
+    ensureAnswerButtons();
     window.addEventListener("resize", refreshLayout);
     window.addEventListener("orientationchange", refreshLayout);
     window.addEventListener("games:meta-overlay-change", refreshLayout);
     if (window.ResizeObserver && settings.gameEl) {
-      const observer = new ResizeObserver(() => {
+      const observer = new ResizeObserver((entries) => {
+        const shouldRefresh = entries.some((entry) => entry.target !== settings.gameEl);
+        if (shouldRefresh) {
+          refreshLayout();
+        }
         captureRect();
       });
       observer.observe(settings.gameEl);
+      if (settings.hudEl) observer.observe(settings.hudEl);
+      if (settings.controlsEl) observer.observe(settings.controlsEl);
+      if (settings.answersPanelEl) observer.observe(settings.answersPanelEl);
     }
     refreshLayout();
 
     return {
       applyUi,
       refreshLayout,
+      setAnswerLayout,
+      getAnswerButtons: ensureAnswerButtons,
+      getLayout: () => currentLayout,
       rect,
       waterY,
       fallLane,

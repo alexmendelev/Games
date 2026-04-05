@@ -5,6 +5,24 @@ window.GAMES_V2_FX = (function (utils) {
       coinIconEl: null
     }, options || {});
 
+    function settleSoon(promiseLike, timeoutMs) {
+      const safeTimeoutMs = Math.max(0, Number(timeoutMs) || 0);
+      return new Promise((resolve) => {
+        let settled = false;
+        const finish = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          resolve();
+        };
+        if (safeTimeoutMs > 0) {
+          setTimeout(finish, safeTimeoutMs);
+        }
+        Promise.resolve(promiseLike).catch(() => {}).finally(finish);
+      });
+    }
+
     function playSheetFx(sheetCfg, x, y, anchor, extra) {
       const opts = Object.assign({
         className: "",
@@ -197,38 +215,53 @@ window.GAMES_V2_FX = (function (utils) {
     }
 
     function animateCoinToHud(startXInGame, startYInGame) {
-      if (!settings.coinIconEl || !settings.coinIconEl.getBoundingClientRect) {
+      if (!settings.gameEl || !settings.gameEl.getBoundingClientRect || !settings.coinIconEl || !settings.coinIconEl.getBoundingClientRect) {
         return Promise.resolve();
       }
+      try {
+        const gameRect = settings.gameEl.getBoundingClientRect();
+        const coinRect = settings.coinIconEl.getBoundingClientRect();
+        const startX = gameRect.left + startXInGame;
+        const startY = gameRect.top + startYInGame;
+        const endX = coinRect.left + coinRect.width / 2;
+        const endY = coinRect.top + coinRect.height / 2;
+        const ctrlX = (startX + endX) / 2;
+        const ctrlY = Math.min(startY, endY) - 120;
 
-      const gameRect = settings.gameEl.getBoundingClientRect();
-      const coinRect = settings.coinIconEl.getBoundingClientRect();
-      const startX = gameRect.left + startXInGame;
-      const startY = gameRect.top + startYInGame;
-      const endX = coinRect.left + coinRect.width / 2;
-      const endY = coinRect.top + coinRect.height / 2;
-      const ctrlX = (startX + endX) / 2;
-      const ctrlY = Math.min(startY, endY) - 120;
+        const flyEl = document.createElement("img");
+        flyEl.className = "coinFly";
+        flyEl.src = settings.coinIconEl.currentSrc || settings.coinIconEl.src;
+        flyEl.alt = "";
+        document.body.appendChild(flyEl);
 
-      const flyEl = document.createElement("img");
-      flyEl.className = "coinFly";
-      flyEl.src = settings.coinIconEl.currentSrc || settings.coinIconEl.src;
-      flyEl.alt = "";
-      document.body.appendChild(flyEl);
+        if (!flyEl.animate) {
+          flyEl.remove();
+          return Promise.resolve();
+        }
 
-      const anim = flyEl.animate(
-        [
-          { transform: `translate(${startX}px, ${startY}px) translate(-50%, -50%) scale(.35)`, opacity: 0, offset: 0 },
-          { transform: `translate(${startX}px, ${startY - 8}px) translate(-50%, -50%) scale(.95)`, opacity: 1, offset: 0.14 },
-          { transform: `translate(${ctrlX}px, ${ctrlY}px) translate(-50%, -50%) scale(1.05)`, opacity: 1, offset: 0.72 },
-          { transform: `translate(${endX}px, ${endY}px) translate(-50%, -50%) scale(.62)`, opacity: 1, offset: 1 }
-        ],
-        { duration: 620, easing: "cubic-bezier(.17,.67,.27,1)" }
-      );
+        const anim = flyEl.animate(
+          [
+            { transform: `translate(${startX}px, ${startY}px) translate(-50%, -50%) scale(.35)`, opacity: 0, offset: 0 },
+            { transform: `translate(${startX}px, ${startY - 8}px) translate(-50%, -50%) scale(.95)`, opacity: 1, offset: 0.14 },
+            { transform: `translate(${ctrlX}px, ${ctrlY}px) translate(-50%, -50%) scale(1.05)`, opacity: 1, offset: 0.72 },
+            { transform: `translate(${endX}px, ${endY}px) translate(-50%, -50%) scale(.62)`, opacity: 1, offset: 1 }
+          ],
+          { duration: 620, easing: "cubic-bezier(.17,.67,.27,1)" }
+        );
 
-      return anim.finished.catch(() => {}).then(() => {
-        flyEl.remove();
-      });
+        return settleSoon(
+          anim.finished.catch(() => {}).then(() => {
+            flyEl.remove();
+          }),
+          900
+        ).finally(() => {
+          if (flyEl.isConnected) {
+            flyEl.remove();
+          }
+        });
+      } catch (_) {
+        return Promise.resolve();
+      }
     }
 
     function playStarsAroundElement(targetEl, extra) {
@@ -306,8 +339,11 @@ window.GAMES_V2_FX = (function (utils) {
     }
 
     function awardCoinFromBurst(startXInGame, startYInGame, onAward) {
-      return animateCoinToHud(startXInGame, startYInGame)
-        .then(() => popIcon(settings.coinIconEl))
+      return settleSoon(
+        animateCoinToHud(startXInGame, startYInGame)
+          .then(() => popIcon(settings.coinIconEl)),
+        1100
+      )
         .finally(() => {
           if (typeof onAward === "function") {
             onAward();

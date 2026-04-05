@@ -67,8 +67,11 @@
   position: relative;
   isolation: isolate;
   width: min(980px, 98%);
-  max-height: min(90dvh, 790px);
+  max-height: min(94dvh, 860px);
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: calc(18px * var(--ui, 1));
   padding: calc(28px * var(--ui, 1));
   background:
     radial-gradient(circle at top left, rgba(147, 197, 253, 0.34), rgba(147, 197, 253, 0) 34%),
@@ -948,6 +951,9 @@
 }
 
 .metaSettingsBoard {
+  min-height: 0;
+  overflow: auto;
+  padding-inline-end: calc(4px * var(--ui, 1));
   gap: calc(20px * var(--ui, 1));
 }
 
@@ -1421,8 +1427,14 @@
 }
 
 .metaLeaderboardRow {
+  direction: ltr;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns:
+    calc(56px * var(--ui, 1))
+    calc(64px * var(--ui, 1))
+    minmax(0, 1fr)
+    auto
+    calc(26px * var(--ui, 1));
   gap: calc(12px * var(--ui, 1));
   align-items: center;
   min-height: calc(74px * var(--ui, 1));
@@ -1443,29 +1455,43 @@
 }
 
 .metaLeaderboardRank {
-  width: calc(56px * var(--ui, 1));
+  grid-column: 1;
+  width: auto;
   font-size: calc(24px * var(--ui, 1));
   font-weight: 900;
   text-align: center;
 }
 
-.metaLeaderboardPlayer,
+.metaLeaderboardAvatarCell,
+.metaLeaderboardCoinIcon,
 .metaLeaderboardCoins,
 .metaLeaderboardScore {
   display: flex;
   align-items: center;
   gap: calc(10px * var(--ui, 1));
+  grid-row: 1;
 }
 
-.metaLeaderboardIdentity {
-  min-width: 0;
+.metaLeaderboardRank,
+.metaLeaderboardNameCell {
+  grid-row: 1;
 }
 
-.metaLeaderboardTitleRow {
+.metaLeaderboardAvatarCell {
+  grid-column: 2;
+  justify-content: center;
+}
+
+.metaLeaderboardNameCell {
+  grid-column: 3;
   display: flex;
   align-items: center;
-  gap: calc(18px * var(--ui, 1));
+  justify-content: flex-start;
   min-width: 0;
+}
+
+.metaCard[dir="rtl"] .metaLeaderboardNameCell {
+  justify-content: flex-end;
 }
 
 .metaLeaderboardName,
@@ -1474,10 +1500,20 @@
 }
 
 .metaLeaderboardName {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
+.metaCard[dir="rtl"] .metaLeaderboardName {
+  text-align: right;
+  unicode-bidi: isolate;
 }
 
 .metaLeaderboardMeta {
@@ -1494,9 +1530,52 @@
   font-size: calc(28px * var(--ui, 1));
 }
 
-.metaLeaderboardCoins--inline {
+.metaLeaderboardCoins {
+  grid-column: 4;
   flex: 0 0 auto;
   white-space: nowrap;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.metaLeaderboardCoinIcon {
+  grid-column: 5;
+  justify-content: center;
+}
+
+html[dir="rtl"] .metaLeaderboardRow,
+.metaCard[dir="rtl"] .metaLeaderboardRow {
+  grid-template-columns:
+    calc(26px * var(--ui, 1))
+    auto
+    minmax(0, 1fr)
+    calc(64px * var(--ui, 1))
+    calc(56px * var(--ui, 1));
+}
+
+html[dir="rtl"] .metaLeaderboardRank,
+.metaCard[dir="rtl"] .metaLeaderboardRank {
+  grid-column: 5;
+}
+
+html[dir="rtl"] .metaLeaderboardAvatarCell,
+.metaCard[dir="rtl"] .metaLeaderboardAvatarCell {
+  grid-column: 4;
+}
+
+html[dir="rtl"] .metaLeaderboardNameCell,
+.metaCard[dir="rtl"] .metaLeaderboardNameCell {
+  grid-column: 3;
+}
+
+html[dir="rtl"] .metaLeaderboardCoins,
+.metaCard[dir="rtl"] .metaLeaderboardCoins {
+  grid-column: 2;
+}
+
+html[dir="rtl"] .metaLeaderboardCoinIcon,
+.metaCard[dir="rtl"] .metaLeaderboardCoinIcon {
+  grid-column: 1;
 }
 
 .metaLeaderboardMoreButton {
@@ -1754,15 +1833,6 @@
 
   .metaChoiceGrid--avatars {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .metaLeaderboardRow {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .metaLeaderboardScore {
-    grid-column: 2;
-    justify-content: space-between;
   }
 
   .metaCardHead--settings {
@@ -2509,5 +2579,1600 @@
 
   .metaCard--start .metaPrimaryMain {
     font-size: clamp(24px, calc(26px * var(--ui, 1)), 30px);
+  }
+}
+
+/* Shared responsive results/leaderboard sizing.
+   The gameplay layout engine computes these variables once per viewport. */
+
+.metaCard--results {
+  width: min(var(--games-overlay-max-width, 1120px), 97vw);
+  max-height: min(var(--games-overlay-max-height, 92dvh), 92dvh);
+  padding: var(--games-overlay-padding, calc(22px * var(--ui, 1)));
+}
+
+.metaCard--results .metaCardHead {
+  margin-bottom: calc(var(--games-overlay-padding, 18px) * 0.66);
+}
+
+.metaCard--results .metaTitle {
+  font-size: var(--games-overlay-title-size, calc(34px * var(--ui, 1)));
+}
+
+.metaCard--results .metaResultBadge,
+.metaCard--results .metaLeaderboardMeta,
+.metaCard--results .metaSectionTitle {
+  font-size: var(--games-overlay-badge-size, calc(14px * var(--ui, 1)));
+}
+
+.metaCard--results .metaLeaderboardList {
+  overflow: auto;
+}
+
+.metaCard--results .metaLeaderboardRow {
+  min-height: var(--games-overlay-row-min-height, calc(74px * var(--ui, 1)));
+}
+
+.metaCard--results .metaLeaderboardRank {
+  font-size: var(--games-overlay-rank-size, calc(24px * var(--ui, 1)));
+}
+
+.metaCard--results .metaLeaderboardAvatar {
+  width: var(--games-overlay-avatar-size, calc(64px * var(--ui, 1)));
+  height: var(--games-overlay-avatar-size, calc(64px * var(--ui, 1)));
+}
+
+.metaCard--results .metaLeaderboardCoins strong {
+  font-size: var(--games-overlay-coins-size, calc(28px * var(--ui, 1)));
+}
+
+.metaCard--results .metaResultsActions .metaGhostButton,
+.metaCard--results .metaResultsActions .metaPrimaryButton {
+  min-height: var(--games-overlay-button-height, calc(62px * var(--ui, 1)));
+}
+
+html[data-overlay-actions="stack"] .metaCard--results .metaResultsActions {
+  grid-template-columns: 1fr;
+}
+
+/* Unified start/results dashboard */
+
+.metaCard--dashboard {
+  width: min(1380px, 99vw);
+  max-height: min(97dvh, 1180px);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: calc(18px * var(--ui, 1));
+  padding: max(var(--games-overlay-padding, calc(22px * var(--ui, 1))), calc(22px * var(--ui, 1)));
+}
+
+.metaDashboardToolIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metaDashboardBoard {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "logo"
+    "summary"
+    "leaderboard";
+  align-content: start;
+  gap: calc(16px * var(--ui, 1));
+}
+
+.metaDashboardPanel,
+.metaDashboardSection--leaderboard {
+  min-height: 0;
+  padding: calc(18px * var(--ui, 1));
+  border-radius: calc(24px * var(--ui, 1));
+  background: rgba(4, 15, 44, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.metaDashboardPanel--logo {
+  grid-area: logo;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(172px * var(--ui, 1));
+  padding-block: calc(24px * var(--ui, 1));
+}
+
+.metaCard--dashboard .metaGameBadge--art {
+  width: min(100%, calc(280px * var(--ui, 1)));
+  min-width: 0;
+}
+
+.metaCard--dashboard .metaGameBadgeArt {
+  width: min(100%, calc(220px * var(--ui, 1)));
+  max-height: calc(220px * var(--ui, 1));
+}
+
+.metaDashboardPanel--summary {
+  grid-area: summary;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  gap: calc(12px * var(--ui, 1));
+  align-items: stretch;
+}
+
+.metaProfileButton--dashboard {
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  padding: calc(14px * var(--ui, 1)) calc(18px * var(--ui, 1));
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.metaDashboardIdentityCard {
+  justify-content: flex-start;
+}
+
+.metaProfileButton--dashboard .metaHeroAvatar {
+  width: calc(76px * var(--ui, 1));
+  height: calc(76px * var(--ui, 1));
+  border-radius: calc(22px * var(--ui, 1));
+}
+
+.metaProfileButton--dashboard .metaProfileName {
+  font-size: calc(26px * var(--ui, 1));
+}
+
+.metaProfileButton--dashboard .metaProfileHint {
+  font-size: calc(15px * var(--ui, 1));
+}
+
+.metaCard--dashboard .metaStatusGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(12px * var(--ui, 1));
+}
+
+.metaDashboardPanel--summary > .metaStatusGrid {
+  display: contents;
+}
+
+.metaCard--dashboard .metaStatusChip {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+  gap: calc(8px * var(--ui, 1));
+  min-height: calc(104px * var(--ui, 1));
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.metaCard--dashboard .metaStatusIcon {
+  width: calc(40px * var(--ui, 1));
+  height: calc(40px * var(--ui, 1));
+}
+
+.metaCard--dashboard .metaStatusValueWrap {
+  align-items: center;
+}
+
+.metaDashboardSettingsCard {
+  min-height: calc(104px * var(--ui, 1));
+  padding: calc(14px * var(--ui, 1));
+  border-radius: calc(22px * var(--ui, 1));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(8px * var(--ui, 1));
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.metaDashboardSettingsCard .metaDashboardToolIcon svg {
+  width: calc(30px * var(--ui, 1));
+  height: calc(30px * var(--ui, 1));
+}
+
+.metaDashboardSettingsLabel {
+  font-size: calc(15px * var(--ui, 1));
+  font-weight: 800;
+}
+
+.metaDashboardPreviewButton {
+  grid-column: 1 / -1;
+  justify-self: end;
+  min-height: calc(48px * var(--ui, 1));
+  padding-inline: calc(18px * var(--ui, 1));
+  border-radius: calc(18px * var(--ui, 1));
+}
+
+.metaDashboardSection--leaderboard {
+  grid-area: leaderboard;
+  display: flex;
+  flex-direction: column;
+}
+
+.metaDashboardSectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(10px * var(--ui, 1));
+  margin-bottom: calc(6px * var(--ui, 1));
+}
+
+.metaCard--dashboard .metaLeaderboardList {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+.metaCard--dashboard .metaLeaderboardMoreButton {
+  margin-top: calc(12px * var(--ui, 1));
+}
+
+.metaDashboardActions {
+  margin-top: 0;
+  align-self: end;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+
+html[data-overlay-actions="stack"] .metaCard--dashboard .metaDashboardActions {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+
+@media (min-width: 980px) and (orientation: landscape) {
+  .metaCard--dashboard {
+    width: min(1480px, 99vw);
+  }
+
+  .metaDashboardBoard {
+    grid-template-columns: minmax(220px, 0.78fr) minmax(260px, 0.92fr) minmax(0, 1.4fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: "logo summary leaderboard";
+    align-items: stretch;
+  }
+
+  .metaDashboardPanel--summary {
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+
+  .metaDashboardPreviewButton {
+    justify-self: stretch;
+  }
+}
+
+@media (orientation: portrait) {
+  .metaCard--dashboard {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    gap: calc(8px * var(--ui, 1));
+    padding: calc(6px * var(--ui, 1));
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .metaDashboardBoard {
+    min-height: 0;
+    height: 100%;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: calc(6px * var(--ui, 1));
+    align-content: stretch;
+  }
+
+  .metaDashboardPanel--logo {
+    min-height: 0;
+    padding: 0;
+  }
+
+  .metaCard--dashboard .metaGameBadge--art {
+    width: min(100%, calc(176px * var(--ui, 1)));
+  }
+
+  .metaCard--dashboard .metaGameBadgeArt {
+    width: min(100%, calc(142px * var(--ui, 1)));
+    max-height: calc(142px * var(--ui, 1));
+  }
+
+  .metaDashboardPanel--summary {
+    gap: calc(6px * var(--ui, 1));
+  }
+
+  .metaDashboardPanel,
+  .metaDashboardSection--leaderboard {
+    min-height: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .metaCard--dashboard .metaStatusChip,
+  .metaDashboardSettingsCard {
+    min-height: calc(68px * var(--ui, 1));
+    padding: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaStatusIcon {
+    width: calc(22px * var(--ui, 1));
+    height: calc(22px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaStatusValue {
+    font-size: calc(24px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaStatusLabel,
+  .metaDashboardSettingsLabel,
+  .metaProfileButton--dashboard .metaProfileHint {
+    font-size: calc(12px * var(--ui, 1));
+  }
+
+  .metaProfileButton--dashboard {
+    gap: calc(8px * var(--ui, 1));
+    padding: calc(6px * var(--ui, 1)) calc(8px * var(--ui, 1));
+  }
+
+  .metaProfileButton--dashboard .metaHeroAvatar {
+    width: calc(42px * var(--ui, 1));
+    height: calc(42px * var(--ui, 1));
+    border-radius: calc(14px * var(--ui, 1));
+  }
+
+  .metaProfileButton--dashboard .metaProfileName {
+    font-size: calc(18px * var(--ui, 1));
+  }
+
+  .metaProfileButton--dashboard,
+  .metaCard--dashboard .metaStatusChip,
+  .metaDashboardSettingsCard {
+    border: 0;
+    box-shadow: none;
+  }
+
+  .metaDashboardSection--leaderboard {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metaCard--dashboard .metaLeaderboardList {
+    gap: calc(4px * var(--ui, 1));
+    margin-top: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    align-content: start;
+    grid-auto-rows: max-content;
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] {
+    align-content: stretch;
+    grid-template-rows: repeat(5, minmax(calc(48px * var(--ui, 1)), 1fr));
+    grid-auto-rows: auto;
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow {
+    gap: calc(8px * var(--ui, 1));
+    min-height: calc(50px * var(--ui, 1));
+    padding: calc(5px * var(--ui, 1)) calc(9px * var(--ui, 1));
+    border-radius: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardRank {
+    width: calc(34px * var(--ui, 1));
+    font-size: calc(18px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardAvatar {
+    width: calc(38px * var(--ui, 1));
+    height: calc(38px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardTitleRow {
+    gap: calc(9px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardName {
+    font-size: calc(15px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaInlineIcon {
+    width: calc(14px * var(--ui, 1));
+    height: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardCoins strong {
+    font-size: calc(20px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow {
+    min-height: 0;
+    gap: calc(10px * var(--ui, 1));
+    padding: calc(10px * var(--ui, 1)) calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRank {
+    width: calc(46px * var(--ui, 1));
+    font-size: calc(24px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardAvatar {
+    width: calc(48px * var(--ui, 1));
+    height: calc(48px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardPlayer {
+    width: 100%;
+    gap: calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardName {
+    font-size: clamp(18px, calc(18px * var(--ui, 1)), 22px);
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaInlineIcon {
+    width: calc(16px * var(--ui, 1));
+    height: calc(16px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins strong {
+    font-size: clamp(24px, calc(24px * var(--ui, 1)), 28px);
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins {
+    gap: calc(8px * var(--ui, 1));
+  }
+
+}
+
+html[data-layout-aspect-band="portrait-wide"] .metaCard--dashboard .metaGameBadge--art {
+  width: min(100%, calc(200px * var(--ui, 1)));
+}
+
+html[data-layout-aspect-band="portrait-wide"] .metaCard--dashboard .metaGameBadgeArt {
+  width: min(100%, calc(162px * var(--ui, 1)));
+  max-height: calc(162px * var(--ui, 1));
+}
+
+html[data-layout-aspect-band="portrait-wide"] .metaCard--dashboard .metaLeaderboardRow {
+  min-height: calc(50px * var(--ui, 1));
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaGameBadge--art {
+  width: min(100%, calc(148px * var(--ui, 1)));
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaGameBadgeArt {
+  width: min(100%, calc(118px * var(--ui, 1)));
+  max-height: calc(118px * var(--ui, 1));
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard .metaLeaderboardRow {
+  min-height: calc(46px * var(--ui, 1));
+}
+
+@media (max-width: 960px) {
+  .metaCard--dashboard {
+    width: min(98vw, 980px);
+    gap: calc(14px * var(--ui, 1));
+  }
+
+  .metaDashboardActions {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .metaCard--dashboard {
+    width: min(99vw, 720px);
+    padding: calc(6px * var(--ui, 1));
+    gap: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaGameBadge--art {
+    width: calc(140px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaGameBadgeArt {
+    width: calc(112px * var(--ui, 1));
+    max-height: calc(112px * var(--ui, 1));
+  }
+
+  .metaProfileButton--dashboard {
+    gap: calc(6px * var(--ui, 1));
+    padding: calc(5px * var(--ui, 1));
+  }
+
+  .metaDashboardPanel--summary {
+    grid-template-columns: minmax(0, 1.05fr) repeat(3, minmax(0, 0.82fr));
+    gap: calc(4px * var(--ui, 1));
+  }
+
+  .metaDashboardIdentityCard {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .metaDashboardIdentityCard .metaProfileButtonText,
+  .metaCard--dashboard .metaStatusValueWrap {
+    align-items: center;
+    text-align: center;
+  }
+
+  .metaProfileButton--dashboard .metaHeroAvatar {
+    width: calc(38px * var(--ui, 1));
+    height: calc(38px * var(--ui, 1));
+  }
+
+  .metaProfileButton--dashboard .metaProfileName {
+    font-size: calc(15px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaStatusChip,
+  .metaDashboardSettingsCard {
+    min-height: calc(58px * var(--ui, 1));
+    padding: calc(4px * var(--ui, 1));
+  }
+
+  .metaDashboardPreviewButton {
+    min-height: calc(46px * var(--ui, 1));
+    font-size: calc(15px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaStatusValue {
+    font-size: calc(19px * var(--ui, 1));
+  }
+
+  .metaDashboardSettingsLabel,
+  .metaProfileButton--dashboard .metaProfileHint,
+  .metaStatusLabel {
+    font-size: calc(11px * var(--ui, 1));
+  }
+
+  .metaDashboardPanel,
+  .metaDashboardSection--leaderboard {
+    padding: 0;
+  }
+
+  .metaDashboardPanel--logo {
+    min-height: 0;
+    padding: 0;
+  }
+
+  .metaCard--dashboard .metaGameBadge--art {
+    width: calc(126px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaGameBadgeArt {
+    width: calc(100px * var(--ui, 1));
+    max-height: calc(100px * var(--ui, 1));
+  }
+
+  .metaDashboardSection--leaderboard {
+    padding-top: 0;
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow {
+    min-height: calc(44px * var(--ui, 1));
+    padding: calc(3px * var(--ui, 1)) calc(6px * var(--ui, 1));
+    gap: calc(6px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardAvatar {
+    width: calc(30px * var(--ui, 1));
+    height: calc(30px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardRank {
+    width: calc(28px * var(--ui, 1));
+    font-size: calc(15px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardCoins strong {
+    font-size: calc(18px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardName {
+    font-size: calc(13px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] {
+    grid-template-rows: repeat(5, minmax(calc(44px * var(--ui, 1)), 1fr));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow {
+    gap: calc(8px * var(--ui, 1));
+    padding: calc(8px * var(--ui, 1)) calc(10px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRank {
+    width: calc(40px * var(--ui, 1));
+    font-size: calc(21px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardAvatar {
+    width: calc(42px * var(--ui, 1));
+    height: calc(42px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardName {
+    font-size: clamp(15px, calc(16px * var(--ui, 1)), 18px);
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins strong {
+    font-size: clamp(20px, calc(21px * var(--ui, 1)), 24px);
+  }
+
+  .metaCard[dir="rtl"] .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins {
+    justify-self: start;
+  }
+
+  .metaDashboardActions {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  }
+
+  html[data-overlay-actions="stack"] .metaCard--dashboard .metaDashboardActions {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  }
+}
+
+/* Portrait leaderboard reset:
+   keep one normal row per participant, independent of RTL/LTR,
+   and cap the block to half the dialog height. */
+@media (orientation: portrait) {
+  .metaCard--dashboard .metaDashboardPanel--summary {
+    gap: calc(8px * var(--ui, 1));
+  }
+
+  .metaProfileButton--dashboard .metaHeroAvatar {
+    width: clamp(40px, 8vw, 52px);
+    height: clamp(40px, 8vw, 52px);
+  }
+
+  .metaProfileButton--dashboard .metaProfileName {
+    font-size: clamp(16px, 3.2vw, 20px);
+    line-height: 1.15;
+  }
+
+  .metaProfileButton--dashboard .metaProfileHint,
+  .metaCard--dashboard .metaStatusLabel,
+  .metaDashboardSettingsLabel {
+    font-size: clamp(11px, 2.2vw, 14px);
+    line-height: 1.15;
+  }
+
+  .metaCard--dashboard .metaStatusValue {
+    font-size: clamp(22px, 4.4vw, 30px);
+    line-height: 1;
+  }
+
+  .metaCard--dashboard .metaStatusIcon,
+  .metaDashboardSettingsCard .metaDashboardToolIcon svg {
+    width: clamp(22px, 4.5vw, 28px);
+    height: clamp(22px, 4.5vw, 28px);
+  }
+
+  .metaGhostButton,
+  .metaPrimaryButton--level {
+    font-size: clamp(16px, 3.2vw, 20px);
+  }
+
+  .metaPrimaryButton--level {
+    min-height: clamp(56px, 10vw, 70px);
+  }
+
+  .metaCard--dashboard .metaDashboardSection--leaderboard {
+    max-height: 50%;
+    min-height: 0;
+  }
+
+  .metaCard--dashboard .metaLeaderboardList,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: calc(6px * var(--ui, 1));
+    margin-top: 0;
+    grid-template-rows: none !important;
+    grid-auto-rows: max-content;
+    overflow: auto;
+    overflow-x: hidden;
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] {
+    align-content: stretch;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
+    grid-auto-rows: auto;
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow {
+    direction: ltr;
+    display: grid;
+    grid-template-columns:
+      calc(42px * var(--ui, 1))
+      clamp(34px, 7vw, 46px)
+      minmax(0, 1fr)
+      auto
+      clamp(13px, 2.6vw, 17px);
+    align-items: center;
+    min-height: clamp(56px, 8.8vw, 72px);
+    gap: calc(8px * var(--ui, 1));
+    padding: calc(8px * var(--ui, 1)) calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow {
+    min-height: 0;
+    padding: calc(8px * var(--ui, 1)) calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardRank,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRank {
+    grid-column: 1;
+    width: auto;
+    font-size: clamp(18px, 3.6vw, 24px);
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .metaCard--dashboard .metaLeaderboardAvatarCell,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardAvatarCell {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .metaCard--dashboard .metaLeaderboardNameCell,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardNameCell {
+    grid-column: 3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .metaCard--dashboard .metaLeaderboardName,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardName {
+    font-size: clamp(16px, 3vw, 20px);
+    line-height: 1.2;
+    display: block;
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+    text-align: left;
+    unicode-bidi: isolate;
+  }
+
+  .metaCard--dashboard .metaLeaderboardCoins,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins {
+    grid-column: 4;
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    justify-content: flex-end;
+    white-space: nowrap;
+  }
+
+  .metaCard--dashboard .metaLeaderboardCoinIcon,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoinIcon {
+    grid-column: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardRow,
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardRow,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow {
+    grid-template-columns:
+      clamp(13px, 2.6vw, 17px)
+      auto
+      minmax(0, 1fr)
+      clamp(34px, 7vw, 46px)
+      calc(42px * var(--ui, 1));
+  }
+
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardRank,
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRank,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardRank,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRank {
+    grid-column: 5;
+  }
+
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardAvatarCell,
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardAvatarCell,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardAvatarCell,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardAvatarCell {
+    grid-column: 4;
+  }
+
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardNameCell,
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardNameCell,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardNameCell,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardNameCell {
+    grid-column: 3;
+    justify-content: flex-end;
+  }
+
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardName,
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardName,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardName,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardName {
+    text-align: right;
+  }
+
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardCoins,
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardCoins,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins {
+    grid-column: 2;
+  }
+
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardCoinIcon,
+  html[dir="rtl"] .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoinIcon,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardCoinIcon,
+  .metaCard[dir="rtl"].metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoinIcon {
+    grid-column: 1;
+  }
+
+  .metaCard--dashboard .metaInlineIcon,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaInlineIcon {
+    width: clamp(13px, 2.6vw, 17px);
+    height: clamp(13px, 2.6vw, 17px);
+  }
+
+  .metaCard--dashboard .metaLeaderboardCoins strong,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardCoins strong {
+    font-size: clamp(18px, 3.6vw, 24px);
+    line-height: 1.1;
+  }
+}
+
+/* Final explicit leaderboard direction rules.
+   Use the rendered row class instead of inherited dir selectors. */
+.metaLeaderboardRow.is-ltr .metaLeaderboardNameCell {
+  justify-content: flex-start;
+}
+
+.metaLeaderboardRow.is-ltr .metaLeaderboardName {
+  text-align: left;
+}
+
+.metaLeaderboardRow.is-rtl {
+  grid-template-columns:
+    calc(26px * var(--ui, 1))
+    auto
+    minmax(0, 1fr)
+    calc(64px * var(--ui, 1))
+    calc(56px * var(--ui, 1));
+}
+
+.metaLeaderboardRow.is-rtl .metaLeaderboardRank {
+  grid-column: 5;
+}
+
+.metaLeaderboardRow.is-rtl .metaLeaderboardAvatarCell {
+  grid-column: 4;
+}
+
+.metaLeaderboardRow.is-rtl .metaLeaderboardNameCell {
+  grid-column: 3;
+  justify-content: flex-end;
+}
+
+.metaLeaderboardRow.is-rtl .metaLeaderboardName {
+  text-align: right;
+}
+
+.metaLeaderboardRow.is-rtl .metaLeaderboardCoins {
+  grid-column: 2;
+}
+
+.metaLeaderboardRow.is-rtl .metaLeaderboardCoinIcon {
+  grid-column: 1;
+}
+
+@media (orientation: portrait) {
+  .metaCard--dashboard .metaLeaderboardRow.is-rtl,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl {
+    grid-template-columns:
+      clamp(13px, 2.6vw, 17px)
+      auto
+      minmax(0, 1fr)
+      clamp(34px, 7vw, 46px)
+      calc(42px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardRank,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardRank {
+    grid-column: 5;
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardAvatarCell,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardAvatarCell {
+    grid-column: 4;
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardNameCell,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardNameCell {
+    grid-column: 3;
+    justify-content: flex-end;
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardName,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardName {
+    text-align: right;
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardCoins,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardCoins {
+    grid-column: 2;
+  }
+
+  .metaCard--dashboard .metaLeaderboardRow.is-rtl .metaLeaderboardCoinIcon,
+  .metaCard--dashboard .metaLeaderboardList[data-row-count="5"] .metaLeaderboardRow.is-rtl .metaLeaderboardCoinIcon {
+    grid-column: 1;
+  }
+}
+
+/* Full-screen shared start dialog */
+
+.metaCard--dashboard-start,
+.metaCard--dashboard-start button,
+.metaCard--dashboard-start input,
+.metaCard--dashboard-start textarea,
+.metaCard--dashboard-start select {
+  font-family: "Rubik", Arial, "Arial Hebrew", sans-serif;
+}
+
+.metaCard--dashboard-start {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  overflow: hidden;
+  padding:
+    max(calc(10px * var(--ui, 1)), env(safe-area-inset-top))
+    max(calc(10px * var(--ui, 1)), env(safe-area-inset-right))
+    max(calc(10px * var(--ui, 1)), env(safe-area-inset-bottom))
+    max(calc(10px * var(--ui, 1)), env(safe-area-inset-left));
+  gap: calc(10px * var(--ui, 1));
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background:
+    radial-gradient(circle at top left, rgba(147, 197, 253, 0.26), rgba(147, 197, 253, 0) 28%),
+    radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.18), rgba(251, 191, 36, 0) 24%),
+    linear-gradient(180deg, rgba(29, 78, 216, 0.98), rgba(19, 54, 155, 0.98));
+}
+
+.metaCard--dashboard-start .metaDashboardBoard {
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: minmax(200px, 0.72fr) minmax(224px, 0.86fr) minmax(0, 1.36fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "logo summary leaderboard";
+  align-items: stretch;
+  gap: calc(10px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaDashboardPanel,
+.metaCard--dashboard-start .metaDashboardSection--leaderboard {
+  min-height: 0;
+  padding: calc(14px * var(--ui, 1));
+  border-radius: calc(22px * var(--ui, 1));
+  background: rgba(4, 15, 44, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.metaCard--dashboard-start .metaDashboardPanel--logo {
+  min-height: 0;
+  padding-block: calc(18px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaGameBadge--art {
+  width: min(100%, clamp(150px, 20vw, 250px));
+}
+
+.metaCard--dashboard-start .metaGameBadgeArt {
+  width: min(100%, clamp(126px, 17vw, 210px));
+  max-height: clamp(126px, 17vw, 210px);
+}
+
+.metaCard--dashboard-start .metaDashboardPanel--summary {
+  grid-template-columns: 1fr;
+  grid-auto-rows: minmax(0, 1fr);
+  gap: calc(10px * var(--ui, 1));
+  align-content: stretch;
+}
+
+.metaCard--dashboard-start .metaDashboardPanel--summary > * {
+  min-height: 0;
+}
+
+.metaCard--dashboard-start .metaProfileButton--dashboard,
+.metaCard--dashboard-start .metaStatusChip,
+.metaCard--dashboard-start .metaDashboardSettingsCard {
+  width: 100%;
+  min-height: 0;
+  padding: calc(12px * var(--ui, 1));
+  border-radius: calc(20px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaProfileButton--dashboard {
+  gap: calc(12px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar {
+  width: clamp(48px, 7vw, 74px);
+  height: clamp(48px, 7vw, 74px);
+  border-radius: calc(18px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName {
+  font-size: clamp(18px, 2.1vw, 28px);
+  line-height: 1.1;
+}
+
+.metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileHint,
+.metaCard--dashboard-start .metaStatusLabel,
+.metaCard--dashboard-start .metaDashboardSettingsLabel {
+  font-size: clamp(12px, 1.3vw, 16px);
+  line-height: 1.15;
+}
+
+.metaCard--dashboard-start .metaStatusChip {
+  gap: calc(10px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaStatusIcon,
+.metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg {
+  width: clamp(24px, 3.1vw, 38px);
+  height: clamp(24px, 3.1vw, 38px);
+}
+
+.metaCard--dashboard-start .metaStatusValue {
+  font-size: clamp(24px, 2.8vw, 38px);
+  line-height: 1;
+}
+
+.metaCard--dashboard-start .metaDashboardSettingsCard {
+  min-height: 0;
+}
+
+.metaCard--dashboard-start .metaDashboardPreviewButton {
+  min-height: clamp(46px, 5vw, 56px);
+  justify-self: stretch;
+}
+
+.metaCard--dashboard-start .metaDashboardSection--leaderboard {
+  display: flex;
+  flex-direction: column;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardList {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: calc(8px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardRow {
+  display: grid;
+  align-items: center;
+  min-height: 0;
+  direction: ltr;
+  border-radius: calc(18px * var(--ui, 1));
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardRow.is-current {
+  border-color: rgba(250, 204, 21, 0.62);
+  box-shadow: 0 0 calc(16px * var(--ui, 1)) rgba(250, 204, 21, 0.14);
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardRow.is-ltr {
+  grid-template-columns: 15% 16% 39% 22% 8%;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardRow.is-rtl {
+  grid-template-columns: 8% 22% 39% 16% 15%;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: calc(10px * var(--ui, 1)) calc(12px * var(--ui, 1));
+  box-sizing: border-box;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--rank {
+  justify-content: center;
+  font-size: clamp(18px, 2.2vw, 28px);
+  font-weight: 900;
+  text-align: center;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--avatar {
+  justify-content: center;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--name {
+  justify-content: flex-start;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--coins {
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--coin-icon {
+  justify-content: center;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardRow.is-rtl .metaStartLeaderboardCell--name {
+  justify-content: flex-end;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardRow.is-rtl .metaStartLeaderboardCell--coins {
+  justify-content: flex-start;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--name .metaLeaderboardName {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(15px, 1.7vw, 22px);
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardRow.is-ltr .metaStartLeaderboardCell--name .metaLeaderboardName {
+  text-align: left;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardRow.is-rtl .metaStartLeaderboardCell--name .metaLeaderboardName {
+  text-align: right;
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--coins strong {
+  font-size: clamp(19px, 2.1vw, 28px);
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--coin-icon .metaInlineIcon {
+  width: clamp(14px, 1.7vw, 20px);
+  height: clamp(14px, 1.7vw, 20px);
+}
+
+.metaCard--dashboard-start .metaStartLeaderboardCell--avatar .metaLeaderboardAvatar {
+  width: clamp(38px, 4.8vw, 56px);
+  height: clamp(38px, 4.8vw, 56px);
+}
+
+.metaCard--dashboard-start .metaLeaderboardList,
+.metaCard--dashboard-start .metaLeaderboardList[data-row-count="5"] {
+  display: none;
+}
+
+.metaCard--dashboard-start .metaLeaderboardList,
+.metaCard--dashboard-start .metaLeaderboardList[data-row-count="5"] {
+  gap: calc(8px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaDashboardActions {
+  margin-top: 0;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: calc(10px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaDashboardActions .metaGhostButton,
+.metaCard--dashboard-start .metaDashboardActions .metaPrimaryButton {
+  width: 100%;
+  margin-top: 0;
+  min-height: clamp(52px, 8vh, 74px);
+  border-radius: calc(22px * var(--ui, 1));
+}
+
+.metaCard--dashboard-start .metaResultsExitButton {
+  font-size: clamp(18px, 2vw, 28px);
+}
+
+.metaCard--dashboard-start .metaResultsContinueButton {
+  font-size: clamp(19px, 2.1vw, 30px);
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardBoard {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "logo"
+    "summary"
+    "leaderboard";
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPanel--summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: calc(6px * var(--ui, 1));
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard {
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  gap: calc(6px * var(--ui, 1));
+  padding-inline: calc(8px * var(--ui, 1));
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardIdentityCard .metaProfileButtonText,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValueWrap {
+  align-items: center;
+  text-align: center;
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar {
+  width: clamp(40px, 10vw, 52px);
+  height: clamp(40px, 10vw, 52px);
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName {
+  font-size: clamp(14px, 3.6vw, 18px);
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileHint,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusLabel,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsLabel {
+  font-size: clamp(10px, 2.6vw, 13px);
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValue {
+  font-size: clamp(18px, 4.6vw, 24px);
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusIcon,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg {
+  width: clamp(20px, 4.4vw, 26px);
+  height: clamp(20px, 4.4vw, 26px);
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusChip,
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard {
+  padding: calc(8px * var(--ui, 1));
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardPreviewButton {
+  grid-column: 1 / -1;
+}
+
+html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardActions {
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+}
+
+@media (max-width: 900px) {
+  .metaCard--dashboard-start .metaDashboardBoard {
+    grid-template-columns: minmax(160px, 0.65fr) minmax(200px, 0.82fr) minmax(0, 1.28fr);
+  }
+
+  .metaCard--dashboard-start .metaStartLeaderboardCell {
+    padding: calc(8px * var(--ui, 1)) calc(10px * var(--ui, 1));
+  }
+
+  .metaCard--dashboard-start .metaStartLeaderboardRow.is-ltr {
+    grid-template-columns: 16% 16% 38% 22% 8%;
+  }
+
+.metaCard--dashboard-start .metaStartLeaderboardRow.is-rtl {
+    grid-template-columns: 8% 22% 38% 16% 16%;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 820px) {
+  .metaCard--settings {
+    max-height: 96dvh;
+    padding: calc(20px * var(--ui, 1));
+    gap: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaGhostButton {
+    min-height: calc(52px * var(--ui, 1));
+    padding: 0 calc(20px * var(--ui, 1));
+    font-size: calc(20px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaTitle {
+    font-size: clamp(30px, calc(34px * var(--ui, 1)), 44px);
+  }
+
+  .metaSettingsMascot {
+    width: calc(72px * var(--ui, 1));
+    height: calc(72px * var(--ui, 1));
+    font-size: calc(42px * var(--ui, 1));
+  }
+
+  .metaSettingPanel {
+    padding: calc(14px * var(--ui, 1));
+    border-radius: 24px;
+  }
+
+  .metaSettingPanelHead {
+    margin-bottom: calc(10px * var(--ui, 1));
+  }
+
+  .metaSettingPanelIcon {
+    width: calc(52px * var(--ui, 1));
+    height: calc(52px * var(--ui, 1));
+    font-size: calc(26px * var(--ui, 1));
+  }
+
+  .metaSettingPanelTitle {
+    font-size: clamp(22px, calc(24px * var(--ui, 1)), 32px);
+  }
+
+  .metaCard--settings .metaChoiceGrid {
+    gap: calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaChoiceButton {
+    min-height: calc(84px * var(--ui, 1));
+    padding: calc(14px * var(--ui, 1));
+    border-radius: 24px;
+  }
+
+  .metaCard--settings .metaChoiceLabel {
+    font-size: calc(24px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaChoiceVisual {
+    width: calc(62px * var(--ui, 1));
+    height: calc(62px * var(--ui, 1));
+    flex-basis: calc(62px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaChoiceVisualImage {
+    width: calc(38px * var(--ui, 1));
+    height: calc(38px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaFlagVisual {
+    font-size: calc(34px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaSoundButton .metaChoiceLabel,
+  .metaCard--settings .metaDiffValue {
+    font-size: calc(28px * var(--ui, 1));
+  }
+
+  .metaDifficultyColumns {
+    gap: calc(12px * var(--ui, 1));
+  }
+
+  .metaDifficultyColumn {
+    gap: calc(10px * var(--ui, 1));
+    padding: calc(12px * var(--ui, 1));
+    border-radius: 22px;
+  }
+
+  .metaSectionTitle--difficulty {
+    font-size: calc(18px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaDiffStepper {
+    min-height: calc(86px * var(--ui, 1));
+    border-radius: 24px;
+  }
+
+  .metaCard--settings .metaDiffStepperButtons {
+    width: calc(74px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaStepperButton {
+    font-size: calc(24px * var(--ui, 1));
+  }
+}
+
+/* Compact settings dialog */
+.metaCard--settings {
+  max-height: min(92dvh, 760px);
+  padding: calc(18px * var(--ui, 1));
+  gap: calc(12px * var(--ui, 1));
+}
+
+.metaSettingsBoard {
+  overflow: hidden;
+  padding-inline-end: 0;
+  gap: calc(14px * var(--ui, 1));
+}
+
+.metaSettingsTop {
+  gap: calc(12px * var(--ui, 1));
+}
+
+.metaCardHead--settings {
+  gap: calc(12px * var(--ui, 1));
+}
+
+.metaCard--settings .metaGhostButton {
+  min-height: calc(46px * var(--ui, 1));
+  padding: 0 calc(16px * var(--ui, 1));
+  border-radius: 18px;
+  font-size: calc(18px * var(--ui, 1));
+}
+
+.metaCard--settings .metaTitle {
+  font-size: clamp(28px, calc(32px * var(--ui, 1)), 42px);
+}
+
+.metaSettingsMascot {
+  width: calc(56px * var(--ui, 1));
+  height: calc(56px * var(--ui, 1));
+  font-size: calc(34px * var(--ui, 1));
+}
+
+.metaSettingPanel {
+  padding: calc(14px * var(--ui, 1));
+  border-radius: 24px;
+}
+
+.metaSettingPanelHead {
+  gap: calc(10px * var(--ui, 1));
+  margin-bottom: calc(10px * var(--ui, 1));
+}
+
+.metaSettingPanelIcon {
+  width: calc(48px * var(--ui, 1));
+  height: calc(48px * var(--ui, 1));
+  border-radius: 16px;
+  font-size: calc(24px * var(--ui, 1));
+}
+
+.metaSettingPanelTitle {
+  font-size: clamp(20px, calc(22px * var(--ui, 1)), 30px);
+}
+
+.metaCard--settings .metaChoiceGrid {
+  gap: calc(12px * var(--ui, 1));
+}
+
+.metaCard--settings .metaChoiceButton {
+  min-height: calc(72px * var(--ui, 1));
+  padding: calc(12px * var(--ui, 1));
+  border-radius: 22px;
+}
+
+.metaCard--settings .metaChoiceLabel {
+  font-size: calc(22px * var(--ui, 1));
+}
+
+.metaCard--settings .metaChoiceVisual {
+  width: calc(54px * var(--ui, 1));
+  height: calc(54px * var(--ui, 1));
+  flex-basis: calc(54px * var(--ui, 1));
+}
+
+.metaCard--settings .metaChoiceVisualImage {
+  width: calc(32px * var(--ui, 1));
+  height: calc(32px * var(--ui, 1));
+}
+
+.metaCard--settings .metaFlagVisual {
+  font-size: calc(30px * var(--ui, 1));
+}
+
+.metaCard--settings .metaLanguageButton {
+  min-height: calc(118px * var(--ui, 1));
+  gap: calc(10px * var(--ui, 1));
+  padding: calc(14px * var(--ui, 1)) calc(10px * var(--ui, 1));
+}
+
+.metaCard--settings .metaSoundButton {
+  min-height: calc(132px * var(--ui, 1));
+  padding: calc(16px * var(--ui, 1));
+  gap: calc(16px * var(--ui, 1));
+  border-radius: 28px;
+}
+
+.metaCard--settings .metaSoundButton .metaChoiceLabel {
+  font-size: calc(28px * var(--ui, 1));
+}
+
+.metaCard--settings .metaSoundButton .metaChoiceVisual {
+  width: calc(88px * var(--ui, 1));
+  height: calc(88px * var(--ui, 1));
+  flex-basis: calc(88px * var(--ui, 1));
+}
+
+.metaCard--settings .metaSoundButton .metaChoiceVisualImage {
+  width: calc(80px * var(--ui, 1));
+  height: calc(80px * var(--ui, 1));
+}
+
+.metaSettingPanel--difficulty {
+  padding-top: calc(14px * var(--ui, 1));
+}
+
+.metaDifficultyColumns {
+  gap: calc(12px * var(--ui, 1));
+}
+
+.metaDifficultyColumn {
+  gap: calc(8px * var(--ui, 1));
+  padding: calc(10px * var(--ui, 1));
+  border-radius: 20px;
+}
+
+.metaSectionTitle--difficulty {
+  font-size: calc(16px * var(--ui, 1));
+}
+
+.metaCard--settings .metaDiffStepper {
+  min-height: calc(74px * var(--ui, 1));
+  border-radius: 20px;
+}
+
+.metaCard--settings .metaDiffValue {
+  font-size: calc(24px * var(--ui, 1));
+}
+
+.metaCard--settings .metaDiffStepperButtons {
+  width: calc(60px * var(--ui, 1));
+}
+
+.metaCard--settings .metaStepperButton {
+  font-size: calc(20px * var(--ui, 1));
+}
+
+@media (orientation: portrait) {
+  .metaCard--settings {
+    width: min(94vw, 560px);
+    max-height: min(92dvh, 820px);
+    padding: calc(16px * var(--ui, 1));
+  }
+
+  .metaCardHead--settings {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "title mascot"
+      "back back";
+    row-gap: calc(10px * var(--ui, 1));
+  }
+
+  .metaSettingsTop,
+  .metaDifficultyColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .metaCard--settings .metaTitle {
+    font-size: clamp(26px, calc(30px * var(--ui, 1)), 40px);
+  }
+
+  .metaCard--settings .metaChoiceLabel,
+  .metaCard--settings .metaSoundButton .metaChoiceLabel,
+  .metaCard--settings .metaDiffValue {
+    font-size: calc(22px * var(--ui, 1));
   }
 }

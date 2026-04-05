@@ -10,6 +10,11 @@
   const cfg = window.GAME_V2_SHAPES_CONFIG;
 
   const gameEl = document.getElementById("game");
+  const wrapEl = document.querySelector(".wrap");
+  const sideEl = document.querySelector(".side");
+  const hudEl = document.querySelector(".hudPanel");
+  const answersPanelEl = document.querySelector(".answersPanel");
+  const controlsEl = document.querySelector(".controlsPanel");
   const tileEl = document.getElementById("tile");
   const tileShapeEl = document.getElementById("tileShape");
   const tileColorEl = document.getElementById("tileColor");
@@ -27,13 +32,20 @@
   const streakMeterEl = document.getElementById("streakMeter");
   const streakFillEl = document.getElementById("streakFill");
   const answersEl = document.getElementById("answers");
-  const ansBtns = Array.from(answersEl.querySelectorAll(".ans"));
 
   const shell = shellApi.createFallingShell({
     gameEl,
+    wrapEl,
+    sideEl,
+    hudEl,
+    answersPanelEl,
+    answersEl,
+    controlsEl,
     menuUrl: cfg.menuUrl,
-    waterYRatio: cfg.waterYRatio
+    waterYRatio: cfg.waterYRatio,
+    layout: cfg.layout
   });
+  const ansBtns = shell.getAnswerButtons();
   const audio = audioApi.createArcadeAudio({
     sfxGain: cfg.gameplay.sfxGain,
     splashUrl: cfg.assets.splashAudio,
@@ -196,6 +208,9 @@
 
   function applyAnswerCount(count) {
     activeAnswerCount = Math.max(4, Math.min(ansBtns.length, Number(count) || 4));
+    shell.setAnswerLayout({
+      activeCount: activeAnswerCount
+    });
     ansBtns.forEach((btn, idx) => {
       const enabled = idx < activeAnswerCount;
       btn.style.display = enabled ? "grid" : "none";

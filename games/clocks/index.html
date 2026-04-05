@@ -10,8 +10,9 @@
   <link rel="preload" href="../shared/assets/ui/star.svg" as="image">
   <link rel="preload" href="assets/ui/dial.png" as="image">
   <link rel="stylesheet" href="../shared/styles/tokens.css?v=20260331font1">
-  <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260403layout30">
-  <link rel="stylesheet" href="../shared/styles/game-meta.css?v=20260403meta46">
+  <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260404layout32">
+  <link rel="stylesheet" href="../shared/styles/answers.css?v=20260403layout1">
+  <link rel="stylesheet" href="../shared/styles/game-meta.css?v=20260405meta82">
   <link rel="stylesheet" href="../shared/styles/falling-clocks.css?v=20260324clocksmobile7">
 </head>
 <body>
@@ -36,7 +37,7 @@
     </div>
 
     <div class="side">
-      <div class="panel">
+      <div class="panel hudPanel">
         <div class="row topStats">
           <div class="block coinsBlock">
             <div class="statusCardHead">
@@ -59,15 +60,10 @@
       </div>
 
       <div class="panel answersPanel">
-        <div class="answers" id="answers">
-          <button class="ans clockAns" type="button" data-idx="0"></button>
-          <button class="ans clockAns" type="button" data-idx="1"></button>
-          <button class="ans clockAns" type="button" data-idx="2"></button>
-          <button class="ans clockAns" type="button" data-idx="3"></button>
-        </div>
+        <div class="answers" id="answers"></div>
       </div>
 
-      <div class="panel bottom">
+      <div class="panel bottom controlsPanel">
         <div class="row">
           <div class="actions">
             <button id="pauseBtn" class="ctrl iconBtn" type="button" aria-label="Pause"></button>
@@ -80,10 +76,11 @@
   </div>
 
   <script src="../shared/scripts/utils.js?v=20260323clocks1"></script>
+  <script src="../shared/scripts/layout.js?v=20260405layout6"></script>
   <script src="../shared/scripts/audio.js?v=20260323clocks1"></script>
-  <script src="../shared/scripts/fx.js?v=20260323clocks1"></script>
-  <script src="../shared/scripts/game-shell.js?v=20260403runner5"></script>
-  <script src="../shared/scripts/game-meta.js?v=20260403meta35"></script>
+  <script src="../shared/scripts/fx.js?v=20260404fx1"></script>
+  <script src="../shared/scripts/game-shell.js?v=20260404runner8"></script>
+  <script src="../shared/scripts/game-meta.js?v=20260405meta48"></script>
   <script src="../shared/scripts/game-session.js?v=20260403level2"></script>
   <script src="config.js?v=20260323clocks2"></script>
   <script src="game.js?v=20260403balance4"></script>

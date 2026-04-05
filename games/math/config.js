@@ -5,6 +5,16 @@ window.GAME_V3_MATH_CONFIG = {
   splashOffsetBaselineHeight: 650,
   splashOffsetExponent: 0.5,
   answerFeedbackMs: 220,
+  layout: {
+    answers: {
+      type: "FourAnswerGrid",
+      count: 4,
+      activeCount: 4,
+      minButtonSize: 84,
+      maxButtonSize: 190,
+      aspectRatio: 1.24
+    }
+  },
   assets: {
     splashSheet: {
       url: "../shared/assets/fx/splash_sheet.png",

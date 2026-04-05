@@ -10,6 +10,11 @@
   const cfg = window.GAME_V3_CLOCKS_CONFIG;
 
   const gameEl = document.getElementById("game");
+  const wrapEl = document.querySelector(".wrap");
+  const sideEl = document.querySelector(".side");
+  const hudEl = document.querySelector(".hudPanel");
+  const answersPanelEl = document.querySelector(".answersPanel");
+  const controlsEl = document.querySelector(".controlsPanel");
   const tileEl = document.getElementById("tile");
   const tileLabelEl = document.getElementById("tileLabel");
   const overlayEl = document.getElementById("overlay");
@@ -25,9 +30,20 @@
   const streakMeterEl = document.getElementById("streakMeter");
   const streakFillEl = document.getElementById("streakFill");
   const answersEl = document.getElementById("answers");
-  const ansBtns = Array.from(answersEl.querySelectorAll(".ans"));
+  const shell = shellApi.createFallingShell({
+    gameEl,
+    wrapEl,
+    sideEl,
+    hudEl,
+    answersPanelEl,
+    answersEl,
+    controlsEl,
+    menuUrl: cfg.menuUrl,
+    waterYRatio: cfg.waterYRatio,
+    layout: cfg.layout
+  });
+  const ansBtns = shell.getAnswerButtons();
 
-  const shell = shellApi.createFallingShell({ gameEl, menuUrl: cfg.menuUrl, waterYRatio: cfg.waterYRatio });
   const audio = audioApi.createArcadeAudio({ sfxGain: cfg.gameplay.sfxGain, splashUrl: cfg.assets.splashAudio, coinUrl: cfg.assets.coinAudio });
   const fx = fxApi.createFxToolkit({ gameEl, coinIconEl });
   const diffOptions = Array.from(diffsEl.querySelectorAll("[data-diff]")).map((btn) => ({
