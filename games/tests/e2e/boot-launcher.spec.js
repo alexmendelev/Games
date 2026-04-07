@@ -80,7 +80,7 @@ test("launcher can open fullscreen on mobile", async ({ page }) => {
 test("launcher preloads new words emoji assets during boot", async ({ page }) => {
   const requestedEmojiPaths = [];
 
-  await page.route("**/words/data/emojis-new/icon-pack-manifest-he.tsv", async (route) => {
+  await page.route("**/words/data/emojis-new/icon-pack-manifest.tsv", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "text/tab-separated-values",

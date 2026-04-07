@@ -10,23 +10,22 @@ Target image directory: `C:\Users\alexm\games\games\words\data\emojis-new`
 - Background: transparent
 - Style: clean 2D cartoon for children, bold outline, soft shading, controlled bright color, no text, no glow, no background
 - Naming convention: `category-english.png`
-- Full filename manifest: `icon-pack-manifest.csv`
+- Runtime manifest: `icon-pack-manifest.tsv`
 
 ## Compatibility Note
 
-The current game loader still expects codepoint-based filenames from the TSV:
+The current runtime already loads filename-based rows from the TSV:
 
-- `game.js` builds image URLs as `${cfg.assets.emojiDir}/${code}.png`
+- `game.js` builds image URLs from the TSV `filename` column.
 - Source references:
   - `C:\Users\alexm\games\games\words\game.js:193`
-  - `C:\Users\alexm\games\games\words\game.js:205`
-  - `C:\Users\alexm\games\games\words\data\emoji-easy-oneword-he.tsv:1`
+  - `C:\Users\alexm\games\games\words\data\emojis-new\icon-pack-manifest.tsv:1`
 
 Recommended production path:
 
-1. Generate and review the art pack with the new canonical filenames from `icon-pack-manifest.csv`.
-2. Add a `filename` column to the TSV or a separate manifest map so runtime can resolve `category-english.png`.
-3. Keep a temporary compatibility layer while replacing old codepoint PNGs.
+1. Generate and review the art pack against `icon-pack-manifest.tsv`.
+2. Keep filenames aligned with the TSV entries.
+3. Update the TSV directly when adding or renaming icons.
 
 ## Master Prompt Template
 
@@ -164,4 +163,4 @@ Why this order works:
 3. Freeze style decisions and update prompt wording only once.
 4. Generate the remaining batches in the proposed order.
 5. Run QA and normalization after each batch, not just at the end.
-6. Add runtime filename mapping before switching the game to the new pack.
+6. Update `icon-pack-manifest.tsv` alongside any new icons.

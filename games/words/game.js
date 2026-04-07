@@ -86,8 +86,10 @@
   let emojiPools = {};
   let correctDeck = [];
   let correctDeckDiffKey = "";
+  let correctDeckLanguageId = "";
   let deckPos = 0;
   let recentCorrectIds = [];
+  let emojiPoolsLanguageId = "";
   let selected = meta.getSelectedDiff();
   const session = sessionApi.createArcadeSession({
     getLevelRules: () => {
@@ -183,49 +185,97 @@
     img.src = url;
   }
 
+  function currentLanguageId() {
+    const rawLanguageId = String(document.documentElement.getAttribute("lang") || "").trim().toLowerCase();
+    return rawLanguageId || "he";
+  }
+
+  function normalizeEmojiLabelKey(key) {
+    const normalized = String(key || "").trim().toLowerCase();
+    if (!normalized) return "";
+    if (normalized === "english") return "en";
+    if (normalized === "hebrew") return "he";
+    return normalized;
+  }
+
+  function buildEmojiLabels(headers, parts) {
+    const labels = {};
+    (headers || []).forEach((header, index) => {
+      const labelKey = normalizeEmojiLabelKey(header);
+      if (!labelKey || labelKey === "filename" || labelKey === "category" || labelKey === "group") return;
+      const labelValue = String(parts[index] || "").trim();
+      if (labelValue) {
+        labels[labelKey] = labelValue;
+      }
+    });
+    return labels;
+  }
+
+  function deriveEnglishLabel(item) {
+    const explicitEnglish = String(item && item.en || "").trim();
+    if (explicitEnglish) return explicitEnglish;
+    const source = String((item && (item.filename || item.id)) || "").replace(/\.png$/i, "");
+    const match = source.match(/^[^-]+-(.+)$/);
+    return String(match ? match[1] : source).replace(/_/g, " ").trim();
+  }
+
+  function emojiWord(item, languageId) {
+    if (!item) return "";
+    const labels = item.labels && typeof item.labels === "object" ? item.labels : {};
+    const requestedLabel = String(labels[languageId] || "").trim();
+    if (requestedLabel) return requestedLabel;
+    const englishLabel = String(labels.en || item.en || deriveEnglishLabel(item) || "").trim();
+    if (englishLabel) return englishLabel;
+    const hebrewLabel = String(labels.he || item.he || "").trim();
+    if (hebrewLabel) return hebrewLabel;
+    const fallbackLabelKey = Object.keys(labels).find((key) => String(labels[key] || "").trim());
+    return fallbackLabelKey ? String(labels[fallbackLabelKey] || "").trim() : String(item.id || "").trim();
+  }
+
+  function languageDirection(languageId) {
+    return String(languageId || "").toLowerCase() === "he" ? "rtl" : "ltr";
+  }
+
   async function loadEmojiTsv() {
     const response = await fetch(cfg.assets.emojiTsv, { cache: "no-store" });
     if (!response.ok) throw new Error("Failed to load emoji TSV");
     const text = await response.text();
     const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-    const rows = lines.length && /^filename\t/i.test(lines[0]) ? lines.slice(1) : lines;
+    const headers = lines.length && /^filename\t/i.test(lines[0]) ? lines[0].split("\t").map((part) => String(part || "").trim()) : null;
+    const rows = headers ? lines.slice(1) : lines;
     return rows.map((line) => {
       const parts = line.split("\t");
-      if (parts.length >= 4 && /\.png$/i.test((parts[0] || "").trim())) {
-        const [filename, , en, he] = parts;
+      if (headers && parts.length >= 4 && /\.png$/i.test((parts[0] || "").trim())) {
+        const filename = String(parts[0] || "").trim();
+        const labels = buildEmojiLabels(headers, parts);
         const file = String(filename || "").trim();
         return {
           id: file.replace(/\.png$/i, ""),
-          en: String(en || "").trim(),
-          he: String(he || "").trim(),
+          filename: file,
+          en: String(labels.en || "").trim(),
+          he: String(labels.he || "").trim(),
+          labels,
           src: `${cfg.assets.emojiDir}/${file}`
         };
       }
       const [id, en, he] = parts;
       const code = (id || "").trim().toUpperCase();
-      return { id: code, en: (en || "").trim(), he: (he || "").trim(), src: `${cfg.assets.emojiDir}/${code}.png` };
-    }).filter((item) => item.id && item.he);
-  }
-
-  function embeddedEmojiList() {
-    const embedded = Array.isArray(window.GAME_V2_WORDS_EMOJI_DATA) ? window.GAME_V2_WORDS_EMOJI_DATA : [];
-    return embedded.map((item) => {
-      const filename = String(item.filename || "").trim();
-      const code = String(item.id || "").trim().toUpperCase();
-      return {
-        id: filename ? filename.replace(/\.png$/i, "") : code,
-        en: String(item.en || "").trim(),
-        he: String(item.he || "").trim(),
-        src: filename ? `${cfg.assets.emojiDir}/${filename}` : `${cfg.assets.emojiDir}/${code}.png`
-      };
-    }).filter((item) => item.id && item.he);
+      const labels = {};
+      if (String(en || "").trim()) labels.en = String(en || "").trim();
+      if (String(he || "").trim()) labels.he = String(he || "").trim();
+      return { id: code, en: (en || "").trim(), he: (he || "").trim(), labels, src: `${cfg.assets.emojiDir}/${code}.png` };
+    }).filter((item) => item.id && emojiWord(item, "he"));
   }
 
   function fallbackEmojiList() {
     return cfg.fallbackEmojis.map((item) => ({
       id: item.id,
-      en: String(item.en || "").trim(),
+      en: deriveEnglishLabel(item),
       he: item.he,
+      labels: {
+        en: deriveEnglishLabel(item),
+        he: String(item.he || "").trim()
+      },
       src: item.filename ? `${cfg.assets.emojiDir}/${item.filename}` : `${cfg.assets.emojiDir}/${item.id}.png`
     }));
   }
@@ -239,6 +289,7 @@
   }
 
   function rebuildEmojiPools() {
+    const languageId = currentLanguageId();
     emojiPools = {};
     for (const diffKey of diffOrder) {
       const diff = cfg.diffs[diffKey];
@@ -247,8 +298,9 @@
         emojiPools[diffKey] = emojis.slice();
         continue;
       }
-      emojiPools[diffKey] = emojis.filter((item) => wordLetterCount(item.he) <= diff.maxLetters);
+      emojiPools[diffKey] = emojis.filter((item) => wordLetterCount(emojiWord(item, languageId)) <= diff.maxLetters);
     }
+    emojiPoolsLanguageId = languageId;
   }
 
   function currentDiffKey() {
@@ -260,11 +312,15 @@
   }
 
   function activeEmojiPool(diffKey) {
+    if (emojiPoolsLanguageId !== currentLanguageId()) {
+      rebuildEmojiPools();
+    }
     const pool = emojiPools[diffKey] || [];
     return pool.length >= 4 ? pool : emojis;
   }
 
   function refillCorrectDeck(diffKey) {
+    correctDeckLanguageId = currentLanguageId();
     correctDeck = activeEmojiPool(diffKey).slice();
     utils.shuffleInPlace(correctDeck);
     deckPos = 0;
@@ -273,9 +329,10 @@
 
   function nextCorrectEmoji() {
     if (!emojis.length) return null;
+    const languageId = currentLanguageId();
     const diffKey = currentDiffKey();
     const pool = activeEmojiPool(diffKey);
-    if (!correctDeck.length || deckPos >= correctDeck.length || correctDeckDiffKey !== diffKey) refillCorrectDeck(diffKey);
+    if (!correctDeck.length || deckPos >= correctDeck.length || correctDeckDiffKey !== diffKey || correctDeckLanguageId !== languageId) refillCorrectDeck(diffKey);
     let candidate = null;
     let tries = 0;
     while (tries < Math.max(1, correctDeck.length)) {
@@ -516,6 +573,7 @@
   function generateTask() {
     const correct = nextCorrectEmoji();
     if (!correct) return null;
+    const languageId = currentLanguageId();
     const pool = emojis.filter((item) => item.id !== correct.id);
     utils.shuffleInPlace(pool);
     const options = [correct, pool[0], pool[1], pool[2]];
@@ -525,7 +583,9 @@
     const lane = shell.fallLane(tileMetrics.width, tileMetrics.margin, rect);
     const tabletReward = rollSpecialTablet();
     return {
-      wordHe: correct.he,
+      word: emojiWord(correct, languageId),
+      wordLang: languageId,
+      wordDir: languageDirection(languageId),
       correctId: correct.id,
       options,
       width: tileMetrics.width,
@@ -544,7 +604,10 @@
     if (!task) return;
     if (phase !== "frame") {
       clearAnswerMarks();
-      tileEl.textContent = task.wordHe;
+      tileEl.textContent = task.word;
+      tileEl.setAttribute("lang", task.wordLang || "he");
+      tileEl.setAttribute("dir", task.wordDir || "rtl");
+      tileEl.setAttribute("data-word-dir", task.wordDir || "rtl");
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
       if (task.rewardCoins > 0) {
         tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
@@ -650,6 +713,7 @@
     pauseBtn.classList.remove("paused");
     correctDeck = [];
     correctDeckDiffKey = "";
+    correctDeckLanguageId = "";
     deckPos = 0;
     recentCorrectIds = [];
     lockInputUntil = 0;
@@ -718,6 +782,7 @@
       overlayEl.style.display = "grid";
       return false;
     }
+    emojiPoolsLanguageId = "";
     rebuildEmojiPools();
     await Promise.all([
       preloadImage(cfg.assets.mascotSheet.url),

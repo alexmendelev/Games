@@ -15,11 +15,9 @@
   const menuTitleEl = document.querySelector(".menuTitle");
   const gameStageEl = document.getElementById("gameStage");
   const gameFrameEl = document.getElementById("gameFrame");
-  const embeddedBuildTag = "20260407embed5";
-  const wordsEmojiManifestUrl = "words/data/emojis-new/icon-pack-manifest-he.tsv";
+  const embeddedBuildTag = "20260407embed6";
+  const wordsEmojiManifestUrl = "words/data/emojis-new/icon-pack-manifest.tsv";
   const wordsEmojiDir = "words/data/emojis-new";
-  const legacyWordsEmojiDataUrl = "words/data/emoji-easy-oneword-he.js?v=20260317a";
-  const legacyWordsEmojiDir = "words/data/emojis";
   let embeddedLaunchSeq = 0;
   let bootDismissed = false;
   let launchMode = "normal";
@@ -111,7 +109,6 @@
     "multiply/config.js?v=20260322mascot1",
     "multiply/game.js?v=20260403balance4",
     "words/config.js?v=20260322mascot1",
-    legacyWordsEmojiDataUrl,
     wordsEmojiManifestUrl,
     "words/game.js?v=20260403balance5",
     "shapes/config.js?v=20260322mascot1",
@@ -321,22 +318,13 @@
   async function resolveWordsEmojiUrls() {
     try {
       const manifestResponse = await fetch(wordsEmojiManifestUrl, { credentials: "same-origin" });
-      if (manifestResponse.ok) {
-        const manifestUrls = parseWordsEmojiManifest(await manifestResponse.text());
-        if (manifestUrls.length) {
-          return manifestUrls;
-        }
+      if (!manifestResponse.ok) {
+        return [];
       }
-    } catch (_) {}
-
-    const response = await fetch(legacyWordsEmojiDataUrl, { credentials: "same-origin" });
-    if (!response.ok) {
-      throw new Error("Failed to load emoji data");
+      return parseWordsEmojiManifest(await manifestResponse.text());
+    } catch (_) {
+      return [];
     }
-    const text = await response.text();
-    return unique(
-      Array.from(text.matchAll(/"id":"([^"]+)"/g)).map((match) => `${legacyWordsEmojiDir}/${match[1]}.png`)
-    );
   }
 
   function buildFreshGameUrl(href) {
