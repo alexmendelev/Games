@@ -21,18 +21,18 @@ window.GAME_V2_WORDS_CONFIG = {
     mascotSadSheet: { url: "../shared/assets/mascot/kittysad.png", cols: 4, rows: 2, frames: 8, fps: 6 },
     splashAudio: "../shared/assets/audio/splash.mp3",
     coinAudio: "../shared/assets/audio/coin_drop.mp3",
-    emojiTsv: "data/emoji-easy-oneword-he.tsv",
-    emojiDir: "data/emojis"
+    emojiTsv: "data/emojis-new/icon-pack-manifest-he.tsv",
+    emojiDir: "data/emojis-new"
   },
   fallbackEmojis: [
-    { id: "1F408", he: "חתול" },
-    { id: "1F415", he: "כלב" },
-    { id: "1F407", he: "ארנב" },
-    { id: "1F40D", he: "נחש" },
-    { id: "1F42C", he: "דולפין" },
-    { id: "1F427", he: "פינגווין" },
-    { id: "1F414", he: "תרנגול" },
-    { id: "2708", he: "מטוס" }
+    { id: "animal-cat", filename: "animal-cat.png", he: "×—×ª×•×œ" },
+    { id: "animal-dog", filename: "animal-dog.png", he: "×›×œ×‘" },
+    { id: "animal-rabbit", filename: "animal-rabbit.png", he: "××¨× ×‘" },
+    { id: "reptile_amphibian_sea_insect-snake", filename: "reptile_amphibian_sea_insect-snake.png", he: "× ×—×©" },
+    { id: "reptile_amphibian_sea_insect-dolphin", filename: "reptile_amphibian_sea_insect-dolphin.png", he: "×“×•×œ×¤×™×Ÿ" },
+    { id: "bird-penguin", filename: "bird-penguin.png", he: "×¤×™× ×’×•×•×™×Ÿ" },
+    { id: "bird-rooster", filename: "bird-rooster.png", he: "×ª×¨× ×’×•×œ" },
+    { id: "transport-airplane", filename: "transport-airplane.png", he: "×ž×˜×•×¡" }
   ],
   gameplay: {
     normalAttempts: 2,
@@ -53,10 +53,10 @@ window.GAME_V2_WORDS_CONFIG = {
     sfxGain: 0.1
   },
   diffs: {
-    easy: { label: "קל", speedMul: 0.42, maxLetters: 4 },
-    medium: { label: "בינוני", speedMul: 0.42, maxLetters: 5 },
-    hard: { label: "קשה", speedMul: 0.42, maxLetters: 6 },
-    super: { label: "סופר", speedMul: 0.42, maxLetters: Infinity }
+    easy: { label: "×§×œ", speedMul: 0.42, maxLetters: 4 },
+    medium: { label: "×‘×™× ×•× ×™", speedMul: 0.42, maxLetters: 5 },
+    hard: { label: "×§×©×”", speedMul: 0.42, maxLetters: 6 },
+    super: { label: "×¡×•×¤×¨", speedMul: 0.42, maxLetters: Infinity }
   }
 };
 window.GAME_V2_WORDS_CONFIG.gameplay.levelGoals = {

@@ -21,7 +21,13 @@
     <div class="bootBox">
       <img class="bootSplash" src="shared/assets/ui/starting.png" alt="" loading="eager" fetchpriority="high" decoding="sync">
       <div class="bootMeta">
-        <div class="progressTrack"><div id="bootBar" class="progressFill"></div></div>
+        <div id="bootProgress" class="bootProgress">
+          <div class="progressTrack"><div id="bootBar" class="progressFill"></div></div>
+        </div>
+        <div id="bootActions" class="bootActions" hidden>
+          <button id="bootFullscreenAction" class="bootAction" type="button" hidden>Open Full Screen</button>
+          <button id="bootContinueAction" class="bootAction bootAction--secondary" type="button" hidden>Continue Normally</button>
+        </div>
         <p id="bootText" class="bootText">0%</p>
       </div>
     </div>
@@ -58,6 +64,6 @@
     <iframe id="gameFrame" class="gameFrame" title="Game" loading="eager" referrerpolicy="same-origin"></iframe>
   </section>
 
-  <script src="shared/scripts/launcher.js?v=20260403embed4"></script>
+  <script src="shared/scripts/launcher.js?v=20260407embed5"></script>
 </body>
 </html>
