@@ -66,38 +66,50 @@ window.GAME_V3_CLOCKS_CONFIG = {
     tileMargin: 10,
     sfxGain: 0.1
   },
-  diffs: {
+  difficulties: {
     easy: {
       label: "Easy",
-      speedMul: 0.24,
+      faceMode: "numbered",
       dialUrl: "assets/ui/dial.png",
+      minuteStep: 30,
       minuteValues: [0, 30],
-      minuteOffsets: [30],
-      hourOffsets: [1, 2]
+      distractors: {
+        minuteOffsets: [30],
+        hourOffsets: [1, 2, 3]
+      }
     },
     medium: {
       label: "Medium",
-      speedMul: 0.36,
+      faceMode: "numbered",
       dialUrl: "assets/ui/dial.png",
+      minuteStep: 5,
       minuteValues: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
-      minuteOffsets: [5, 10, 15, 30],
-      hourOffsets: [1, 2]
+      distractors: {
+        minuteOffsets: [5, 10, 15, 30],
+        hourOffsets: [1, 2]
+      }
     },
     hard: {
       label: "Hard",
-      speedMul: 0.48,
+      faceMode: "no-numbers",
       dialUrl: "assets/ui/dial_no_numbers.png",
+      minuteStep: 5,
       minuteValues: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
-      minuteOffsets: [5, 10, 15],
-      hourOffsets: [1, 2, 3]
+      distractors: {
+        minuteOffsets: [5, 10, 15],
+        hourOffsets: [1, 2]
+      }
     },
     super: {
       label: "Super",
-      speedMul: 0.6,
+      faceMode: "plain",
       dialUrl: "assets/ui/dial_plain.png",
+      minuteStep: 5,
       minuteValues: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
-      minuteOffsets: [5, 10],
-      hourOffsets: [1, 2, 11]
+      distractors: {
+        minuteOffsets: [5, 10],
+        hourOffsets: [1, 11]
+      }
     }
   }
 };

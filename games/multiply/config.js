@@ -41,9 +41,49 @@ window.GAME_V3_MULTIPLY_CONFIG = {
     splashAudio: "../shared/assets/audio/splash.mp3",
     coinAudio: "../shared/assets/audio/coin_drop.mp3"
   },
-  diffs: {
-    upTo5: { label: "כפל 1-5", speedMul: 0.24, correct: 15, minFactor: 1, maxFactor: 5, wrongNear: 4, wrongFar: 8 },
-    upTo10: { label: "כפל 1-10", speedMul: 0.28, correct: 20, minFactor: 1, maxFactor: 10, wrongNear: 6, wrongFar: 12 }
+  difficulties: {
+    easy: {
+      label: "Easy",
+      factorRange: [1, 4],
+      distractors: {
+        minOffset: 2,
+        near: 6,
+        far: 12,
+        farChance: 0.35
+      }
+    },
+    medium: {
+      label: "Medium",
+      factorRange: [2, 7],
+      distractors: {
+        minOffset: 2,
+        near: 5,
+        far: 10,
+        farChance: 0.28
+      }
+    },
+    hard: {
+      label: "Hard",
+      factorRange: [2, 10],
+      distractors: {
+        minOffset: 1,
+        near: 4,
+        far: 8,
+        farChance: 0.22
+      }
+    },
+    super: {
+      label: "Super",
+      factorRange: [2, 12],
+      preferredFactors: [6, 7, 8, 9, 12],
+      preferredFactorBias: 0.55,
+      distractors: {
+        minOffset: 1,
+        near: 3,
+        far: 6,
+        farChance: 0.18
+      }
+    }
   },
   gameplay: {
     normalAttempts: 2,
@@ -58,8 +98,10 @@ window.GAME_V3_MULTIPLY_CONFIG = {
     baseSpeed: 80,
     speedIncPerLevel: 6,
     levelGoals: {
-      upTo5: { correctTarget: 10, timeLimitMs: 60000 },
-      upTo10: { correctTarget: 12, timeLimitMs: 75000 }
+      easy: { correctTarget: 8, timeLimitMs: 60000 },
+      medium: { correctTarget: 10, timeLimitMs: 75000 },
+      hard: { correctTarget: 12, timeLimitMs: 90000 },
+      super: { correctTarget: 14, timeLimitMs: 90000 }
     },
     tileWBase: 240,
     tileHBase: 78,

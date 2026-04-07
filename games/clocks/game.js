@@ -83,7 +83,7 @@
   const session = sessionApi.createArcadeSession({
     getLevelRules: () => {
       const goals = cfg.gameplay.levelGoals || {};
-      return goals[selected] || goals.easy || { correctTarget: 10, timeLimitMs: 75000 };
+      return goals[currentDifficultyKey()] || goals.easy || { correctTarget: 10, timeLimitMs: 75000 };
     },
     onStateChange: syncSessionUi
   });
@@ -171,12 +171,16 @@
     return assetsReadyPromise;
   }
 
-  function currentDiff() {
-    return cfg.diffs[selected] || cfg.diffs.medium;
+  function currentDifficultyKey() {
+    return cfg.difficulties && cfg.difficulties[selected] ? selected : "medium";
+  }
+
+  function currentDifficultyProfile() {
+    return cfg.difficulties[currentDifficultyKey()] || cfg.difficulties.medium;
   }
 
   function currentDialUrl() {
-    return currentDiff().dialUrl || cfg.assets.dialUrl;
+    return currentDifficultyProfile().dialUrl || cfg.assets.dialUrl;
   }
 
   function syncGameplayMetrics() {
@@ -196,11 +200,13 @@
 
   function syncCheckpointState() {
     selected = meta.getSelectedDiff() || selected;
+    selected = currentDifficultyKey();
     session.loadCheckpoint(meta.getSnapshot(), selected);
   }
 
   function syncSessionUi(state) {
     selected = state.diffKey || selected;
+    selected = currentDifficultyKey();
     coins = state.coins;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
@@ -405,24 +411,26 @@
   }
 
   function randomTime() {
+    const profile = currentDifficultyProfile();
     return {
       hour: utils.randInt(1, 12),
-      minute: utils.choice(currentDiff().minuteValues)
+      minute: utils.choice(profile.minuteValues)
     };
   }
 
   function buildDistractors(correct) {
-    const diff = currentDiff();
+    const profile = currentDifficultyProfile();
+    const distractors = profile.distractors || {};
     const correctTotal = toTotalMinutes(correct.hour, correct.minute);
     const options = [correct];
     const used = new Set([timeKey(correct)]);
-    const hourOffsets = utils.shuffleInPlace(diff.hourOffsets.slice());
-    const minuteOffsets = utils.shuffleInPlace(diff.minuteOffsets.slice());
+    const hourOffsets = utils.shuffleInPlace((distractors.hourOffsets || []).slice());
+    const minuteOffsets = utils.shuffleInPlace((distractors.minuteOffsets || []).slice());
 
     function pushTime(candidate) {
       const key = timeKey(candidate);
       if (used.has(key)) return false;
-      if (!diff.minuteValues.includes(candidate.minute)) return false;
+      if (!profile.minuteValues.includes(candidate.minute)) return false;
       options.push(candidate);
       used.add(key);
       return true;
@@ -539,6 +547,7 @@
       return;
     }
     if (phase !== "frame") {
+      session.noteQuestionPresented();
       tileLabelEl.textContent = timeLabel(task.correct.hour, task.correct.minute);
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
       if (task.rewardCoins > 0) {
@@ -673,6 +682,7 @@
 
   async function handleStartRequested(payload) {
     selected = payload.diffKey || selected;
+    selected = currentDifficultyKey();
     audio.ensureAudio();
     await ensureAssetsReady();
     await startGame();

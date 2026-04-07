@@ -8,6 +8,10 @@
   const metaApi = window.GAMES_V2_META;
   const sessionApi = window.GAMES_V2_SESSION;
   const cfg = window.GAME_V3_MULTIPLY_CONFIG;
+  const LEGACY_DIFF_ALIASES = {
+    upTo5: "easy",
+    upTo10: "hard"
+  };
 
   const gameEl = document.getElementById("game");
   const wrapEl = document.querySelector(".wrap");
@@ -78,21 +82,27 @@
     ]
   };
 
+  function normalizeMultiplyDifficultyKey(diffKey) {
+    const rawKey = String(diffKey || "").trim();
+    const normalizedKey = LEGACY_DIFF_ALIASES[rawKey] || rawKey;
+    return cfg.difficulties[normalizedKey] ? normalizedKey : "easy";
+  }
+
   function syncMuteButton() {
     if (!muteBtn) return;
     const muted = audio.bgm.isMuted();
     muteBtn.classList.toggle("muted", muted);
-    muteBtn.setAttribute("aria-label", muted ? "הפעלת קול" : "השתקת קול");
+    muteBtn.setAttribute("aria-label", muted ? "Unmute sound" : "Mute sound");
   }
 
   audio.onMuteChange(syncMuteButton);
   syncMuteButton();
 
-  let selected = meta.getSelectedDiff();
+  let selected = normalizeMultiplyDifficultyKey(meta.getSelectedDiff());
   const session = sessionApi.createArcadeSession({
     getLevelRules: () => {
       const goals = cfg.gameplay.levelGoals || {};
-      return goals[selected] || goals.upTo5 || { correctTarget: 10, timeLimitMs: 60000 };
+      return goals[selected] || goals.easy || { correctTarget: 8, timeLimitMs: 60000 };
     },
     onStateChange: syncSessionUi
   });
@@ -224,7 +234,7 @@
   }
 
   function syncSessionUi(state) {
-    selected = state.diffKey || selected;
+    selected = normalizeMultiplyDifficultyKey(state.diffKey || selected);
     coins = state.coins;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
@@ -233,7 +243,7 @@
   }
 
   function syncCheckpointState() {
-    selected = meta.getSelectedDiff() || selected;
+    selected = normalizeMultiplyDifficultyKey(meta.getSelectedDiff() || selected);
     session.loadCheckpoint(meta.getSnapshot(), selected);
   }
 
@@ -369,8 +379,8 @@
     falling.spawn();
   }
 
-  function setMascot(_state) {
-    const sprite = _state === "shame" ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet) : cfg.assets.mascotSheet;
+  function setMascot(stateName) {
+    const sprite = stateName === "shame" ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet) : cfg.assets.mascotSheet;
     mascotAnimToken += 1;
     mascotEl.classList.remove("is-celebrating");
     mascotEl.style.backgroundImage = `url("${sprite.url}")`;
@@ -440,47 +450,79 @@
     return -(currentTileMetrics().height * spawnYOffsetRatio);
   }
 
-  function makeTask() {
-    const diff = cfg.diffs[selected];
-    let a;
-    let b;
-    a = utils.randInt(diff.minFactor, diff.maxFactor);
-    b = utils.randInt(diff.minFactor, diff.maxFactor);
-    const answer = a * b;
-    const text = `${a}×${b}`;
-
-    return { answer, text };
+  function currentDifficultyProfile() {
+    return cfg.difficulties[selected] || cfg.difficulties.easy;
   }
 
-  function uniqueWrongs(correct) {
-    const diff = cfg.diffs[selected];
-    const set = new Set([correct]);
+  function pickFactor(profile) {
+    const range = Array.isArray(profile.factorRange) && profile.factorRange.length >= 2
+      ? profile.factorRange
+      : [1, 10];
+    const minFactor = Number(range[0]) || 1;
+    const maxFactor = Number(range[1]) || 10;
+    const preferredFactors = Array.isArray(profile.preferredFactors)
+      ? profile.preferredFactors.filter((value) => value >= minFactor && value <= maxFactor)
+      : [];
+    const preferredFactorBias = Math.max(0, Math.min(1, Number(profile.preferredFactorBias) || 0));
 
-    function ok(value) {
-      return !(diff.noNegOptions && value < 0);
+    if (preferredFactors.length && Math.random() < preferredFactorBias) {
+      return preferredFactors[utils.randInt(0, preferredFactors.length - 1)];
+    }
+
+    return utils.randInt(minFactor, maxFactor);
+  }
+
+  function buildMultiplyTask() {
+    const profile = currentDifficultyProfile();
+    let a = pickFactor(profile);
+    let b = pickFactor(profile);
+    const blockEasyFactors = selected !== "easy";
+    if (blockEasyFactors) {
+      a = Math.max(2, a);
+      b = Math.max(2, b);
+    }
+    return {
+      answer: a * b,
+      text: `${a}\u00d7${b}`
+    };
+  }
+
+  function buildDifficultyWrongs(correct) {
+    const profile = currentDifficultyProfile();
+    const distractors = profile.distractors || {};
+    const set = new Set([correct]);
+    const minOffset = Math.max(1, Number(distractors.minOffset) || 1);
+    const near = Math.max(minOffset + 1, Number(distractors.near) || 6);
+    const far = Math.max(near + 1, Number(distractors.far) || 12);
+    const farChance = Math.max(0, Math.min(1, Number(distractors.farChance) || 0));
+
+    function normalizeDelta(value) {
+      if (value === 0) {
+        return minOffset;
+      }
+      if (Math.abs(value) < minOffset) {
+        return value < 0 ? -minOffset : minOffset;
+      }
+      return value;
     }
 
     let guard = 0;
     while (set.size < 4 && guard < 200) {
       guard += 1;
-      const delta = utils.randInt(-diff.wrongNear, diff.wrongNear) || 1;
-      let wrong = correct + delta;
-      if (Math.random() < 0.25) {
-        wrong = correct + utils.randInt(-diff.wrongFar, diff.wrongFar);
+      let delta = normalizeDelta(utils.randInt(-near, near));
+      if (Math.random() < farChance) {
+        delta = normalizeDelta(utils.randInt(-far, far));
       }
-      if (!ok(wrong)) {
+      const wrong = correct + delta;
+      if (wrong <= 0 || wrong === correct) {
         continue;
       }
       set.add(wrong);
     }
 
     while (set.size < 4) {
-      const fallback = Math.max(0, correct + set.size);
-      if (ok(fallback)) {
-        set.add(fallback);
-      } else {
-        set.add(correct + set.size);
-      }
+      const fallback = correct + set.size;
+      set.add(fallback > 0 ? fallback : (correct + set.size + 1));
     }
 
     const arr = Array.from(set);
@@ -498,7 +540,7 @@
   function createTask() {
     const tileMetrics = currentTileMetrics();
     const tabletReward = rollSpecialTablet();
-    return Object.assign(makeTask(), {
+    return Object.assign(buildMultiplyTask(), {
       width: tileMetrics.width,
       height: tileMetrics.height,
       fontSize: tileMetrics.fontSize,
@@ -517,6 +559,7 @@
       return;
     }
     if (phase !== "frame") {
+      session.noteQuestionPresented();
       tileEl.textContent = task.text;
       applyTileMetrics(task);
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
@@ -528,7 +571,7 @@
       }
       clearAnswerMarks();
 
-      const answers = uniqueWrongs(task.answer);
+      const answers = buildDifficultyWrongs(task.answer);
       for (let i = 0; i < ansBtns.length; i += 1) {
         ansBtns[i].textContent = utils.formatSignedNumber(answers[i]);
         ansBtns[i].dataset.val = String(answers[i]);
@@ -636,7 +679,7 @@
   }
 
   async function start(diffKey) {
-    selected = diffKey;
+    selected = normalizeMultiplyDifficultyKey(diffKey);
     await ensureAssetsReady();
     meta.hideOverlay();
     shell.refreshLayout();

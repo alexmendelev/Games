@@ -101,7 +101,6 @@
   let running = false;
   let paused = false;
   let coins = initialSnapshot.player.coins;
-  let correctAnswers = 0;
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let task = null;
@@ -109,11 +108,18 @@
   const recentCorrectLimit = 8;
   const warmedEmojiUrls = new Set();
   const spawnYOffsetRatio = 0.35;
-  const diffOrder = ["easy", "medium", "hard", "super"];
   let mascotAnimToken = 0;
   let levelPausePending = false;
   let coinAwardPending = false;
   session.loadCheckpoint(initialSnapshot, selected);
+
+  function currentDifficultyKey() {
+    return cfg.difficulties && cfg.difficulties[selected] ? selected : "medium";
+  }
+
+  function currentDifficultyProfile() {
+    return cfg.difficulties[currentDifficultyKey()] || cfg.difficulties.medium;
+  }
 
   function syncWaterReflection(nextTask, rectArg) {
     if (!nextTask) {
@@ -252,6 +258,7 @@
         return {
           id: file.replace(/\.png$/i, ""),
           filename: file,
+          category: String(parts[1] || "").trim(),
           en: String(labels.en || "").trim(),
           he: String(labels.he || "").trim(),
           labels,
@@ -263,13 +270,14 @@
       const labels = {};
       if (String(en || "").trim()) labels.en = String(en || "").trim();
       if (String(he || "").trim()) labels.he = String(he || "").trim();
-      return { id: code, en: (en || "").trim(), he: (he || "").trim(), labels, src: `${cfg.assets.emojiDir}/${code}.png` };
+      return { id: code, category: "", en: (en || "").trim(), he: (he || "").trim(), labels, src: `${cfg.assets.emojiDir}/${code}.png` };
     }).filter((item) => item.id && emojiWord(item, "he"));
   }
 
   function fallbackEmojiList() {
     return cfg.fallbackEmojis.map((item) => ({
       id: item.id,
+      category: String(item.id || "").split("-")[0] || "",
       en: deriveEnglishLabel(item),
       he: item.he,
       labels: {
@@ -281,34 +289,130 @@
   }
 
   function normalizeWordForLevel(word) {
-    return String(word || "").replace(/[\s"'`׳״\-־]/g, "");
+    return String(word || "").replace(/[\s"'`׳״\-־]/g, "").toLowerCase();
   }
 
   function wordLetterCount(word) {
     return normalizeWordForLevel(word).length;
   }
 
+  function commonPrefixLength(left, right) {
+    const maxLength = Math.min(left.length, right.length);
+    let index = 0;
+    while (index < maxLength && left[index] === right[index]) {
+      index += 1;
+    }
+    return index;
+  }
+
+  function commonSuffixLength(left, right) {
+    return commonPrefixLength(left.split("").reverse().join(""), right.split("").reverse().join(""));
+  }
+
+  function analyzeDistractorSimilarity(correctWord, candidateWord) {
+    const correct = normalizeWordForLevel(correctWord);
+    const candidate = normalizeWordForLevel(candidateWord);
+    const lengthDiff = Math.abs(correct.length - candidate.length);
+    const sameLength = correct.length === candidate.length;
+    const sameFirstLetter = !!correct && !!candidate && correct[0] === candidate[0];
+    const sameLastLetter = !!correct && !!candidate && correct[correct.length - 1] === candidate[candidate.length - 1];
+    const sharedPrefixLength = commonPrefixLength(correct, candidate);
+    const sharedSuffixLength = commonSuffixLength(correct, candidate);
+    const similarityScore = (sameLength ? 2 : (lengthDiff <= 1 ? 1 : 0))
+      + (sameFirstLetter ? 1 : 0)
+      + (sameLastLetter ? 1 : 0)
+      + Math.min(2, sharedPrefixLength)
+      + Math.min(2, sharedSuffixLength);
+
+    return {
+      normalizedCorrect: correct,
+      normalizedCandidate: candidate,
+      lengthDiff,
+      sameLength,
+      sameFirstLetter,
+      sameLastLetter,
+      sharedPrefixLength,
+      sharedSuffixLength,
+      similarityScore
+    };
+  }
+
+  function buildPoolForProfile(diffKey, options) {
+    const profile = cfg.difficulties[diffKey] || cfg.difficulties.medium;
+    const poolRules = profile.wordPool || {};
+    const distractorRules = profile.distractors || {};
+    const languageId = currentLanguageId();
+    const excludedCategories = new Set((poolRules.excludedCategories || []).map((value) => String(value || "")));
+    const allowedCategories = Array.isArray(poolRules.allowedCategories) && poolRules.allowedCategories.length
+      ? new Set(poolRules.allowedCategories.map((value) => String(value || "")))
+      : null;
+    const preferredIds = new Set((poolRules.preferredIds || []).map((value) => String(value || "")));
+    const ignorePreferredOnly = !!(options && options.ignorePreferredOnly);
+
+    const filtered = emojis.filter((item) => {
+      const word = emojiWord(item, languageId);
+      const letterCount = wordLetterCount(word);
+      if (letterCount < (profile.minWordLength || 1)) {
+        return false;
+      }
+      if (Number.isFinite(profile.maxWordLength) && letterCount > profile.maxWordLength) {
+        return false;
+      }
+      if (excludedCategories.has(String(item.category || ""))) {
+        return false;
+      }
+      if (allowedCategories && !allowedCategories.has(String(item.category || ""))) {
+        return false;
+      }
+      return true;
+    });
+
+    if (!preferredIds.size || ignorePreferredOnly) {
+      if (!distractorRules.requireStrictDistractors) {
+        return filtered;
+      }
+      return filtered.filter((correctItem) => {
+        const correctWord = emojiWord(correctItem, languageId);
+        let strictCount = 0;
+        const usedWords = new Set([normalizeWordForLevel(correctWord)]);
+        for (const candidate of filtered) {
+          if (!candidate || candidate.id === correctItem.id) {
+            continue;
+          }
+          const candidateWord = emojiWord(candidate, languageId);
+          const normalizedCandidate = normalizeWordForLevel(candidateWord);
+          if (!normalizedCandidate || usedWords.has(normalizedCandidate)) {
+            continue;
+          }
+          if (!distractorMatchesRules(analyzeDistractorSimilarity(correctWord, candidateWord), distractorRules)) {
+            continue;
+          }
+          usedWords.add(normalizedCandidate);
+          strictCount += 1;
+          if (strictCount >= 3) {
+            return true;
+          }
+        }
+        return false;
+      });
+    }
+
+    const preferred = filtered.filter((item) => preferredIds.has(item.id));
+    if (preferred.length >= Math.max(4, Number(poolRules.preferredOnlyMinPool) || 0)) {
+      return preferred;
+    }
+
+    return preferred.concat(filtered.filter((item) => !preferredIds.has(item.id)));
+  }
+
   function rebuildEmojiPools() {
     const languageId = currentLanguageId();
     emojiPools = {};
-    for (const diffKey of diffOrder) {
-      const diff = cfg.diffs[diffKey];
-      if (!diff) continue;
-      if (!Number.isFinite(diff.maxLetters)) {
-        emojiPools[diffKey] = emojis.slice();
-        continue;
-      }
-      emojiPools[diffKey] = emojis.filter((item) => wordLetterCount(emojiWord(item, languageId)) <= diff.maxLetters);
+    for (const diffKey of Object.keys(cfg.difficulties || {})) {
+      const filtered = buildPoolForProfile(diffKey);
+      emojiPools[diffKey] = filtered.length >= 4 ? filtered : emojis.slice();
     }
     emojiPoolsLanguageId = languageId;
-  }
-
-  function currentDiffKey() {
-    const startIndex = Math.max(0, diffOrder.indexOf(selected));
-    const stepSize = Math.max(1, cfg.gameplay.correctPerDiffStep || 1);
-    const unlockedSteps = Math.floor(correctAnswers / stepSize);
-    const diffIndex = Math.min(diffOrder.length - 1, startIndex + unlockedSteps);
-    return diffOrder[diffIndex] || "medium";
   }
 
   function activeEmojiPool(diffKey) {
@@ -330,7 +434,7 @@
   function nextCorrectEmoji() {
     if (!emojis.length) return null;
     const languageId = currentLanguageId();
-    const diffKey = currentDiffKey();
+    const diffKey = currentDifficultyKey();
     const pool = activeEmojiPool(diffKey);
     if (!correctDeck.length || deckPos >= correctDeck.length || correctDeckDiffKey !== diffKey || correctDeckLanguageId !== languageId) refillCorrectDeck(diffKey);
     let candidate = null;
@@ -347,14 +451,6 @@
     return candidate;
   }
 
-  function currentDiff() {
-    return cfg.diffs[currentDiffKey()] || cfg.diffs.medium;
-  }
-
-  function level() {
-    return session.getState().levelNumber;
-  }
-
   function getSpeed(item) {
     return shell.speedForFallDuration(item, 12);
   }
@@ -369,8 +465,8 @@
 
   function syncSessionUi(state) {
     selected = state.diffKey || selected;
+    selected = currentDifficultyKey();
     coins = state.coins;
-    correctAnswers = state.correctCount;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
     setHUD();
@@ -379,6 +475,7 @@
 
   function syncCheckpointState() {
     selected = meta.getSelectedDiff() || selected;
+    selected = currentDifficultyKey();
     session.loadCheckpoint(meta.getSnapshot(), selected);
   }
 
@@ -570,13 +667,128 @@
     playMascotAnimation(cfg.assets.mascotSadSheet || cfg.assets.mascotSheet, 1, false, 2);
   }
 
+  function distractorMatchesRules(analysis, rules) {
+    if (!rules.allowSameFirstLetter && analysis.sameFirstLetter) {
+      return false;
+    }
+    if (!rules.allowSameLastLetter && analysis.sameLastLetter) {
+      return false;
+    }
+    if (Number.isFinite(rules.minSimilarityScore) && analysis.similarityScore < rules.minSimilarityScore) {
+      return false;
+    }
+    if (Number.isFinite(rules.maxSimilarityScore) && analysis.similarityScore > rules.maxSimilarityScore) {
+      return false;
+    }
+    if (Number.isFinite(rules.minLengthDelta) && analysis.lengthDiff < rules.minLengthDelta) {
+      return false;
+    }
+    if (Number.isFinite(rules.maxLengthDelta) && analysis.lengthDiff > rules.maxLengthDelta) {
+      return false;
+    }
+    return true;
+  }
+
+  function distractorRank(analysis, rules) {
+    const targetSimilarity = Number.isFinite(rules.maxSimilarityScore)
+      ? ((Math.max(0, Number(rules.minSimilarityScore) || 0) + Number(rules.maxSimilarityScore)) / 2)
+      : (Number(rules.minSimilarityScore) || 0);
+    let rank = 100 - Math.abs(analysis.similarityScore - targetSimilarity);
+    if (rules.preferSameLength && analysis.sameLength) {
+      rank += 12;
+    }
+    if (Number.isFinite(rules.preferSharedPrefixLength) && analysis.sharedPrefixLength >= rules.preferSharedPrefixLength) {
+      rank += 10;
+    }
+    if (Number.isFinite(rules.preferSharedSuffixLength) && analysis.sharedSuffixLength >= rules.preferSharedSuffixLength) {
+      rank += 10;
+    }
+    if (rules.allowSameFirstLetter && analysis.sameFirstLetter) {
+      rank += 3;
+    }
+    if (rules.allowSameLastLetter && analysis.sameLastLetter) {
+      rank += 3;
+    }
+    rank -= analysis.lengthDiff;
+    return rank;
+  }
+
+  function selectDistractors(correct, languageId) {
+    const profile = currentDifficultyProfile();
+    const rules = profile.distractors || {};
+    const exactPool = activeEmojiPool(selected);
+    const broadPool = buildPoolForProfile(selected, { ignorePreferredOnly: true });
+    const pools = [exactPool, broadPool, emojis];
+    const correctWord = emojiWord(correct, languageId);
+    const usedIds = new Set([correct.id]);
+    const usedWords = new Set([normalizeWordForLevel(correctWord)]);
+    const distractors = [];
+
+    function addFromPool(pool, strictMode) {
+      const shuffledPool = pool.slice();
+      utils.shuffleInPlace(shuffledPool);
+      const candidates = shuffledPool
+        .filter((item) => item && !usedIds.has(item.id))
+        .map((item, index) => {
+          const candidateWord = emojiWord(item, languageId);
+          return {
+            item,
+            candidateWord,
+            normalizedWord: normalizeWordForLevel(candidateWord),
+            analysis: analyzeDistractorSimilarity(correctWord, candidateWord),
+            index
+          };
+        })
+        .filter((entry) => entry.normalizedWord && !usedWords.has(entry.normalizedWord))
+        .filter((entry) => !strictMode || distractorMatchesRules(entry.analysis, rules))
+        .sort((left, right) => {
+          const rankDiff = distractorRank(right.analysis, rules) - distractorRank(left.analysis, rules);
+          if (rankDiff !== 0) {
+            return rankDiff;
+          }
+          return left.index - right.index;
+        });
+
+      for (const entry of candidates) {
+        if (distractors.length >= 3) {
+          return;
+        }
+        if (usedIds.has(entry.item.id) || usedWords.has(entry.normalizedWord)) {
+          continue;
+        }
+        distractors.push(entry.item);
+        usedIds.add(entry.item.id);
+        usedWords.add(entry.normalizedWord);
+      }
+    }
+
+    for (const pool of pools) {
+      addFromPool(pool, true);
+      if (distractors.length >= 3) {
+        break;
+      }
+    }
+    if (distractors.length < 3) {
+      for (const pool of pools) {
+        addFromPool(pool, false);
+        if (distractors.length >= 3) {
+          break;
+        }
+      }
+    }
+
+    return distractors.slice(0, 3);
+  }
+
   function generateTask() {
     const correct = nextCorrectEmoji();
     if (!correct) return null;
     const languageId = currentLanguageId();
-    const pool = emojis.filter((item) => item.id !== correct.id);
-    utils.shuffleInPlace(pool);
-    const options = [correct, pool[0], pool[1], pool[2]];
+    const distractors = selectDistractors(correct, languageId);
+    const options = [correct].concat(distractors);
+    if (options.length < 4) {
+      return null;
+    }
     utils.shuffleInPlace(options);
     const tileMetrics = currentTileMetrics();
     const rect = shell.rect();
@@ -603,6 +815,7 @@
     task = nextTask;
     if (!task) return;
     if (phase !== "frame") {
+      session.noteQuestionPresented();
       clearAnswerMarks();
       tileEl.textContent = task.word;
       tileEl.setAttribute("lang", task.wordLang || "he");
@@ -740,7 +953,8 @@
   }
 
   async function handleStartRequested(payload) {
-    selected = payload.diffKey || selected;
+    selected = (payload && payload.diffKey) || selected;
+    selected = currentDifficultyKey();
     audio.ensureAudio();
     const ok = await ensureEmojiListLoaded();
     if (!ok) {

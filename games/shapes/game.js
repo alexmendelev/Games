@@ -105,6 +105,7 @@
       });
     }
   }
+  const pairPoolsByDifficulty = new Map();
 
   const baseGameplay = {
     tileWidth: cfg.gameplay.tileWidth,
@@ -113,16 +114,17 @@
   };
   let correctDeck = [];
   let deckPos = 0;
+  let correctDeckDiffKey = "";
   let recentCorrectIds = [];
   let selected = meta.getSelectedDiff();
   const session = sessionApi.createArcadeSession({
     getLevelRules: () => {
       const goals = cfg.gameplay.levelGoals || {};
-      return goals[selected] || goals.easy || { correctTarget: 10, timeLimitMs: 75000 };
+      return goals[currentDifficultyKey()] || goals.easy || { correctTarget: 10, timeLimitMs: 75000 };
     },
     onStateChange: syncSessionUi
   });
-  let activeAnswerCount = cfg.diffs.medium.answerCount;
+  let activeAnswerCount = ((cfg.difficulties && cfg.difficulties.medium) || { answerCount: 8 }).answerCount;
   let running = false;
   let paused = false;
   let coins = initialSnapshot.player.coins;
@@ -195,8 +197,23 @@
     return assetsReadyPromise;
   }
 
-  function currentDiff() {
-    return cfg.diffs[selected] || cfg.diffs.medium;
+  function currentDifficultyKey() {
+    return cfg.difficulties && cfg.difficulties[selected] ? selected : "medium";
+  }
+
+  function currentDifficultyProfile() {
+    return cfg.difficulties[currentDifficultyKey()] || cfg.difficulties.medium;
+  }
+
+  function activePairPool(diffKey) {
+    const safeDiffKey = cfg.difficulties && cfg.difficulties[diffKey] ? diffKey : "medium";
+    if (!pairPoolsByDifficulty.has(safeDiffKey)) {
+      const profile = cfg.difficulties[safeDiffKey] || cfg.difficulties.medium;
+      const allowedShapes = new Set(profile.shapePool || []);
+      const allowedColors = new Set(profile.colorPool || []);
+      pairPoolsByDifficulty.set(safeDiffKey, pairs.filter((item) => allowedShapes.has(item.shapeId) && allowedColors.has(item.colorId)));
+    }
+    return pairPoolsByDifficulty.get(safeDiffKey) || pairs;
   }
 
   function syncGameplayMetrics() {
@@ -315,21 +332,59 @@
     spawnTask();
   }
 
-  function refillCorrectDeck() {
-    correctDeck = pairs.slice();
+  function hasNeighbor(map, sourceId, candidateId) {
+    const neighbors = map && map[sourceId];
+    return Array.isArray(neighbors) ? neighbors.includes(candidateId) : false;
+  }
+
+  function classifySimilarity(correct, candidate) {
+    const sameShape = candidate.shapeId === correct.shapeId;
+    const sameColor = candidate.colorId === correct.colorId;
+    const relatedShape = !sameShape && hasNeighbor(cfg.similarity && cfg.similarity.shapeNeighbors, correct.shapeId, candidate.shapeId);
+    const relatedColor = !sameColor && hasNeighbor(cfg.similarity && cfg.similarity.colorNeighbors, correct.colorId, candidate.colorId);
+
+    if (sameShape && relatedColor) {
+      return "same-shape-related-color";
+    }
+    if (relatedShape && sameColor) {
+      return "related-shape-same-color";
+    }
+    if (sameShape) {
+      return "same-shape";
+    }
+    if (sameColor) {
+      return "same-color";
+    }
+    if (relatedShape && relatedColor) {
+      return "related-shape-related-color";
+    }
+    if (relatedShape) {
+      return "related-shape";
+    }
+    if (relatedColor) {
+      return "related-color";
+    }
+    return "distinct";
+  }
+
+  function refillCorrectDeck(diffKey) {
+    correctDeck = activePairPool(diffKey).slice();
     utils.shuffleInPlace(correctDeck);
     deckPos = 0;
+    correctDeckDiffKey = diffKey;
   }
 
   function nextCorrectPair() {
-    if (!correctDeck.length || deckPos >= correctDeck.length) {
-      refillCorrectDeck();
+    const diffKey = currentDifficultyKey();
+    const pool = activePairPool(diffKey);
+    if (!correctDeck.length || deckPos >= correctDeck.length || correctDeckDiffKey !== diffKey) {
+      refillCorrectDeck(diffKey);
     }
     let candidate = null;
     let tries = 0;
     while (tries < correctDeck.length) {
       if (deckPos >= correctDeck.length) {
-        refillCorrectDeck();
+        refillCorrectDeck(diffKey);
       }
       candidate = correctDeck[deckPos++];
       if (!recentCorrectIds.includes(candidate.id)) {
@@ -338,7 +393,7 @@
       tries += 1;
     }
     if (!candidate) {
-      candidate = utils.choice(pairs);
+      candidate = utils.choice(pool);
     }
     recentCorrectIds.push(candidate.id);
     if (recentCorrectIds.length > recentCorrectLimit) {
@@ -365,6 +420,8 @@
 
   function syncSessionUi(state) {
     selected = state.diffKey || selected;
+    selected = currentDifficultyKey();
+    applyAnswerCount(currentDifficultyProfile().answerCount);
     coins = state.coins;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
@@ -374,9 +431,11 @@
 
   function syncCheckpointState() {
     selected = meta.getSelectedDiff() || selected;
+    selected = currentDifficultyKey();
     const snapshot = meta.getSnapshot();
     shapesRunStreak = Math.max(0, Number(snapshot.economy && snapshot.economy.shapesRunStreak) || 0);
     session.loadCheckpoint(snapshot, selected);
+    applyAnswerCount(currentDifficultyProfile().answerCount);
   }
 
   async function showLevelResults() {
@@ -498,34 +557,76 @@
     `;
   }
 
-  function generateTask() {
-    const correct = nextCorrectPair();
-    const targetCount = activeAnswerCount;
-    const sameShapeDiffColor = pairs.filter((item) => item.shapeId === correct.shapeId && item.colorId !== correct.colorId);
-    const diffShapeSameColor = pairs.filter((item) => item.colorId === correct.colorId && item.shapeId !== correct.shapeId);
-    const others = pairs.filter((item) => item.id !== correct.id && item.shapeId !== correct.shapeId && item.colorId !== correct.colorId);
-    utils.shuffleInPlace(sameShapeDiffColor);
-    utils.shuffleInPlace(diffShapeSameColor);
-    utils.shuffleInPlace(others);
+  function selectDistractors(correct, profile) {
+    const pool = activePairPool(currentDifficultyKey());
+    const plan = Array.isArray(profile.distractorPlan) ? profile.distractorPlan : [];
+    const fallbackTiers = Array.isArray(profile.fallbackTiers) ? profile.fallbackTiers : [];
+    const buckets = new Map();
+    const bucketOrder = Array.from(new Set(plan.concat(fallbackTiers).concat([
+      "same-shape-related-color",
+      "related-shape-same-color",
+      "same-shape",
+      "same-color",
+      "related-shape-related-color",
+      "related-shape",
+      "related-color",
+      "distinct"
+    ])));
 
-    const options = [correct];
+    bucketOrder.forEach((key) => buckets.set(key, []));
+    for (const candidate of pool) {
+      if (!candidate || candidate.id === correct.id) {
+        continue;
+      }
+      const similarityKey = classifySimilarity(correct, candidate);
+      if (!buckets.has(similarityKey)) {
+        buckets.set(similarityKey, []);
+      }
+      buckets.get(similarityKey).push(candidate);
+    }
+    buckets.forEach((list) => utils.shuffleInPlace(list));
+
+    const distractors = [];
     const usedIds = new Set([correct.id]);
-    function pushIfNew(list, maxToTake) {
-      let taken = 0;
-      for (const item of list) {
-        if (taken >= maxToTake || options.length >= targetCount) break;
-        if (usedIds.has(item.id)) continue;
-        options.push(item);
-        usedIds.add(item.id);
-        taken += 1;
+    function takeFromBucket(bucketKey) {
+      const list = buckets.get(bucketKey) || [];
+      while (list.length) {
+        const candidate = list.shift();
+        if (!candidate || usedIds.has(candidate.id)) {
+          continue;
+        }
+        distractors.push(candidate);
+        usedIds.add(candidate.id);
+        return true;
+      }
+      return false;
+    }
+
+    for (const bucketKey of plan) {
+      if (distractors.length >= profile.answerCount - 1) {
+        break;
+      }
+      takeFromBucket(bucketKey);
+    }
+    for (const bucketKey of bucketOrder) {
+      while (distractors.length < profile.answerCount - 1 && takeFromBucket(bucketKey)) {
+        // Keep filling from the strongest remaining buckets until we hit the answer target.
+      }
+      if (distractors.length >= profile.answerCount - 1) {
+        break;
       }
     }
 
-    pushIfNew(sameShapeDiffColor, Math.min(3, targetCount - 1));
-    pushIfNew(diffShapeSameColor, 2);
-    pushIfNew(others, others.length);
-    pushIfNew(sameShapeDiffColor, sameShapeDiffColor.length);
-    pushIfNew(diffShapeSameColor, diffShapeSameColor.length);
+    return distractors;
+  }
+
+  function generateTask() {
+    const profile = currentDifficultyProfile();
+    const correct = nextCorrectPair();
+    const options = [correct].concat(selectDistractors(correct, profile)).slice(0, profile.answerCount);
+    if (options.length < profile.answerCount) {
+      return null;
+    }
     utils.shuffleInPlace(options);
 
     const rect = shell.rect();
@@ -549,6 +650,7 @@
       return;
     }
     if (phase !== "frame") {
+      session.noteQuestionPresented();
       clearAnswerMarks();
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
       if (task.rewardCoins > 0) {
@@ -683,7 +785,8 @@
 
   async function handleStartRequested(payload) {
     selected = payload.diffKey || selected;
-    applyAnswerCount(currentDiff().answerCount);
+    selected = currentDifficultyKey();
+    applyAnswerCount(currentDifficultyProfile().answerCount);
     audio.ensureAudio();
     await ensureAssetsReady();
     await startGame();
@@ -738,7 +841,7 @@
   window.addEventListener("orientationchange", syncGameplayMetrics);
 
   syncGameplayMetrics();
-  applyAnswerCount(currentDiff().answerCount);
+  applyAnswerCount(currentDifficultyProfile().answerCount);
   ensureAssetsReady();
   setMascot("idle");
   syncSessionUi(session.getState());

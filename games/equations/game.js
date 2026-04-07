@@ -82,7 +82,7 @@
     if (!muteBtn) return;
     const muted = audio.bgm.isMuted();
     muteBtn.classList.toggle("muted", muted);
-    muteBtn.setAttribute("aria-label", muted ? "הפעלת קול" : "השתקת קול");
+    muteBtn.setAttribute("aria-label", muted ? "Unmute sound" : "Mute sound");
   }
 
   audio.onMuteChange(syncMuteButton);
@@ -99,7 +99,6 @@
   let running = false;
   let paused = false;
   let coins = initialSnapshot.player.coins;
-  let correctAnswers = 0;
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let prevCorrectIdx = -1;
@@ -210,32 +209,8 @@
     return assetsReadyPromise;
   }
 
-  function splashOffsetFor(rect) {
-    return cfg.splashOffsetBasePx * Math.pow(rect.height / cfg.splashOffsetBaselineHeight, cfg.splashOffsetExponent);
-  }
-
-  function level() {
-    return session.getState().levelNumber;
-  }
-
-  function currentPreset() {
-    return cfg.presets[selected] || cfg.presets.easy;
-  }
-
-  function currentStageIndex() {
-    const startStage = currentPreset().startStage || 0;
-    const stageLevelStep = Math.max(1, Number(cfg.gameplay.stageLevelStep) || 2);
-    const levelStage = Math.floor(Math.max(0, level() - 1) / stageLevelStep);
-    const correctStage = Math.floor(Math.max(0, correctAnswers) / Math.max(1, levelProgressTarget));
-    return Math.min(cfg.progression.length - 1, startStage + levelStage + correctStage);
-  }
-
-  function currentStage() {
-    return cfg.progression[currentStageIndex()] || cfg.progression[0];
-  }
-
-  function negativesAllowed() {
-    return selected === "super";
+  function currentDifficultyProfile() {
+    return cfg.difficulties[selected] || cfg.difficulties.easy;
   }
 
   function speedPxPerSec(item) {
@@ -253,7 +228,6 @@
   function syncSessionUi(state) {
     selected = state.diffKey || selected;
     coins = state.coins;
-    correctAnswers = state.correctCount;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
     setHUD();
@@ -397,8 +371,8 @@
     falling.spawn();
   }
 
-  function setMascot(_state) {
-    const sprite = _state === "shame" ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet) : cfg.assets.mascotSheet;
+  function setMascot(stateName) {
+    const sprite = stateName === "shame" ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet) : cfg.assets.mascotSheet;
     mascotAnimToken += 1;
     mascotEl.classList.remove("is-celebrating");
     mascotEl.style.backgroundImage = `url("${sprite.url}")`;
@@ -468,46 +442,9 @@
     return -(currentTileMetrics().height * spawnYOffsetRatio);
   }
 
-  function makeTask() {
-    const stage = currentStage();
-    const op = utils.choice(stage.ops);
-
-    let a;
-    let b;
-    let answer;
-    let text;
-
-    if (op === "+") {
-      const addRange = stage.addRange || [0, 10];
-      a = utils.randInt(addRange[0], addRange[1]);
-      b = utils.randInt(addRange[0], addRange[1]);
-      answer = a + b;
-      text = `${a}+${b}`;
-    } else if (op === "-") {
-      const subRange = stage.subRange || [0, 10];
-      a = utils.randInt(subRange[0], subRange[1]);
-      b = utils.randInt(subRange[0], subRange[1]);
-      if ((!stage.allowNegResult || !negativesAllowed()) && b > a) {
-        [a, b] = [b, a];
-      }
-      answer = a - b;
-      text = `${a}-${b}`;
-    } else if (op === "*") {
-      const mulRange = stage.mulRange || [1, 10];
-      a = utils.randInt(mulRange[0], mulRange[1]);
-      b = utils.randInt(mulRange[0], mulRange[1]);
-      answer = a * b;
-      text = `${a}×${b}`;
-    } else {
-      const divDivisorRange = stage.divDivisorRange || [1, 10];
-      const divAnswerRange = stage.divAnswerRange || [1, 10];
-      b = utils.randInt(divDivisorRange[0], divDivisorRange[1]);
-      answer = utils.randInt(divAnswerRange[0], divAnswerRange[1]);
-      a = answer * b;
-      text = `${a}÷${b}`;
-    }
-
-    return { answer, text };
+  function randomInRange(range, fallbackMin, fallbackMax) {
+    const safeRange = Array.isArray(range) && range.length >= 2 ? range : [fallbackMin, fallbackMax];
+    return utils.randInt(safeRange[0], safeRange[1]);
   }
 
   function formatEquationValue(value) {
@@ -522,119 +459,153 @@
     return `${displayLeft} ${operator} ${displayRight} = ${displayResult}`;
   }
 
-  function chooseMissingSlot(stage) {
-    const missingSlots = Array.isArray(stage.missingSlots) && stage.missingSlots.length
-      ? stage.missingSlots
+  function chooseMissingSlot(profile) {
+    const missingSlots = Array.isArray(profile.missingSlots) && profile.missingSlots.length
+      ? profile.missingSlots
       : ["left", "right", "result"];
     return utils.choice(missingSlots);
   }
 
-  function withinVisibleLimit(values, maxVisibleNumber) {
-    if (!Number.isFinite(maxVisibleNumber) || maxVisibleNumber <= 0) {
-      return true;
-    }
-    return values.every((value) => Math.abs(Number(value) || 0) <= maxVisibleNumber);
-  }
-
-  function buildEquationTask() {
-    const preset = currentPreset();
-    const maxVisibleNumber = Number(preset.maxVisibleNumber);
-
-    for (let attempt = 0; attempt < 160; attempt += 1) {
-      const stage = currentStage();
-      const op = utils.choice(stage.ops);
-      const missingSlot = chooseMissingSlot(stage);
-
-      let left;
-      let right;
-      let result;
-
-      if (op === "+") {
-        const addRange = stage.addRange || [0, 10];
-        left = utils.randInt(addRange[0], addRange[1]);
-        right = utils.randInt(addRange[0], addRange[1]);
-        result = left + right;
-      } else if (op === "-") {
-        const subRange = stage.subRange || [0, 10];
-        left = utils.randInt(subRange[0], subRange[1]);
-        right = utils.randInt(subRange[0], subRange[1]);
-        if ((!stage.allowNegativeAnswer || !negativesAllowed()) && right > left) {
-          [left, right] = [right, left];
-        }
-        result = left - right;
-      } else if (op === "*") {
-        const mulRange = stage.mulRange || [1, 10];
-        left = utils.randInt(mulRange[0], mulRange[1]);
-        right = utils.randInt(mulRange[0], mulRange[1]);
-        result = left * right;
-      } else {
-        const divDivisorRange = stage.divDivisorRange || [1, 10];
-        const divAnswerRange = stage.divAnswerRange || [1, 10];
-        right = utils.randInt(divDivisorRange[0], divDivisorRange[1]);
-        result = utils.randInt(divAnswerRange[0], divAnswerRange[1]);
-        left = result * right;
-      }
-
-      const answer = missingSlot === "left"
-        ? left
-        : (missingSlot === "right" ? right : result);
-
-      if (!withinVisibleLimit([left, right, result, answer], maxVisibleNumber)) {
-        continue;
-      }
-
-      return {
-        answer,
-        text: formatEquation(op, missingSlot, left, right, result)
-      };
-    }
-
-    const fallbackLeft = utils.randInt(0, Number.isFinite(maxVisibleNumber) && maxVisibleNumber > 0 ? maxVisibleNumber : 10);
-    const fallbackRight = utils.randInt(0, Math.max(0, (Number.isFinite(maxVisibleNumber) && maxVisibleNumber > 0 ? maxVisibleNumber : 10) - fallbackLeft));
-    const fallbackResult = fallbackLeft + fallbackRight;
-    const fallbackMissingSlot = utils.choice(["left", "right", "result"]);
-    const fallbackAnswer = fallbackMissingSlot === "left"
-      ? fallbackLeft
-      : (fallbackMissingSlot === "right" ? fallbackRight : fallbackResult);
-
+  function buildEquationFromValues(op, profile, left, right, result) {
+    const missingSlot = chooseMissingSlot(profile);
     return {
-      answer: fallbackAnswer,
-      text: formatEquation("+", fallbackMissingSlot, fallbackLeft, fallbackRight, fallbackResult)
+      answer: missingSlot === "left" ? left : (missingSlot === "right" ? right : result),
+      text: formatEquation(op, missingSlot, left, right, result)
     };
   }
 
-  function uniqueWrongs(correct) {
-    const stage = currentStage();
-    const set = new Set([correct]);
-    const blockNegativeOptions = stage.noNegOptions || !negativesAllowed();
+  function buildAdditionTask(profile) {
+    const rules = profile.addition || {};
+    for (let attempt = 0; attempt < 160; attempt += 1) {
+      const left = randomInRange(rules.left, 0, 10);
+      const right = randomInRange(rules.right, 0, 10);
+      if (left === 0 || right === 0) {
+        continue;
+      }
+      const result = left + right;
+      if (Number.isFinite(rules.resultMax) && result > rules.resultMax) {
+        continue;
+      }
+      return buildEquationFromValues("+", profile, left, right, result);
+    }
+    return buildEquationFromValues("+", profile, 1, 1, 2);
+  }
 
-    function ok(value) {
-      return !(blockNegativeOptions && value < 0);
+  function buildSubtractionTask(profile) {
+    const rules = profile.subtraction || {};
+    for (let attempt = 0; attempt < 160; attempt += 1) {
+      let left = randomInRange(rules.left, 0, 10);
+      let right = randomInRange(rules.right, 0, 10);
+      if (left === 0 || right === 0) {
+        continue;
+      }
+      if (!profile.allowNegativeResults && right > left) {
+        [left, right] = [right, left];
+      }
+      const result = left - right;
+      if (!profile.allowNegativeResults && result < 0) {
+        continue;
+      }
+      if (Number.isFinite(rules.resultMax) && result > rules.resultMax) {
+        continue;
+      }
+      return buildEquationFromValues("-", profile, left, right, result);
+    }
+    return buildEquationFromValues("-", profile, 2, 1, 1);
+  }
+
+  function buildMultiplicationTask(profile) {
+    const rules = profile.multiplication || {};
+    for (let attempt = 0; attempt < 160; attempt += 1) {
+      const left = randomInRange(rules.left, 1, 9);
+      const right = randomInRange(rules.right, 1, 9);
+      if (left === 0 || right === 0) {
+        continue;
+      }
+      const result = left * right;
+      if (Number.isFinite(rules.resultMax) && result > rules.resultMax) {
+        continue;
+      }
+      return buildEquationFromValues("*", profile, left, right, result);
+    }
+    return buildEquationFromValues("*", profile, 2, 2, 4);
+  }
+
+  function buildDivisionTask(profile) {
+    const rules = profile.division || {};
+    for (let attempt = 0; attempt < 160; attempt += 1) {
+      const divisor = randomInRange(rules.divisor, 1, 9);
+      const quotient = randomInRange(rules.quotient, 1, 9);
+      const dividend = divisor * quotient;
+      if (Number.isFinite(rules.dividendMax) && dividend > rules.dividendMax) {
+        continue;
+      }
+      return buildEquationFromValues("/", profile, dividend, divisor, quotient);
+    }
+    return buildEquationFromValues("/", profile, 6, 3, 2);
+  }
+
+  function buildEquationTask() {
+    const profile = currentDifficultyProfile();
+    const operations = Array.isArray(profile.operations) && profile.operations.length ? profile.operations : ["+"];
+    const op = utils.choice(operations);
+
+    if (op === "+") {
+      return buildAdditionTask(profile);
+    }
+    if (op === "-") {
+      return buildSubtractionTask(profile);
+    }
+    if (op === "*" && profile.allowMultiplication) {
+      return buildMultiplicationTask(profile);
+    }
+    if (op === "/" && profile.allowDivision) {
+      return buildDivisionTask(profile);
+    }
+    return buildAdditionTask(profile);
+  }
+
+  function buildDifficultyWrongs(correct) {
+    const profile = currentDifficultyProfile();
+    const distractors = profile.distractors || {};
+    const set = new Set([correct]);
+    const allowNegativeOptions = distractors.allowNegativeOptions === true;
+    const minOffset = Math.max(1, Number(distractors.minOffset) || 1);
+    const near = Math.max(minOffset + 1, Number(distractors.near) || 6);
+    const far = Math.max(near + 1, Number(distractors.far) || 12);
+    const farChance = Math.max(0, Math.min(1, Number(distractors.farChance) || 0));
+
+    function normalizeDelta(delta) {
+      if (delta === 0) {
+        return minOffset;
+      }
+      if (Math.abs(delta) < minOffset) {
+        return delta < 0 ? -minOffset : minOffset;
+      }
+      return delta;
+    }
+
+    function isAllowed(value) {
+      return allowNegativeOptions || value >= 0;
     }
 
     let guard = 0;
     while (set.size < 4 && guard < 200) {
       guard += 1;
-      const near = Math.max(2, stage.wrongNear || 6);
-      const far = Math.max(near + 2, stage.wrongFar || 12);
-      const delta = utils.randInt(-near, near) || 1;
-      let wrong = correct + delta;
-      if (Math.random() < 0.25) {
-        wrong = correct + utils.randInt(-far, far);
+      let delta = normalizeDelta(utils.randInt(-near, near));
+      if (Math.random() < farChance) {
+        delta = normalizeDelta(utils.randInt(-far, far));
       }
-      if (!ok(wrong)) {
+      const wrong = correct + delta;
+      if (!isAllowed(wrong) || wrong === correct) {
         continue;
       }
       set.add(wrong);
     }
 
     while (set.size < 4) {
-      const fallback = Math.max(0, correct + set.size);
-      if (ok(fallback)) {
-        set.add(fallback);
-      } else {
-        set.add(correct + set.size);
-      }
+      const fallback = correct + set.size;
+      set.add(isAllowed(fallback) ? fallback : Math.abs(fallback));
     }
 
     const arr = Array.from(set);
@@ -671,6 +642,7 @@
       return;
     }
     if (phase !== "frame") {
+      session.noteQuestionPresented();
       tileEl.textContent = task.text;
       applyTileMetrics(task);
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
@@ -682,7 +654,7 @@
       }
       clearAnswerMarks();
 
-      const answers = uniqueWrongs(task.answer);
+      const answers = buildDifficultyWrongs(task.answer);
       for (let i = 0; i < ansBtns.length; i += 1) {
         ansBtns[i].textContent = utils.formatSignedNumber(answers[i]);
         ansBtns[i].dataset.val = String(answers[i]);

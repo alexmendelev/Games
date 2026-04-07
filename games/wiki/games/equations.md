@@ -23,23 +23,56 @@ title: Equations
 
 ## Difficulty
 
-- presets: `easy`, `medium`, `hard`, `super`
+- levels: `easy`, `medium`, `hard`, `super`
 - level goals:
   - `8 / 10 / 12 / 14` correct
   - `60s / 75s / 90s / 90s`
-- difficulty preset selects a starting stage with `startStage`
-- stage progression advances every `2` levels via `stageLevelStep`
-- progression expands from simple addition to mixed operations with missing slots and division
+- Equations now uses explicit config-based difficulty profiles only
+- there is no hidden stage system and no level-number-based content growth
+- active difficulty alone determines operations, ranges, missing slots, and distractor spread
+
+### V1 Profiles
+
+- `easy`
+  - addition only
+  - operands up to `5`
+  - no zero operands
+  - missing slot: result only
+  - no subtraction, multiplication, division, or negatives
+- `medium`
+  - addition and subtraction
+  - numbers and results up to `10`
+  - no zero operands
+  - missing slot: left, right, or result
+  - no multiplication, division, or negatives
+- `hard`
+  - addition and subtraction
+  - numbers and results up to `20`
+  - no zero operands
+  - missing slot: left, right, or result
+  - includes normal carry / borrow style cases
+  - no multiplication, division, or negatives
+- `super`
+  - addition, subtraction, simple multiplication, and simple division
+  - division uses clean integer answers only
+  - no zero operands
+  - missing slot: left, right, or result
+  - no negatives in V1
 
 ## Falling Speed
 
 - active runtime behavior currently uses the shared `~12s` fall duration noted in [[overview]]
-- config still defines `baseSpeed: 78`, `speedIncPerLevel: 6`, and preset `speedMul` values `0.24 / 0.27 / 0.30 / 0.34`
+- config still defines `baseSpeed: 78` and `speedIncPerLevel: 6`, but those are not the active runtime path right now
 
 ## Useful Dev Notes
 
-- equations is the richest arithmetic progression in the set
-- stage config includes `missingSlots`, so prompt-generation changes can affect difficulty sharply
+- Equations is now profile-driven like Math and Multiply
+- missing-slot rules are defined directly in config per difficulty
 - reward tuning here is intentionally more generous than the standard games
+
+## Test Commands
+
+- fast logic check: `npm run test:logic:equations`
+- focused browser check: `npm run test:e2e:equations-difficulty`
 
 Back to [[overview]].

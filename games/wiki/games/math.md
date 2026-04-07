@@ -24,19 +24,70 @@ title: Math
 - level goals:
   - `8 / 10 / 12 / 14` correct
   - `60s / 75s / 90s / 90s`
-- difficulty preset selects a starting progression stage with `startStage`
-- stage progression advances every `2` levels via `stageLevelStep`
-- content progression expands from addition to subtraction, multiplication, and division
+- Math no longer uses a hidden stage system
+- Math content now depends only on the active difficulty, not on level number or in-level streaks
 
-## Falling Speed
+### Easy
 
-- active runtime behavior currently uses the shared `~12s` fall duration noted in [[overview]]
-- config still defines `baseSpeed: 80`, `speedIncPerLevel: 6`, and preset `speedMul` values `0.24 / 0.27 / 0.30 / 0.34`
+- addition only
+- small numbers, mainly up to `5`
+- results up to `10`
+- no negatives
+- no multiplication or division
+- distractors are friendlier and more separated
 
-## Useful Dev Notes
+### Medium
 
-- progression is stage-based, not just difficulty-label based
-- wrong-answer spread increases by stage via `wrongNear` and `wrongFar`
-- this page should be updated if stage stepping or operator unlock rules change
+- addition and subtraction
+- operands/results up to `10`
+- no negative results
+- no multiplication or division
+- this is the first mixed-arithmetic level
+- distractors stay fairly friendly
+
+### Hard
+
+- addition and subtraction
+- operands/results up to `20`
+- allows carry / borrow style cases
+- no negative results
+- no multiplication or division
+- distractors can sit closer to the right answer
+
+### Super
+
+- addition, subtraction, multiplication, and division
+- multiplication/division stay small and child-friendly
+- division uses clean integer results only
+- no negatives in V1
+- distractors are tighter than the lower levels
+
+## Generation Notes
+
+- addition and subtraction avoid `+0` and `-0`
+- subtraction never produces a negative answer in V1
+- multiplication and division appear only on `super`
+- wrong answers come from a per-difficulty distractor config instead of stage-based spread
+
+## Adaptive Difficulty
+
+- Math uses the shared adaptive manager described in [[systems/adaptive-difficulty]]
+- Parent bounds still control the allowed min/max range
+- Shared adaptive state stored for Math:
+  - `currentDifficulty`
+  - `comfortableStreak`
+  - `strugglingStreak`
+  - `pendingRecoveryLevel`
+
+## Debug And Testing
+
+- adaptive debug output is available with:
+  - `?difficultyDebug=console`
+  - `?difficultyDebug=overlay`
+  - `?difficultyDebug=all`
+- fast logic test:
+  - `npm run test:logic`
+- focused browser test:
+  - `npm run test:e2e:math-difficulty`
 
 Back to [[overview]].
