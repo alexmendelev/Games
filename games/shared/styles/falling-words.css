@@ -3,9 +3,18 @@
   height: calc(116px * var(--ui, 1));
   font-size: calc(50px * var(--ui, 1));
   transform: translate(20px, -128px);
-  direction: rtl;
   text-align: center;
   padding: 0 calc(16px * var(--ui, 1));
+}
+
+.tile[data-word-dir="rtl"] {
+  direction: rtl;
+  unicode-bidi: plaintext;
+}
+
+.tile[data-word-dir="ltr"] {
+  direction: ltr;
+  unicode-bidi: plaintext;
 }
 
 .answers[data-answer-type="FourLargeCards"] .ans {

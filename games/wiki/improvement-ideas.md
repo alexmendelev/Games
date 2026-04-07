@@ -78,6 +78,24 @@ Working notes for design ideas we may want to revisit later. These are ideas, no
 - this would make rewards feel more earned and better aligned with challenge
 - this should apply across games, with game-specific tuning as needed
 
+## Featured Bonus Game
+
+- each day, or each time the main menu is shown, choose one featured game
+- show that game's menu icon with an extra coin sign so the bonus is visible before launch
+- for the featured game, apply a `x2` bonus
+- the selection goal should be to prioritize games the player uses less
+- likely signals:
+  - games not played recently
+  - games with fewer total sessions over a rolling window
+  - games with meaningfully less total time played
+- likely direction:
+  - do not choose fully at random
+  - weight the choice toward underused games so the bonus helps rebalance play across the catalog
+- open product question:
+  - whether the featured game should rotate once per real day, or reshuffle on each menu visit
+- likely UX goal:
+  - create variety and gently steer players toward games they have been ignoring
+
 ## Good Follow-Up Spec
 
 - define exact adaptive thresholds
