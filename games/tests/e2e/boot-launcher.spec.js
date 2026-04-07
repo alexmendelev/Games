@@ -1,5 +1,7 @@
 const { test, expect } = require("@playwright/test");
 
+const onePixelPngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9sX6lz0AAAAASUVORK5CYII=";
+
 async function mockMobileFullscreen(page) {
   await page.addInitScript(() => {
     window.__fullscreenRequested = 0;
@@ -73,4 +75,38 @@ test("launcher can open fullscreen on mobile", async ({ page }) => {
 
   await expect(page.locator("#bootOverlay")).toBeHidden();
   await expect.poll(async () => page.evaluate(() => window.__fullscreenRequested)).toBe(1);
+});
+
+test("launcher preloads new words emoji assets during boot", async ({ page }) => {
+  const requestedEmojiPaths = [];
+
+  await page.route("**/words/data/emojis-new/icon-pack-manifest-he.tsv", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "text/tab-separated-values",
+      body: [
+        "filename\tgroup\ten\the",
+        "animal-cat.png\tanimals\tcat\tחתול",
+        "transport-airplane.png\ttransport\tairplane\tמטוס"
+      ].join("\n")
+    });
+  });
+
+  await page.route("**/words/data/emojis-new/*.png", async (route) => {
+    requestedEmojiPaths.push(new URL(route.request().url()).pathname);
+    await route.fulfill({
+      status: 200,
+      contentType: "image/png",
+      body: onePixelPngBase64,
+      isBase64: true
+    });
+  });
+
+  await page.goto("/");
+
+  await expect(page.locator("#bootContinueAction")).toBeVisible({ timeout: 20000 });
+  expect(requestedEmojiPaths).toEqual(expect.arrayContaining([
+    "/words/data/emojis-new/animal-cat.png",
+    "/words/data/emojis-new/transport-airplane.png"
+  ]));
 });
