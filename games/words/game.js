@@ -187,8 +187,21 @@
     const response = await fetch(cfg.assets.emojiTsv, { cache: "no-store" });
     if (!response.ok) throw new Error("Failed to load emoji TSV");
     const text = await response.text();
-    return text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
-      const [id, en, he] = line.split("\t");
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const rows = lines.length && /^filename\t/i.test(lines[0]) ? lines.slice(1) : lines;
+    return rows.map((line) => {
+      const parts = line.split("\t");
+      if (parts.length >= 4 && /\.png$/i.test((parts[0] || "").trim())) {
+        const [filename, , en, he] = parts;
+        const file = String(filename || "").trim();
+        return {
+          id: file.replace(/\.png$/i, ""),
+          en: String(en || "").trim(),
+          he: String(he || "").trim(),
+          src: `${cfg.assets.emojiDir}/${file}`
+        };
+      }
+      const [id, en, he] = parts;
       const code = (id || "").trim().toUpperCase();
       return { id: code, en: (en || "").trim(), he: (he || "").trim(), src: `${cfg.assets.emojiDir}/${code}.png` };
     }).filter((item) => item.id && item.he);
@@ -197,18 +210,24 @@
   function embeddedEmojiList() {
     const embedded = Array.isArray(window.GAME_V2_WORDS_EMOJI_DATA) ? window.GAME_V2_WORDS_EMOJI_DATA : [];
     return embedded.map((item) => {
+      const filename = String(item.filename || "").trim();
       const code = String(item.id || "").trim().toUpperCase();
       return {
-        id: code,
+        id: filename ? filename.replace(/\.png$/i, "") : code,
         en: String(item.en || "").trim(),
         he: String(item.he || "").trim(),
-        src: `${cfg.assets.emojiDir}/${code}.png`
+        src: filename ? `${cfg.assets.emojiDir}/${filename}` : `${cfg.assets.emojiDir}/${code}.png`
       };
     }).filter((item) => item.id && item.he);
   }
 
   function fallbackEmojiList() {
-    return cfg.fallbackEmojis.map((item) => ({ id: item.id, en: "", he: item.he, src: `${cfg.assets.emojiDir}/${item.id}.png` }));
+    return cfg.fallbackEmojis.map((item) => ({
+      id: item.id,
+      en: String(item.en || "").trim(),
+      he: item.he,
+      src: item.filename ? `${cfg.assets.emojiDir}/${item.filename}` : `${cfg.assets.emojiDir}/${item.id}.png`
+    }));
   }
 
   function normalizeWordForLevel(word) {
@@ -689,7 +708,7 @@
     try {
       emojis = await loadEmojiTsv();
     } catch (_) {
-      emojis = embeddedEmojiList();
+      emojis = [];
     }
     if (emojis.length < 8) {
       emojis = fallbackEmojiList();

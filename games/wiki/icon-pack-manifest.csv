@@ -1,0 +1,246 @@
+filename,english_name,hebrew_label,category,status
+1F412.png,monkey,קוף,animal,existing
+1F98D.png,gorilla,גורילה,animal,existing
+1F9A7.png,orangutan,אורנגאוטן,animal,existing
+1F415.png,dog,כלב,animal,existing
+1F429.png,poodle,פודל,animal,existing
+1F43A.png,wolf,זאב,animal,existing
+1F98A.png,fox,שועל,animal,existing
+1F408.png,cat,חתול,animal,existing
+1F981.png,lion,אריה,animal,existing
+1F405.png,tiger,טיגריס,animal,existing
+1F406.png,leopard,נמר,animal,existing
+1FACE.png,moose,אייל קורא,animal,existing
+1F40E.png,horse,סוס,animal,existing
+1F984.png,unicorn,חד-קרן,animal,existing
+1F993.png,zebra,זברה,animal,existing
+1F98C.png,deer,אייל,animal,existing
+1F9AC.png,bison,ביזון,animal,existing
+1F402.png,ox,שור,animal,existing
+1F404.png,cow,פרה,animal,existing
+1F416.png,pig,חזיר,animal,existing
+1F417.png,boar,חזיר בר,animal,existing
+1F40F.png,ram,איל,animal,existing
+1F410.png,goat,עז,animal,existing
+1F42A.png,camel,גמל,animal,existing
+1F999.png,llama,למה,animal,existing
+1F992.png,giraffe,ג'ירפה,animal,existing
+1F418.png,elephant,פיל,animal,existing
+1F98F.png,rhinoceros,קרנף,animal,existing
+1F99B.png,hippopotamus,היפופוטם,animal,existing
+1F401.png,mouse,עכבר,animal,existing
+1F400.png,rat,חולדה,animal,existing
+1F439.png,hamster,אוגר,animal,existing
+1F407.png,rabbit,ארנב,animal,existing
+1F43F.png,chipmunk,סנאי מפוספס,animal,existing
+1F9AB.png,beaver,בונה,animal,existing
+1F994.png,hedgehog,קיפוד,animal,existing
+1F987.png,bat,עטלף,animal,existing
+1F43B.png,bear,דוב,animal,existing
+1F428.png,koala,קואלה,animal,existing
+1F43C.png,panda,פנדה,animal,existing
+1F9A5.png,sloth,עצלן,animal,existing
+1F9A6.png,otter,לוטרה,animal,existing
+1F9A8.png,skunk,בואש,animal,existing
+1F998.png,kangaroo,קנגרו,animal,existing
+1F9A1.png,badger,גירית,animal,existing
+1F983.png,turkey,תרנגול הודו,bird,existing
+1F414.png,chicken,תרנגולת,bird,existing
+1F413.png,rooster,תרנגול,bird,existing
+1F426.png,bird,ציפור,bird,existing
+1F427.png,penguin,פינגווין,bird,existing
+1F54A.png,dove,יונה,bird,existing
+1F985.png,eagle,עיט,bird,existing
+1F986.png,duck,ברווז,bird,existing
+1F9A2.png,swan,ברבור,bird,existing
+1F989.png,owl,ינשוף,bird,existing
+1F9A9.png,flamingo,פלמינגו,bird,existing
+1F99A.png,peacock,טווס,bird,existing
+1F99C.png,parrot,תוכי,bird,existing
+1FABF.png,goose,אווז,bird,existing
+1F438.png,frog,צפרדע,reptile_amphibian_sea_insect,existing
+1F40A.png,crocodile,תנין,reptile_amphibian_sea_insect,existing
+1F422.png,turtle,צב,reptile_amphibian_sea_insect,existing
+1F98E.png,lizard,לטאה,reptile_amphibian_sea_insect,existing
+1F40D.png,snake,נחש,reptile_amphibian_sea_insect,existing
+1F409.png,dragon,דרקון,reptile_amphibian_sea_insect,existing
+1F40B.png,whale,לווייתן,reptile_amphibian_sea_insect,existing
+1F42C.png,dolphin,דולפין,reptile_amphibian_sea_insect,existing
+1F9AD.png,seal,כלב ים,reptile_amphibian_sea_insect,existing
+1F41F.png,fish,דג,reptile_amphibian_sea_insect,existing
+1F421.png,blowfish,נפוחית,reptile_amphibian_sea_insect,existing
+1F988.png,shark,כריש,reptile_amphibian_sea_insect,existing
+1F419.png,octopus,תמנון,reptile_amphibian_sea_insect,existing
+1F980.png,crab,סרטן,reptile_amphibian_sea_insect,existing
+1F99E.png,lobster,לובסטר,reptile_amphibian_sea_insect,existing
+1F990.png,shrimp,שרימפ,reptile_amphibian_sea_insect,existing
+1F991.png,squid,דיונון,reptile_amphibian_sea_insect,existing
+1F40C.png,snail,חילזון,reptile_amphibian_sea_insect,existing
+1F98B.png,butterfly,פרפר,reptile_amphibian_sea_insect,existing
+1F41B.png,bug,חרק,reptile_amphibian_sea_insect,existing
+1F41C.png,ant,נמלה,reptile_amphibian_sea_insect,existing
+1F41D.png,honeybee,דבורת דבש,reptile_amphibian_sea_insect,existing
+1FAB2.png,beetle,חיפושית,reptile_amphibian_sea_insect,existing
+1F577.png,spider,עכביש,reptile_amphibian_sea_insect,existing
+1F982.png,scorpion,עקרב,reptile_amphibian_sea_insect,existing
+1F99F.png,mosquito,יתוש,reptile_amphibian_sea_insect,existing
+1FAB1.png,worm,תולעת,reptile_amphibian_sea_insect,existing
+1F344.png,mushroom,פטרייה,food_plant_kitchen,existing
+1F347.png,grapes,ענבים,food_plant_kitchen,existing
+1F348.png,melon,מלון,food_plant_kitchen,existing
+1F349.png,watermelon,אבטיח,food_plant_kitchen,existing
+1F34B.png,lemon,לימון,food_plant_kitchen,existing
+1F34C.png,banana,בננה,food_plant_kitchen,existing
+1F34D.png,pineapple,אננס,food_plant_kitchen,existing
+1F350.png,pear,אגס,food_plant_kitchen,existing
+1F351.png,peach,אפרסק,food_plant_kitchen,existing
+1F353.png,strawberry,תות,food_plant_kitchen,existing
+1F345.png,tomato,עגבנייה,food_plant_kitchen,existing
+1F965.png,coconut,קוקוס,food_plant_kitchen,existing
+1F951.png,avocado,אבוקדו,food_plant_kitchen,existing
+1F954.png,potato,תפוח אדמה,food_plant_kitchen,existing
+1F955.png,carrot,גזר,food_plant_kitchen,existing
+1F952.png,cucumber,מלפפון,food_plant_kitchen,existing
+1F966.png,broccoli,ברוקולי,food_plant_kitchen,existing
+1F9C4.png,garlic,שום,food_plant_kitchen,existing
+1F9C5.png,onion,בצל,food_plant_kitchen,existing
+1F35E.png,bread,לחם,food_plant_kitchen,existing
+1F950.png,croissant,קרואסון,food_plant_kitchen,existing
+1F96F.png,bagel,בייגל,food_plant_kitchen,existing
+1F95E.png,pancakes,פנקייקים,food_plant_kitchen,existing
+1F9C7.png,waffle,וופל,food_plant_kitchen,existing
+1F953.png,bacon,בייקון,food_plant_kitchen,existing
+1F354.png,hamburger,המבורגר,food_plant_kitchen,existing
+1F355.png,pizza,פיצה,food_plant_kitchen,existing
+1F96A.png,sandwich,כריך,food_plant_kitchen,existing
+1F32E.png,taco,טאקו,food_plant_kitchen,existing
+1F32F.png,burrito,בוריטו,food_plant_kitchen,existing
+1F95A.png,egg,ביצה,food_plant_kitchen,existing
+1F373.png,cooking,בישול,food_plant_kitchen,existing
+1F9C2.png,salt,מלח,food_plant_kitchen,existing
+1F35D.png,spaghetti,ספגטי,food_plant_kitchen,existing
+1F363.png,sushi,סושי,food_plant_kitchen,existing
+1F95F.png,dumpling,כיסון,food_plant_kitchen,existing
+1F369.png,doughnut,דונאט,food_plant_kitchen,existing
+1F36A.png,cookie,עוגייה,food_plant_kitchen,existing
+1F967.png,pie,פאי,food_plant_kitchen,existing
+1F36C.png,candy,ממתק,food_plant_kitchen,existing
+1F36D.png,lollipop,סוכרייה על מקל,food_plant_kitchen,existing
+1FAD6.png,teapot,קומקום תה,food_plant_kitchen,existing
+1F9CA.png,ice,קרח,food_plant_kitchen,existing
+1F962.png,chopsticks,מקלות אכילה,food_plant_kitchen,existing
+1F944.png,spoon,כף,food_plant_kitchen,existing
+1FAD9.png,jar,צנצנת,food_plant_kitchen,existing
+1F686.png,train,רכבת,transport,existing
+1F687.png,metro,מטרו,transport,existing
+1F68A.png,tram,חשמלית,transport,existing
+1F69D.png,monorail,מונורייל,transport,existing
+1F68C.png,bus,אוטובוס,transport,existing
+1F68E.png,trolleybus,טרוליבוס,transport,existing
+1F691.png,ambulance,אמבולנס,transport,existing
+1F695.png,taxi,מונית,transport,existing
+1F697.png,automobile,מכונית,transport,existing
+1F69C.png,tractor,טרקטור,transport,existing
+1F3CD.png,motorcycle,אופנוע,transport,existing
+1F6B2.png,bicycle,אופניים,transport,existing
+26F5.png,sailboat,סירת מפרש,transport,existing
+1F6F6.png,canoe,קאנו,transport,existing
+1F6A4.png,speedboat,סירת מנוע מהירה,transport,existing
+26F4.png,ferry,מעבורת,transport,existing
+1F6A2.png,ship,ספינה,transport,existing
+2708.png,airplane,מטוס,transport,existing
+1F681.png,helicopter,מסוק,transport,existing
+1F680.png,rocket,רקטה,transport,existing
+F8FF.png,apple,תפוח,legacy,legacy
+E0C7.png,cake,עוגה,legacy,legacy
+tree.png,tree,עץ,nature_weather,new
+flower.png,flower,פרח,nature_weather,new
+sun.png,sun,שמש,nature_weather,new
+cloud.png,cloud,ענן,nature_weather,new
+leaf.png,leaf,עלה,nature_weather,new
+cactus.png,cactus,קקטוס,nature_weather,new
+seedling.png,seedling,נבט,nature_weather,new
+rain_drop.png,rain_drop,טיפה,nature_weather,new
+umbrella.png,umbrella,מטרייה,nature_weather,new
+snowflake.png,snowflake,פתית שלג,nature_weather,new
+mountain.png,mountain,הר,nature_weather,new
+rock.png,rock,אבן,nature_weather,new
+grass.png,grass,דשא,nature_weather,new
+shirt.png,shirt,חולצה,clothing,new
+pants.png,pants,מכנסיים,clothing,new
+dress.png,dress,שמלה,clothing,new
+skirt.png,skirt,חצאית,clothing,new
+socks.png,socks,גרביים,clothing,new
+shoes.png,shoes,נעליים,clothing,new
+boots.png,boots,מגפיים,clothing,new
+hat.png,hat,כובע,clothing,new
+scarf.png,scarf,צעיף,clothing,new
+gloves.png,gloves,כפפות,clothing,new
+backpack.png,backpack,תיק גב,clothing,new
+bed.png,bed,מיטה,home_furniture_bathroom,new
+chair.png,chair,כיסא,home_furniture_bathroom,new
+table.png,table,שולחן,home_furniture_bathroom,new
+lamp.png,lamp,מנורה,home_furniture_bathroom,new
+sofa.png,sofa,ספה,home_furniture_bathroom,new
+door.png,door,דלת,home_furniture_bathroom,new
+window.png,window,חלון,home_furniture_bathroom,new
+clock.png,clock,שעון,home_furniture_bathroom,new
+mirror.png,mirror,מראה,home_furniture_bathroom,new
+bathtub.png,bathtub,אמבטיה,home_furniture_bathroom,new
+toilet.png,toilet,אסלה,home_furniture_bathroom,new
+toothbrush.png,toothbrush,מברשת שיניים,home_furniture_bathroom,new
+toothpaste.png,toothpaste,משחת שיניים,home_furniture_bathroom,new
+soap.png,soap,סבון,home_furniture_bathroom,new
+towel.png,towel,מגבת,home_furniture_bathroom,new
+book.png,book,ספר,school_play,new
+notebook.png,notebook,מחברת,school_play,new
+pencil.png,pencil,עיפרון,school_play,new
+pen.png,pen,עט,school_play,new
+eraser.png,eraser,מחק,school_play,new
+ruler.png,ruler,סרגל,school_play,new
+scissors.png,scissors,מספריים,school_play,new
+glue.png,glue,דבק,school_play,new
+paint_palette.png,paint_palette,פלטת צבעים,school_play,new
+paintbrush.png,paintbrush,מכחול,school_play,new
+school_bag.png,school_bag,תיק בית ספר,school_play,new
+ball.png,ball,כדור,school_play,new
+kite.png,kite,עפיפון,school_play,new
+puzzle_piece.png,puzzle_piece,חלק פאזל,school_play,new
+gift.png,gift,מתנה,school_play,new
+cup.png,cup,כוס,kitchen_household,new
+mug.png,mug,ספל,kitchen_household,new
+plate.png,plate,צלחת,kitchen_household,new
+bowl.png,bowl,קערה,kitchen_household,new
+fork.png,fork,מזלג,kitchen_household,new
+knife.png,knife,סכין,kitchen_household,new
+bottle.png,bottle,בקבוק,kitchen_household,new
+milk.png,milk,חלב,kitchen_household,new
+cheese.png,cheese,גבינה,kitchen_household,new
+apple_red.png,apple_red,תפוח,kitchen_household,new
+apple_green.png,apple_green,תפוח ירוק,kitchen_household,new
+orange.png,orange,תפוז,kitchen_household,new
+pepper.png,pepper,פלפל,kitchen_household,new
+rice.png,rice,אורז,kitchen_household,new
+soup.png,soup,מרק,kitchen_household,new
+house.png,house,בית,places_city_objects,new
+school.png,school,בית ספר,places_city_objects,new
+hospital.png,hospital,בית חולים,places_city_objects,new
+store.png,store,חנות,places_city_objects,new
+park.png,park,פארק,places_city_objects,new
+playground.png,playground,מגרש משחקים,places_city_objects,new
+traffic_light.png,traffic_light,רמזור,places_city_objects,new
+bridge.png,bridge,גשר,places_city_objects,new
+key.png,key,מפתח,places_city_objects,new
+lock.png,lock,מנעול,places_city_objects,new
+phone.png,phone,טלפון,places_city_objects,new
+tv.png,tv,טלוויזיה,places_city_objects,new
+computer.png,computer,מחשב,places_city_objects,new
+camera.png,camera,מצלמה,places_city_objects,new
+light_bulb.png,light_bulb,נורה,places_city_objects,new
+battery.png,battery,סוללה,places_city_objects,new
+magnet.png,magnet,מגנט,places_city_objects,new
+box.png,box,קופסה,places_city_objects,new
+balloon.png,balloon,בלון,places_city_objects,new
+sheep.png,sheep,כבשה,additional_animals,new
+donkey.png,donkey,חמור,additional_animals,new
+chick.png,chick,אפרוח,additional_animals,new
