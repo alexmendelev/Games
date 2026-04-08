@@ -451,7 +451,7 @@ window.GAMES_V2_META = (function (utils) {
     const defaultLevel = 0;
     const defaultDiff = "medium";
     return {
-      version: 2,
+      version: 3,
       player: {
         id: "me",
         name: playerName,
@@ -467,7 +467,8 @@ window.GAMES_V2_META = (function (utils) {
         preferredDiffByGame: createPreferredDiffMap(defaultDiff),
         futureOption: "coming-soon",
         soundEnabled: initialSoundEnabled !== false,
-        diffBoundsByGame: {}
+        diffBoundsByGame: {},
+        adaptiveDifficultyByGame: {}
       },
       participants: [
         { id: "me", name: playerName, avatar: "lion", coins: 0 },
@@ -565,6 +566,9 @@ window.GAMES_V2_META = (function (utils) {
     }));
     next.settings.diffBoundsByGame = next.settings.diffBoundsByGame && typeof next.settings.diffBoundsByGame === "object"
       ? Object.assign({}, next.settings.diffBoundsByGame)
+      : {};
+    next.settings.adaptiveDifficultyByGame = next.settings.adaptiveDifficultyByGame && typeof next.settings.adaptiveDifficultyByGame === "object"
+      ? Object.assign({}, next.settings.adaptiveDifficultyByGame)
       : {};
     next.settings.preferredDiffByGame = next.settings.preferredDiffByGame && typeof next.settings.preferredDiffByGame === "object"
       ? Object.assign({}, next.settings.preferredDiffByGame)
@@ -992,9 +996,20 @@ window.GAMES_V2_META = (function (utils) {
     if (!diffOptions.length) {
       return "medium";
     }
-    const bounds = getDifficultyBounds(state, extra && extra.gameKey, diffOptions);
-    const index = randomInt(Math.random, bounds.minIndex, bounds.maxIndex);
-    return diffOptions[index] ? diffOptions[index].key : "medium";
+    const difficultyApi = window.GAMES_V2_DIFFICULTY;
+    if (!difficultyApi || typeof difficultyApi.getNextDifficulty !== "function") {
+      const bounds = getDifficultyBounds(state, extra && extra.gameKey, diffOptions);
+      const index = randomInt(Math.random, bounds.minIndex, bounds.maxIndex);
+      return diffOptions[index] ? diffOptions[index].key : "medium";
+    }
+    const gameKey = extra && extra.gameKey;
+    const adaptiveState = getAdaptiveDifficultyState(state, gameKey, diffOptions);
+    const bounds = getDifficultyBounds(state, gameKey, diffOptions);
+    return difficultyApi.getNextDifficulty({
+      difficultyOrder: diffOptions.map((option) => option.key),
+      minDifficulty: bounds.minKey,
+      maxDifficulty: bounds.maxKey
+    }, adaptiveState);
   }
 
   function getDifficultyBounds(state, gameKey, diffOptions) {
@@ -1020,6 +1035,37 @@ window.GAMES_V2_META = (function (utils) {
       minKey: diffOptions[minIndex] ? diffOptions[minIndex].key : fallbackKey,
       maxKey: diffOptions[maxIndex] ? diffOptions[maxIndex].key : lastKey
     };
+  }
+
+  function getAdaptiveDifficultyState(state, gameKey, diffOptions) {
+    const difficultyApi = window.GAMES_V2_DIFFICULTY;
+    if (!difficultyApi || typeof difficultyApi.normalizeState !== "function" || !diffOptions.length || !gameKey) {
+      return null;
+    }
+    const bounds = getDifficultyBounds(state, gameKey, diffOptions);
+    const preferredDiff = getPreferredDiffForGame(state, gameKey) || bounds.minKey;
+    const rawState = state && state.settings && state.settings.adaptiveDifficultyByGame
+      ? state.settings.adaptiveDifficultyByGame[gameKey]
+      : null;
+    return difficultyApi.normalizeState(Object.assign({
+      currentDifficulty: preferredDiff,
+      comfortableStreak: 0,
+      strugglingStreak: 0,
+      pendingRecoveryLevel: null
+    }, rawState || {}), {
+      difficultyOrder: diffOptions.map((option) => option.key),
+      minDifficulty: bounds.minKey,
+      maxDifficulty: bounds.maxKey
+    });
+  }
+
+  function setAdaptiveDifficultyState(state, gameKey, nextAdaptiveState) {
+    if (!state || !state.settings || !gameKey) {
+      return;
+    }
+    state.settings.adaptiveDifficultyByGame = Object.assign({}, state.settings.adaptiveDifficultyByGame, {
+      [gameKey]: deepClone(nextAdaptiveState || null)
+    });
   }
 
   function avatarImageMarkup(avatar, className) {
@@ -1503,6 +1549,15 @@ window.GAMES_V2_META = (function (utils) {
       key: option.key,
       label: option.label || option.key
     }));
+    const difficultyApi = window.GAMES_V2_DIFFICULTY;
+    const difficultyDebugOptions = difficultyApi && typeof difficultyApi.parseBrowserDebugOptions === "function"
+      ? difficultyApi.parseBrowserDebugOptions(window.location && window.location.search)
+      : { overlayMode: false, consoleMode: false };
+    const difficultyDebugOverlay = difficultyApi && difficultyDebugOptions.overlayMode && typeof difficultyApi.createDebugOverlay === "function"
+      ? difficultyApi.createDebugOverlay({
+          title: "Adaptive Difficulty"
+        })
+      : null;
 
     let state = loadState({
       defaultLives: settings.defaultLives,
@@ -1594,6 +1649,16 @@ window.GAMES_V2_META = (function (utils) {
       state.settings.preferredDiff = selectedDiff;
       syncLegacyProgressFields(state);
       saveState(state);
+    }
+
+    function logAdaptiveDifficultyEvent(event) {
+      if (!difficultyApi || typeof difficultyApi.logDebugEvent !== "function") {
+        return;
+      }
+      difficultyApi.logDebugEvent(event, {
+        consoleMode: difficultyDebugOptions.consoleMode,
+        overlay: difficultyDebugOverlay
+      });
     }
 
     function syncOverlayUiState(isVisible) {
@@ -1785,15 +1850,46 @@ window.GAMES_V2_META = (function (utils) {
     }
 
     function showResults(context) {
+      const playedDifficulty = context && context.diffKey ? context.diffKey : selectedDiff;
+      const previousAdaptiveState = getAdaptiveDifficultyState(state, settings.gameKey, diffOptions);
       const round = applyRoundResult(state, {
         gameKey: settings.gameKey,
         completedLevel: context.completedLevel,
-        diffKey: context && context.diffKey ? context.diffKey : selectedDiff,
+        diffKey: playedDifficulty,
         playerCoins: context.coins,
         metrics: context && context.metrics ? deepClone(context.metrics) : null
       });
       state = round.state;
-      selectedDiff = rerollSelectedDiff();
+      if (difficultyApi && typeof difficultyApi.completeLevel === "function" && diffOptions.length) {
+        const bounds = getDifficultyBounds(state, settings.gameKey, diffOptions);
+        const adaptiveOutcome = difficultyApi.completeLevel({
+          difficultyOrder: diffOptions.map((option) => option.key),
+          minDifficulty: bounds.minKey,
+          maxDifficulty: bounds.maxKey
+        }, previousAdaptiveState, {
+          passed: context && context.metrics ? context.metrics.passed : false,
+          avgAnswerMs: context && context.metrics ? context.metrics.avgAnswerMs : 0,
+          wrongClicks: context && context.metrics ? context.metrics.wrongClicks : 0,
+          correctCount: context && context.metrics ? context.metrics.correct : 0,
+          questionTimeLimitMs: context && context.metrics ? context.metrics.questionTimeLimitMs : 12000
+        });
+        setAdaptiveDifficultyState(state, settings.gameKey, adaptiveOutcome.state);
+        selectedDiff = adaptiveOutcome.nextDifficulty;
+        if (typeof difficultyApi.buildLevelDebugEvent === "function") {
+          logAdaptiveDifficultyEvent(difficultyApi.buildLevelDebugEvent({
+            gameKey: settings.gameKey,
+            completedLevel: context && context.completedLevel,
+            playedDifficulty,
+            nextDifficulty: adaptiveOutcome.nextDifficulty,
+            bounds,
+            beforeState: adaptiveOutcome.beforeState,
+            afterState: adaptiveOutcome.state,
+            classification: adaptiveOutcome.classification
+          }));
+        }
+      } else {
+        selectedDiff = rerollSelectedDiff();
+      }
       persist();
       currentScreen = "results";
       currentStartOptions = {};

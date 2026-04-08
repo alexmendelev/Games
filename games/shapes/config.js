@@ -36,21 +36,127 @@ window.GAME_V2_SHAPES_CONFIG = {
     }
   },
   shapes: [
-    { id: "circle", he: "עיגול" },
-    { id: "square", he: "ריבוע" },
-    { id: "triangle", he: "משולש" },
-    { id: "diamond", he: "מעוין" },
-    { id: "star", he: "כוכב" },
-    { id: "heart", he: "לב" }
+    { id: "circle", he: "\u05e2\u05d9\u05d2\u05d5\u05dc" },
+    { id: "square", he: "\u05e8\u05d9\u05d1\u05d5\u05e2" },
+    { id: "triangle", he: "\u05de\u05e9\u05d5\u05dc\u05e9" },
+    { id: "diamond", he: "\u05de\u05e2\u05d5\u05d9\u05df" },
+    { id: "star", he: "\u05db\u05d5\u05db\u05d1" },
+    { id: "heart", he: "\u05dc\u05d1" }
   ],
   colors: [
-    { id: "red", he: "אדום", hex: "#ef4444" },
-    { id: "blue", he: "כחול", hex: "#3b82f6" },
-    { id: "green", he: "ירוק", hex: "#22c55e" },
-    { id: "yellow", he: "צהוב", hex: "#facc15" },
-    { id: "purple", he: "סגול", hex: "#a855f7" },
-    { id: "orange", he: "כתום", hex: "#f97316" }
+    { id: "red", he: "\u05d0\u05d3\u05d5\u05dd", hex: "#ef4444" },
+    { id: "blue", he: "\u05db\u05d7\u05d5\u05dc", hex: "#3b82f6" },
+    { id: "green", he: "\u05d9\u05e8\u05d5\u05e7", hex: "#22c55e" },
+    { id: "yellow", he: "\u05e6\u05d4\u05d5\u05d1", hex: "#facc15" },
+    { id: "purple", he: "\u05e1\u05d2\u05d5\u05dc", hex: "#a855f7" },
+    { id: "orange", he: "\u05db\u05ea\u05d5\u05dd", hex: "#f97316" }
   ],
+  similarity: {
+    shapeNeighbors: {
+      circle: ["square", "heart"],
+      square: ["circle", "diamond"],
+      triangle: ["diamond", "star"],
+      diamond: ["square", "triangle"],
+      star: ["triangle", "heart"],
+      heart: ["circle", "star"]
+    },
+    colorNeighbors: {
+      red: ["orange", "purple"],
+      blue: ["green", "purple"],
+      green: ["blue", "yellow"],
+      yellow: ["green", "orange"],
+      purple: ["blue", "red"],
+      orange: ["red", "yellow"]
+    }
+  },
+  difficulties: {
+    easy: {
+      label: "\u05e7\u05dc",
+      answerCount: 4,
+      shapePool: ["circle", "square", "triangle", "diamond"],
+      colorPool: ["red", "blue", "green", "yellow"],
+      distractorPlan: ["distinct", "distinct", "distinct"],
+      fallbackTiers: ["distinct", "same-shape", "same-color"]
+    },
+    medium: {
+      label: "\u05d1\u05d9\u05e0\u05d5\u05e0\u05d9",
+      answerCount: 8,
+      shapePool: ["circle", "square", "triangle", "diamond"],
+      colorPool: ["red", "blue", "green", "yellow", "purple", "orange"],
+      distractorPlan: [
+        "same-shape",
+        "same-color",
+        "distinct",
+        "distinct",
+        "same-shape",
+        "same-color",
+        "distinct"
+      ],
+      fallbackTiers: ["same-shape", "same-color", "distinct", "related-color", "related-shape"]
+    },
+    hard: {
+      label: "\u05e7\u05e9\u05d4",
+      answerCount: 12,
+      shapePool: ["circle", "square", "triangle", "diamond", "star", "heart"],
+      colorPool: ["red", "blue", "green", "yellow", "purple", "orange"],
+      distractorPlan: [
+        "same-shape-related-color",
+        "related-shape-same-color",
+        "same-shape",
+        "same-color",
+        "related-shape",
+        "related-color",
+        "same-shape-related-color",
+        "related-shape-same-color",
+        "same-shape",
+        "same-color",
+        "distinct"
+      ],
+      fallbackTiers: [
+        "same-shape-related-color",
+        "related-shape-same-color",
+        "same-shape",
+        "same-color",
+        "related-shape-related-color",
+        "related-shape",
+        "related-color",
+        "distinct"
+      ]
+    },
+    super: {
+      label: "\u05e1\u05d5\u05e4\u05e8",
+      answerCount: 16,
+      shapePool: ["circle", "square", "triangle", "diamond", "star", "heart"],
+      colorPool: ["red", "blue", "green", "yellow", "purple", "orange"],
+      distractorPlan: [
+        "same-shape-related-color",
+        "related-shape-same-color",
+        "same-shape-related-color",
+        "related-shape-same-color",
+        "same-shape",
+        "same-color",
+        "related-shape-related-color",
+        "related-shape",
+        "related-color",
+        "same-shape",
+        "same-color",
+        "related-shape-related-color",
+        "same-shape-related-color",
+        "related-shape-same-color",
+        "related-shape"
+      ],
+      fallbackTiers: [
+        "same-shape-related-color",
+        "related-shape-same-color",
+        "related-shape-related-color",
+        "same-shape",
+        "same-color",
+        "related-shape",
+        "related-color",
+        "distinct"
+      ]
+    }
+  },
   gameplay: {
     normalAttempts: 2,
     specialAttempts: 1,
@@ -73,11 +179,5 @@ window.GAME_V2_SHAPES_CONFIG = {
     tileHeight: 124,
     tileMargin: 10,
     sfxGain: 0.1
-  },
-  diffs: {
-    easy: { label: "קל", speedMul: 0.22, answerCount: 4 },
-    medium: { label: "בינוני", speedMul: 0.38, answerCount: 8 },
-    hard: { label: "קשה", speedMul: 0.48, answerCount: 12 },
-    super: { label: "סופר", speedMul: 0.6, answerCount: 16 }
   }
 };

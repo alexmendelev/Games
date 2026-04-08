@@ -95,6 +95,10 @@ window.GAMES_V2_SESSION = (function () {
     let levelClockRunning = false;
     let levelClockAccumulatedMs = 0;
     let levelClockStartedAt = 0;
+    let questionStartedAt = 0;
+    let correctAnswerLatencyTotalMs = 0;
+    let correctAnswerSamples = 0;
+    let wrongClicks = 0;
 
     const levelTimer = createPauseableTimer(() => {
       levelTimeExpired = true;
@@ -144,6 +148,10 @@ window.GAMES_V2_SESSION = (function () {
       levelClockRunning = false;
       levelClockAccumulatedMs = 0;
       levelClockStartedAt = 0;
+      questionStartedAt = 0;
+      correctAnswerLatencyTotalMs = 0;
+      correctAnswerSamples = 0;
+      wrongClicks = 0;
       levelTimer.clear();
     }
 
@@ -195,10 +203,21 @@ window.GAMES_V2_SESSION = (function () {
     function finishLevel() {
       pause();
       levelTimer.clear();
+      questionStartedAt = 0;
+      notifyStateChange();
+    }
+
+    function noteQuestionPresented() {
+      questionStartedAt = performance.now();
       notifyStateChange();
     }
 
     function handleCorrect() {
+      if (questionStartedAt > 0) {
+        correctAnswerLatencyTotalMs += Math.max(0, performance.now() - questionStartedAt);
+        correctAnswerSamples += 1;
+        questionStartedAt = 0;
+      }
       correctCount += 1;
       consecutiveCorrect += 1;
       bestStreak = Math.max(bestStreak, consecutiveCorrect);
@@ -210,6 +229,7 @@ window.GAMES_V2_SESSION = (function () {
     }
 
     function handleWrong() {
+      wrongClicks += 1;
       wrongCount += 1;
       consecutiveCorrect = 0;
       notifyStateChange();
@@ -219,6 +239,7 @@ window.GAMES_V2_SESSION = (function () {
     }
 
     function handleSink() {
+      questionStartedAt = 0;
       consecutiveCorrect = 0;
       notifyStateChange();
       return {
@@ -227,6 +248,7 @@ window.GAMES_V2_SESSION = (function () {
     }
 
     function handleMiss() {
+      questionStartedAt = 0;
       missCount += 1;
       consecutiveCorrect = 0;
       notifyStateChange();
@@ -255,6 +277,13 @@ window.GAMES_V2_SESSION = (function () {
       return correctCount / attempts;
     }
 
+    function getAverageAnswerMs() {
+      if (!correctAnswerSamples) {
+        return 0;
+      }
+      return correctAnswerLatencyTotalMs / correctAnswerSamples;
+    }
+
     function shouldCompleteLevel() {
       return correctCount >= levelRules.correctTarget || levelTimeExpired;
     }
@@ -280,7 +309,9 @@ window.GAMES_V2_SESSION = (function () {
         levelRules: Object.assign({}, levelRules),
         levelTimeExpired,
         timeRemainingMs,
-        elapsedMs: getElapsedMs()
+        elapsedMs: getElapsedMs(),
+        avgAnswerMs: getAverageAnswerMs(),
+        wrongClicks
       };
     }
 
@@ -291,15 +322,19 @@ window.GAMES_V2_SESSION = (function () {
         diffKey: activeDiffKey,
         coins,
         metrics: {
+          passed: correctCount >= levelRules.correctTarget,
           correct: correctCount,
           wrong: wrongCount,
+          wrongClicks,
           missed: missCount,
           attempts,
           accuracy: getAccuracy(),
           bestStreak,
           coinsEarned,
+          avgAnswerMs: getAverageAnswerMs(),
           elapsedMs: getElapsedMs(),
           correctTarget: levelRules.correctTarget,
+          questionTimeLimitMs: 12000,
           timeLimitMs: levelRules.timeLimitMs,
           endedBy: levelTimeExpired && correctCount < levelRules.correctTarget ? "time" : "target"
         }
@@ -312,6 +347,7 @@ window.GAMES_V2_SESSION = (function () {
       pause,
       resume,
       finishLevel,
+      noteQuestionPresented,
       handleCorrect,
       handleWrong,
       handleSink,

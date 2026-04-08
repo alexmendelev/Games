@@ -41,89 +41,108 @@ window.GAME_V3_MATH_CONFIG = {
     splashAudio: "../shared/assets/audio/splash.mp3",
     coinAudio: "../shared/assets/audio/coin_drop.mp3"
   },
-  presets: {
-    easy: { label: "קל", speedMul: 0.24, startStage: 0 },
-    medium: { label: "בינוני", speedMul: 0.27, startStage: 1 },
-    hard: { label: "קשה", speedMul: 0.3, startStage: 2 },
-    super: { label: "סופר", speedMul: 0.34, startStage: 4 }
-  },
-  progression: [
-    {
-      label: "חיבור עד 5",
-      noNegOptions: true,
-      wrongNear: 3,
-      wrongFar: 6,
-      ops: ["+"],
-      addRange: [0, 5]
+  difficulties: {
+    easy: {
+      label: "קל",
+      operations: ["+"],
+      allowNegativeResults: false,
+      allowMultiplication: false,
+      allowDivision: false,
+      addition: {
+        left: [0, 5],
+        right: [1, 5],
+        resultMax: 10
+      },
+      distractors: {
+        minOffset: 2,
+        near: 3,
+        far: 6,
+        farChance: 0.12,
+        allowNegativeOptions: false
+      }
     },
-    {
-      label: "חיבור וחיסור עד 10",
-      allowNegResult: false,
-      noNegOptions: true,
-      wrongNear: 4,
-      wrongFar: 8,
-      ops: ["+", "-"],
-      addRange: [0, 10],
-      subRange: [0, 10]
+    medium: {
+      label: "בינוני",
+      operations: ["+", "-"],
+      allowNegativeResults: false,
+      allowMultiplication: false,
+      allowDivision: false,
+      addition: {
+        left: [0, 10],
+        right: [1, 10],
+        resultMax: 10
+      },
+      subtraction: {
+        left: [1, 10],
+        right: [1, 10],
+        resultMax: 10
+      },
+      distractors: {
+        minOffset: 1,
+        near: 4,
+        far: 8,
+        farChance: 0.18,
+        allowNegativeOptions: false
+      }
     },
-    {
-      label: "חיבור וחיסור עד 20",
-      allowNegResult: false,
-      noNegOptions: true,
-      wrongNear: 5,
-      wrongFar: 10,
-      ops: ["+", "-"],
-      addRange: [0, 20],
-      subRange: [0, 20]
+    hard: {
+      label: "קשה",
+      operations: ["+", "-"],
+      allowNegativeResults: false,
+      allowMultiplication: false,
+      allowDivision: false,
+      addition: {
+        left: [0, 20],
+        right: [1, 20],
+        resultMax: 20
+      },
+      subtraction: {
+        left: [1, 20],
+        right: [1, 20],
+        resultMax: 20
+      },
+      distractors: {
+        minOffset: 1,
+        near: 3,
+        far: 7,
+        farChance: 0.22,
+        allowNegativeOptions: false
+      }
     },
-    {
-      label: "חיסור עם תוצאות שליליות",
-      allowNegResult: true,
-      noNegOptions: false,
-      wrongNear: 6,
-      wrongFar: 12,
-      ops: ["+", "-"],
-      addRange: [0, 25],
-      subRange: [0, 25]
-    },
-    {
-      label: "כפל עד 5",
-      allowNegResult: false,
-      noNegOptions: true,
-      wrongNear: 6,
-      wrongFar: 12,
-      ops: ["+", "-", "*"],
-      addRange: [0, 20],
-      subRange: [0, 20],
-      mulRange: [1, 5]
-    },
-    {
-      label: "כפל וחילוק עד 10",
-      allowNegResult: true,
-      noNegOptions: false,
-      wrongNear: 7,
-      wrongFar: 14,
-      ops: ["+", "-", "*", "/"],
-      addRange: [0, 30],
-      subRange: [0, 30],
-      mulRange: [1, 10],
-      divAnswerRange: [1, 10],
-      divDivisorRange: [1, 10]
-    },
-    {
+    super: {
       label: "סופר",
-      allowNegResult: true,
-      noNegOptions: false,
-      wrongNear: 8,
-      wrongFar: 18,
-      ops: ["+", "-", "*", "/"],
-      addRange: [0, 40],
-      subRange: [0, 40],
-      mulRange: [1, 12],
-      divAnswerRange: [1, 12],
-      divDivisorRange: [1, 12]
+      operations: ["+", "-", "*", "/"],
+      allowNegativeResults: false,
+      allowMultiplication: true,
+      allowDivision: true,
+      addition: {
+        left: [0, 20],
+        right: [1, 20],
+        resultMax: 20
+      },
+      subtraction: {
+        left: [1, 20],
+        right: [1, 20],
+        resultMax: 20
+      },
+      multiplication: {
+        left: [1, 5],
+        right: [1, 5],
+        resultMax: 25
+      },
+      division: {
+        divisor: [1, 5],
+        quotient: [1, 5]
+      },
+      distractors: {
+        minOffset: 1,
+        near: 2,
+        far: 5,
+        farChance: 0.28,
+        allowNegativeOptions: false
+      }
     }
-  ],
+  },
   gameplay: {
     normalAttempts: 2,
     specialAttempts: 1,
@@ -136,7 +155,6 @@ window.GAME_V3_MATH_CONFIG = {
     specialDiamondCoins: 20,
     baseSpeed: 80,
     speedIncPerLevel: 6,
-    stageLevelStep: 2,
     levelGoals: {
       easy: { correctTarget: 8, timeLimitMs: 60000 },
       medium: { correctTarget: 10, timeLimitMs: 75000 },

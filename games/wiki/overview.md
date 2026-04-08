@@ -37,21 +37,59 @@ The main per-game variation is the answers area. See [[systems/layout-manager]].
   - `hard`: `+4`
   - `super`: `+8`
 - Current exceptions:
-  - `multiply upTo5` maps to `hard`
-  - `multiply upTo10` maps to `super`
   - `shapes` halves the completion bonus
   - `equations` increases the completion bonus by about `1.5x` with a minimum of `2`
 
 ### Difficulty
 
 - Most games use `easy`, `medium`, `hard`, `super`.
-- `multiply` uses `upTo5` and `upTo10`.
 - Difficulty usually controls some mix of:
   - level target and timer
   - allowed content range
   - wrong-answer spread
   - answer count or answer layout density
   - special tablet odds and reward weighting
+- Parent bounds now live per game as `minDifficulty` and `maxDifficulty`, and the active game difficulty is clamped inside those bounds.
+- Shared adaptive difficulty now lives in `shared/scripts/difficulty-manager.js`. It only adapts between levels, never during a level. See [[systems/adaptive-difficulty]].
+- `math`, `multiply`, `equations`, `words`, `shapes`, and `clocks` now use explicit config-based V1 profiles with no hidden stage ladder and no level-number-based content growth.
+
+### Shared Level Metrics
+
+- The shared session now records per-level `passed`, `avgAnswerMs`, `wrongClicks`, `correct`, `correctTarget`, `elapsedMs`, `questionTimeLimitMs`, and `endedBy`.
+- The adaptive difficulty manager uses these values after each level:
+  - `passed`
+  - `avgAnswerMs / questionTimeLimitMs`
+  - `wrongClicks / max(correctCount, 1)`
+- Shared classification rules:
+  - `comfortable`: passed, fast answers, and low misclicks
+  - `balanced`: neither clearly comfortable nor clearly struggling
+  - `struggling`: failed level, slow answers, or high misclicks
+
+### Debug And Simulation
+
+- Every completed level now emits a structured JSON adaptive-difficulty debug event from the shared meta layer.
+- Browser debug modes:
+  - `?difficultyDebug=console`
+  - `?difficultyDebug=overlay`
+  - `?difficultyDebug=all`
+- Shared simulation runner:
+  - `npm run simulate:difficulty`
+  - `node scripts/run-difficulty-sim.js --profile average --seed 11 --levels 16`
+
+### Test Commands
+
+- Fast logic check: `npm run test:logic`
+- Clocks logic check: `npm run test:logic:clocks`
+- Equations logic check: `npm run test:logic:equations`
+- Multiply logic check: `npm run test:logic:multiply`
+- Shapes logic check: `npm run test:logic:shapes`
+- Words logic check: `npm run test:logic:words`
+- Focused Clocks browser check: `npm run test:e2e:clocks-difficulty`
+- Focused Equations browser check: `npm run test:e2e:equations-difficulty`
+- Focused Math browser check: `npm run test:e2e:math-difficulty`
+- Focused Multiply browser check: `npm run test:e2e:multiply-difficulty`
+- Focused Shapes browser check: `npm run test:e2e:shapes-difficulty`
+- Focused Words browser check: `npm run test:e2e:words-difficulty`
 
 ### Falling Speed
 
@@ -63,6 +101,7 @@ The main per-game variation is the answers area. See [[systems/layout-manager]].
 - Shared session rules live in `shared/scripts/game-session.js`.
 - Shared completion bonus and special tablet scaling live in `shared/scripts/game-shell.js`.
 - Shared leaderboard / post-level coin bonus behavior lives in `shared/scripts/game-meta.js`.
+- Shared adaptive transitions, debug logging helpers, and simulation profiles live in `shared/scripts/difficulty-manager.js`.
 - Answer area layout is the main per-game plug point.
 
 ## Game Notes

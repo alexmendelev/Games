@@ -99,7 +99,6 @@
   let running = false;
   let paused = false;
   let coins = initialSnapshot.player.coins;
-  let correctAnswers = 0;
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let prevCorrectIdx = -1;
@@ -214,28 +213,8 @@
     return cfg.splashOffsetBasePx * Math.pow(rect.height / cfg.splashOffsetBaselineHeight, cfg.splashOffsetExponent);
   }
 
-  function level() {
-    return session.getState().levelNumber;
-  }
-
-  function currentPreset() {
-    return cfg.presets[selected] || cfg.presets.easy;
-  }
-
-  function currentStageIndex() {
-    const startStage = currentPreset().startStage || 0;
-    const stageLevelStep = Math.max(1, Number(cfg.gameplay.stageLevelStep) || 2);
-    const levelStage = Math.floor(Math.max(0, level() - 1) / stageLevelStep);
-    const correctStage = Math.floor(Math.max(0, correctAnswers) / Math.max(1, levelProgressTarget));
-    return Math.min(cfg.progression.length - 1, startStage + levelStage + correctStage);
-  }
-
-  function currentStage() {
-    return cfg.progression[currentStageIndex()] || cfg.progression[0];
-  }
-
-  function negativesAllowed() {
-    return selected === "super";
+  function currentDifficultyProfile() {
+    return cfg.difficulties[selected] || cfg.difficulties.easy;
   }
 
   function speedPxPerSec(item) {
@@ -253,7 +232,6 @@
   function syncSessionUi(state) {
     selected = state.diffKey || selected;
     coins = state.coins;
-    correctAnswers = state.correctCount;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
     setHUD();
@@ -468,6 +446,165 @@
     return -(currentTileMetrics().height * spawnYOffsetRatio);
   }
 
+  function randomInRange(range, fallbackMin, fallbackMax) {
+    const safeRange = Array.isArray(range) && range.length >= 2 ? range : [fallbackMin, fallbackMax];
+    return utils.randInt(safeRange[0], safeRange[1]);
+  }
+
+  function buildAdditionTask(profile) {
+    const rules = profile.addition || {};
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      const a = randomInRange(rules.left, 0, 10);
+      const b = randomInRange(rules.right, 0, 10);
+      if (b === 0) {
+        continue;
+      }
+      const answer = a + b;
+      if (Number.isFinite(rules.resultMax) && answer > rules.resultMax) {
+        continue;
+      }
+      return {
+        answer,
+        text: `${a}+${b}`
+      };
+    }
+    return {
+      answer: 2,
+      text: "1+1"
+    };
+  }
+
+  function buildSubtractionTask(profile) {
+    const rules = profile.subtraction || {};
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      let a = randomInRange(rules.left, 0, 10);
+      let b = randomInRange(rules.right, 0, 10);
+      if (!profile.allowNegativeResults && b > a) {
+        [a, b] = [b, a];
+      }
+      if (b === 0) {
+        continue;
+      }
+      const answer = a - b;
+      if (!profile.allowNegativeResults && answer < 0) {
+        continue;
+      }
+      if (Number.isFinite(rules.resultMax) && answer > rules.resultMax) {
+        continue;
+      }
+      return {
+        answer,
+        text: `${a}-${b}`
+      };
+    }
+    return {
+      answer: 1,
+      text: "2-1"
+    };
+  }
+
+  function buildMultiplicationTask(profile) {
+    const rules = profile.multiplication || {};
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      const a = randomInRange(rules.left, 1, 5);
+      const b = randomInRange(rules.right, 1, 5);
+      const answer = a * b;
+      if (Number.isFinite(rules.resultMax) && answer > rules.resultMax) {
+        continue;
+      }
+      return {
+        answer,
+        text: `${a}\u00d7${b}`
+      };
+    }
+    return {
+      answer: 4,
+      text: "2\u00d72"
+    };
+  }
+
+  function buildDivisionTask(profile) {
+    const rules = profile.division || {};
+    const divisor = randomInRange(rules.divisor, 1, 5);
+    const quotient = randomInRange(rules.quotient, 1, 5);
+    const dividend = divisor * quotient;
+    return {
+      answer: quotient,
+      text: `${dividend}\u00f7${divisor}`
+    };
+  }
+
+  function buildDifficultyTask() {
+    const profile = currentDifficultyProfile();
+    const op = utils.choice(profile.operations || ["+"]);
+    if (op === "+") {
+      return buildAdditionTask(profile);
+    }
+    if (op === "-") {
+      return buildSubtractionTask(profile);
+    }
+    if (op === "*" && profile.allowMultiplication) {
+      return buildMultiplicationTask(profile);
+    }
+    if (op === "/" && profile.allowDivision) {
+      return buildDivisionTask(profile);
+    }
+    return buildAdditionTask(profile);
+  }
+
+  function buildDifficultyWrongs(correct) {
+    const profile = currentDifficultyProfile();
+    const distractors = profile.distractors || {};
+    const set = new Set([correct]);
+    const allowNegativeOptions = distractors.allowNegativeOptions === true;
+    const near = Math.max(2, Number(distractors.near) || 6);
+    const far = Math.max(near + 1, Number(distractors.far) || 12);
+    const minOffset = Math.max(1, Number(distractors.minOffset) || 1);
+    const farChance = Math.max(0, Math.min(1, Number(distractors.farChance) || 0));
+
+    function normalizeDelta(delta) {
+      if (Math.abs(delta) >= minOffset) {
+        return delta;
+      }
+      return delta < 0 ? -minOffset : minOffset;
+    }
+
+    function isAllowed(value) {
+      return allowNegativeOptions || value >= 0;
+    }
+
+    let guard = 0;
+    while (set.size < 4 && guard < 200) {
+      guard += 1;
+      let delta = normalizeDelta(utils.randInt(-near, near));
+      let wrong = correct + delta;
+      if (Math.random() < farChance) {
+        delta = normalizeDelta(utils.randInt(-far, far));
+        wrong = correct + delta;
+      }
+      if (!isAllowed(wrong)) {
+        continue;
+      }
+      set.add(wrong);
+    }
+
+    while (set.size < 4) {
+      const fallback = Math.max(0, correct + set.size);
+      set.add(isAllowed(fallback) ? fallback : (correct + set.size));
+    }
+
+    const arr = Array.from(set);
+    utils.shuffleInPlace(arr);
+    let idx = arr.indexOf(correct);
+    if (idx === prevCorrectIdx) {
+      const swapWith = (idx + 1) % 4;
+      [arr[idx], arr[swapWith]] = [arr[swapWith], arr[idx]];
+      idx = swapWith;
+    }
+    prevCorrectIdx = idx;
+    return arr;
+  }
+
   function makeTask() {
     const stage = currentStage();
     const op = utils.choice(stage.ops);
@@ -556,10 +693,18 @@
     return arr;
   }
 
+  function makeTask() {
+    return buildDifficultyTask();
+  }
+
+  function uniqueWrongs(correct) {
+    return buildDifficultyWrongs(correct);
+  }
+
   function createTask() {
     const tileMetrics = currentTileMetrics();
     const tabletReward = rollSpecialTablet();
-    return Object.assign(makeTask(), {
+    return Object.assign(buildDifficultyTask(), {
       width: tileMetrics.width,
       height: tileMetrics.height,
       fontSize: tileMetrics.fontSize,
@@ -578,6 +723,7 @@
       return;
     }
     if (phase !== "frame") {
+      session.noteQuestionPresented();
       tileEl.textContent = task.text;
       applyTileMetrics(task);
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
@@ -589,7 +735,7 @@
       }
       clearAnswerMarks();
 
-      const answers = uniqueWrongs(task.answer);
+      const answers = buildDifficultyWrongs(task.answer);
       for (let i = 0; i < ansBtns.length; i += 1) {
         ansBtns[i].textContent = utils.formatSignedNumber(answers[i]);
         ansBtns[i].dataset.val = String(answers[i]);

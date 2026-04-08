@@ -22,6 +22,22 @@ Browser testing:
 - Run the smoke tests with `npm run test:e2e`.
 - Use `npm run test:e2e:headed` if you want to watch the browser while tests run.
 
+Math, Multiply, Equations, Words, Shapes, and Clocks difficulty checks:
+- Run the fast logic checks with `npm run test:logic`.
+- Run the fast Clocks logic checks with `npm run test:logic:clocks`.
+- Run the fast Equations logic checks with `npm run test:logic:equations`.
+- Run the fast Multiply logic checks with `npm run test:logic:multiply`.
+- Run the fast Shapes logic checks with `npm run test:logic:shapes`.
+- Run the fast Words logic checks with `npm run test:logic:words`.
+- Run the Clocks browser flow checks with `npm run test:e2e:clocks-difficulty`.
+- Run the Equations browser flow checks with `npm run test:e2e:equations-difficulty`.
+- Run the Math browser flow checks with `npm run test:e2e:math-difficulty`.
+- Run the Multiply browser flow checks with `npm run test:e2e:multiply-difficulty`.
+- Run the Shapes browser flow checks with `npm run test:e2e:shapes-difficulty`.
+- Run the Words browser flow checks with `npm run test:e2e:words-difficulty`.
+- Run the shared adaptive difficulty simulation with `npm run simulate:difficulty`.
+- Direct simulation example: `node scripts/run-difficulty-sim.js --profile average --seed 11 --levels 16`.
+
 Shared layout system:
 - `shared/scripts/layout.js` is the single gameplay layout engine. It computes orientation, frame gaps, game/panel sizing, HUD height, controls height, answer-grid sizing, mascot safe zone, fall lane padding, and shared overlay sizing from viewport + config.
 - `shared/scripts/game-shell.js` applies that computed layout to the DOM and is the shared integration point used by all six games.

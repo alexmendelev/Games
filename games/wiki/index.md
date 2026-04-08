@@ -7,6 +7,7 @@ title: Games Wiki
 - [[overview]]
 - [[improvement-ideas]]
 - [[icon-pack-plan]]
+- [[systems/adaptive-difficulty]]
 - [[systems/layout-manager]]
 - [[games/math]]
 - [[games/multiply]]
