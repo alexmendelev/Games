@@ -1,19 +1,17 @@
 from __future__ import annotations
 
 import argparse
-import locale
 import os
 import re
 import subprocess
 import sys
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from time import monotonic
 
 
-LOG_DIR_DEFAULT = Path(r"C:\tmp")
-
-
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_LOG_DIR = Path(r"C:\tmp")
 LOGIC_TESTS = [
     ("math", ["node", "scripts/test-math-difficulty-manager.js"]),
     ("clocks", ["node", "scripts/test-clocks-difficulty-manager.js"]),
@@ -22,291 +20,242 @@ LOGIC_TESTS = [
     ("shapes", ["node", "scripts/test-shapes-difficulty-manager.js"]),
     ("words", ["node", "scripts/test-words-difficulty-manager.js"]),
 ]
-
-
 E2E_TEST = ("e2e", ["cmd", "/c", "npm", "run", "test:e2e"])
-
 ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+FAILED_TEST_RE = re.compile(r"^\s*\[chromium\]\s+[>│|]\s+(.+?)\s*$")
 
 
-@dataclass
-class CommandResult:
-    name: str
-    argv: list[str]
-    returncode: int
-    output: str
-    started_at: datetime
-    ended_at: datetime
-
-    @property
-    def succeeded(self) -> bool:
-        return self.returncode == 0
-
-
-def now_stamp() -> str:
-    return datetime.now().strftime("%Y%m%d-%H%M%S")
-
-
-def console(message: str) -> None:
-    print(message, flush=True)
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Run repo tests, capture a raw log, and emit a short failure triage prompt."
+    )
+    parser.add_argument(
+        "--log-dir",
+        default=str(DEFAULT_LOG_DIR),
+        help=r"Directory for the raw log and prompt output. Default: C:\tmp",
+    )
+    return parser.parse_args()
 
 
 def clean_output(text: str) -> str:
     text = ANSI_RE.sub("", text)
     replacements = {
-        "│": "|",
-        "┃": "|",
-        "║": "|",
-        "›": ">",
-        "✓": "[PASS]",
-        "✘": "[FAIL]",
-        "×": "x",
+        "Γ£ô": "PASS",
+        "Γ£ù": "PASS",
+        "Γ£ù": "PASS",
+        "Γ£ù": "PASS",
+        "ΓÇ║": ">",
+        "│": ">",
+        "├ù": ">",
+        "└": "-",
+        "ΓöÇ": "-",
     }
-    for source, target in replacements.items():
-        text = text.replace(source, target)
+    for old, new in replacements.items():
+        text = text.replace(old, new)
     return text
 
 
-def decode_output(data: bytes) -> str:
-    candidates = []
-    encodings = [
-        "utf-8",
-        "utf-8-sig",
-        locale.getpreferredencoding(False) or "utf-8",
-        "cp65001",
-        "cp1252",
-        "cp1255",
-    ]
-    seen = set()
-    for encoding in encodings:
-        if not encoding or encoding in seen:
-            continue
-        seen.add(encoding)
+def decode_output(raw: bytes) -> str:
+    for encoding in ("utf-8", "utf-8-sig", "cp1255", "cp1252"):
         try:
-            text = data.decode(encoding)
+            return raw.decode(encoding)
         except UnicodeDecodeError:
-            text = data.decode(encoding, errors="replace")
-        score = text.count("\ufffd") + text.count("Γ") + text.count("╫") + text.count("â")
-        candidates.append((score, text))
-    candidates.sort(key=lambda item: item[0])
-    return clean_output(candidates[0][1] if candidates else data.decode("utf-8", errors="replace"))
+            continue
+    return raw.decode("utf-8", errors="replace")
 
 
-def run_command(name: str, argv: list[str], cwd: Path) -> CommandResult:
-    started_at = datetime.now()
-    console(f"[start] {name}: {' '.join(argv)}")
-    env = os.environ.copy()
-    env["CI"] = "1"
-    env["NO_COLOR"] = "1"
-    env["FORCE_COLOR"] = "0"
-    env["npm_config_color"] = "false"
-    env["PLAYWRIGHT_FORCE_TTY"] = "0"
-    env["TERM"] = "dumb"
-    completed = subprocess.run(
-        argv,
-        cwd=str(cwd),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=False,
-        shell=False,
+def now_stamp() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def append_log(log_lines: list[str], text: str) -> None:
+    for line in text.splitlines():
+        log_lines.append(f"[{now_stamp()}] {line}")
+
+
+def run_command(
+    name: str,
+    command: list[str],
+    log_lines: list[str],
+    env: dict[str, str],
+) -> tuple[int, float]:
+    print(f"[start] {name}: {' '.join(command)}", flush=True)
+    start = monotonic()
+    process = subprocess.run(
+        command,
+        cwd=REPO_ROOT,
+        capture_output=True,
         env=env,
     )
-    ended_at = datetime.now()
-    duration = ended_at - started_at
-    console(f"[done]  {name}: exit={completed.returncode} duration={duration}")
-    return CommandResult(
-        name=name,
-        argv=argv,
-        returncode=completed.returncode,
-        output=decode_output(completed.stdout),
-        started_at=started_at,
-        ended_at=ended_at,
+    duration = monotonic() - start
+
+    stdout_text = clean_output(decode_output(process.stdout))
+    stderr_text = clean_output(decode_output(process.stderr))
+    if stdout_text:
+        append_log(log_lines, stdout_text)
+    if stderr_text:
+        append_log(log_lines, stderr_text)
+
+    print(
+        f"[done]  {name}: exit={process.returncode} duration={format_duration(duration)}",
+        flush=True,
     )
+    return process.returncode, duration
 
 
-def write_raw_log(log_path: Path, repo_root: Path, results: list[CommandResult]) -> None:
-    lines: list[str] = []
-    lines.append(f"Run started: {datetime.now().isoformat(timespec='seconds')}")
-    lines.append(f"Repo root: {repo_root}")
-    lines.append(f"Python: {sys.executable}")
-    lines.append(f"Python version: {sys.version}")
-    lines.append("")
-    for result in results:
-        lines.append(f"=== {result.name} ===")
-        lines.append(f"cwd: {repo_root}")
-        lines.append(f"command: {' '.join(result.argv)}")
-        lines.append(f"started_at: {result.started_at.isoformat(timespec='seconds')}")
-        lines.append(f"ended_at: {result.ended_at.isoformat(timespec='seconds')}")
-        lines.append(f"returncode: {result.returncode}")
-        lines.append("--- output ---")
-        lines.append(result.output.rstrip())
-        lines.append("")
-    log_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+def format_duration(seconds: float) -> str:
+    whole = int(seconds)
+    hours, rem = divmod(whole, 3600)
+    minutes, secs = divmod(rem, 60)
+    millis = int(round((seconds - whole) * 1_000_000))
+    return f"{hours}:{minutes:02d}:{secs:02d}.{millis:06d}"
 
 
-def extract_playwright_counts(text: str) -> tuple[str | None, str | None, str | None]:
-    passed = failed = did_not_run = None
-    match = re.search(r"(\d+)\s+passed\b", text)
-    if match:
-        passed = match.group(1)
-    match = re.search(r"(\d+)\s+failed\b", text)
-    if match:
-        failed = match.group(1)
-    match = re.search(r"(\d+)\s+did not run\b", text)
-    if match:
-        did_not_run = match.group(1)
-    return passed, failed, did_not_run
+def extract_count(text: str, label: str) -> str | None:
+    match = re.search(rf"(\d+)\s+{re.escape(label)}\b", text)
+    return match.group(1) if match else None
 
 
 def collect_failed_tests(text: str) -> list[str]:
-    lines = text.splitlines()
     failed: list[str] = []
     capture = False
-    for line in lines:
-        if re.search(r"^\s*\d+\s+failed\b", line):
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if re.search(r"^\d+\s+failed\b", stripped):
             capture = True
             continue
         if not capture:
             continue
-        if re.search(r"^\s*\d+\s+did not run\b", line):
+        if re.search(r"^\d+\s+did not run\b", stripped):
             break
-        if re.search(r"^\s*\[chromium\]\s+", line):
-            failed.append(line.strip())
+        match = FAILED_TEST_RE.match(stripped)
+        if match:
+            failed.append(match.group(1))
     return failed
 
 
-def collect_error_blocks(text: str, limit: int = 8) -> list[str]:
-    lines = text.splitlines()
-    items: list[str] = []
-    for idx, line in enumerate(lines):
+def collect_key_messages(text: str, limit: int = 3) -> list[str]:
+    messages: list[str] = []
+    for line in text.splitlines():
         stripped = line.strip()
-        if not (
-            stripped.startswith("Error: ")
-            or stripped.startswith("Test timeout of ")
-            or stripped.startswith("browserType.launch: ")
-        ):
+        if not stripped:
             continue
-        block = [stripped]
-        for extra in lines[idx + 1 : idx + 4]:
-            extra = extra.rstrip()
-            if not extra.strip():
-                break
-            if extra.startswith("    ") or extra.startswith("      "):
-                block.append(extra.strip())
-            else:
-                break
-        text_block = " | ".join(block)
-        if text_block not in items:
-            items.append(text_block)
-        if len(items) >= limit:
+        if stripped.startswith("Test timeout of "):
+            if stripped not in messages:
+                messages.append(stripped)
+        elif stripped.startswith("Error: ") and stripped not in messages:
+            messages.append(stripped)
+        if len(messages) >= limit:
             break
-    return items
+    return messages
 
 
-def build_prompt(repo_root: Path, results: list[CommandResult], raw_log_path: Path) -> str:
-    logic_results = [result for result in results if result.name != E2E_TEST[0]]
-    e2e_result = next((result for result in results if result.name == E2E_TEST[0]), None)
+def build_prompt(
+    raw_log_path: Path,
+    logic_passed: list[str],
+    logic_failed: list[str],
+    e2e_returncode: int,
+    e2e_text: str,
+) -> str:
+    passed = extract_count(e2e_text, "passed") or "unknown"
+    failed = extract_count(e2e_text, "failed") or "unknown"
+    did_not_run = extract_count(e2e_text, "did not run") or "unknown"
+    failed_tests = collect_failed_tests(e2e_text)
+    key_messages = collect_key_messages(e2e_text)
 
-    logic_passed = [result.name for result in logic_results if result.succeeded]
-    logic_failed = [result.name for result in logic_results if not result.succeeded]
+    lines = [
+        "Use this test summary to diagnose failures and decide the next smallest fixes.",
+        f"Repo: {REPO_ROOT}",
+        f"Raw log: {raw_log_path}",
+        "",
+        "Logic tests:",
+        f"- passed: {', '.join(logic_passed) if logic_passed else 'none'}",
+        f"- failed: {', '.join(logic_failed) if logic_failed else 'none'}",
+        "",
+        "Playwright:",
+        f"- returncode: {e2e_returncode}",
+        f"- passed: {passed}",
+        f"- failed: {failed}",
+        f"- did_not_run: {did_not_run}",
+        "",
+        "Failed Playwright tests:",
+    ]
 
-    lines: list[str] = []
-    lines.append("Use this test summary to diagnose failures and decide the next smallest fixes.")
-    lines.append(f"Repo: {repo_root}")
-    lines.append(f"Raw log: {raw_log_path}")
-    lines.append("")
-    lines.append("Logic tests:")
-    lines.append(f"- passed: {', '.join(logic_passed) if logic_passed else 'none'}")
-    lines.append(f"- failed: {', '.join(logic_failed) if logic_failed else 'none'}")
-
-    if e2e_result is None:
-        lines.append("")
-        lines.append("Playwright:")
-        lines.append("- not run")
-        return "\n".join(lines)
-
-    passed, failed, did_not_run = extract_playwright_counts(e2e_result.output)
-    failed_tests = collect_failed_tests(e2e_result.output)
-    error_blocks = collect_error_blocks(e2e_result.output)
-
-    lines.append("")
-    lines.append("Playwright:")
-    lines.append(f"- returncode: {e2e_result.returncode}")
-    lines.append(f"- passed: {passed or 'unknown'}")
-    lines.append(f"- failed: {failed or 'unknown'}")
-    lines.append(f"- did_not_run: {did_not_run or 'unknown'}")
-
-    lines.append("")
-    lines.append("Failed Playwright tests:")
     if failed_tests:
-        for item in failed_tests[:20]:
+        for item in failed_tests:
             lines.append(f"- {item}")
     else:
         lines.append("- none captured")
 
-    lines.append("")
-    lines.append("Key error messages:")
-    if error_blocks:
-        for item in error_blocks:
+    if key_messages:
+        lines.append("")
+        lines.append("Key failure messages:")
+        for item in key_messages:
             lines.append(f"- {item}")
-    else:
-        lines.append("- none captured")
 
-    lines.append("")
-    lines.append("Task:")
-    lines.append("Classify the failures into stale tests, flaky waits, and likely real regressions.")
-    lines.append("Recommend the minimum code or test changes needed to get the suite green.")
+    lines.extend(
+        [
+            "",
+            "Task:",
+            "Classify the failures into stale tests, flaky waits, and likely real regressions.",
+            "Recommend the minimum code or test changes needed to get the suite green.",
+        ]
+    )
 
     return "\n".join(lines)
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the repo test suite, save a raw log, and emit a short prompt summary.")
-    parser.add_argument(
-        "--repo-root",
-        default=str(Path(__file__).resolve().parents[1]),
-        help="Repository root. Defaults to the parent of this script directory.",
-    )
-    parser.add_argument(
-        "--log-dir",
-        default=str(LOG_DIR_DEFAULT),
-        help=r"Directory for raw logs and prompt files. Default: C:\tmp",
-    )
-    return parser.parse_args()
-
-
 def main() -> int:
     args = parse_args()
-    repo_root = Path(args.repo_root).resolve()
-    log_dir = Path(args.log_dir).resolve()
+    log_dir = Path(args.log_dir)
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    results: list[CommandResult] = []
-    console(f"Repo root: {repo_root}")
-    console(f"Log dir: {log_dir}")
-    console("Running logic tests...")
-    for name, argv in LOGIC_TESTS:
-        results.append(run_command(name, argv, repo_root))
-    console("Running Playwright suite...")
-    results.append(run_command(E2E_TEST[0], E2E_TEST[1], repo_root))
-
-    stamp = now_stamp()
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     raw_log_path = log_dir / f"test-run-{stamp}.log"
     prompt_path = log_dir / f"test-prompt-{stamp}.txt"
 
-    write_raw_log(raw_log_path, repo_root, results)
-    prompt_text = build_prompt(repo_root, results, raw_log_path)
+    env = os.environ.copy()
+    env["CI"] = "1"
+    env["NO_COLOR"] = "1"
+    env["FORCE_COLOR"] = "0"
+    env["PLAYWRIGHT_FORCE_TTY"] = "0"
+
+    print(f"Repo root: {REPO_ROOT}", flush=True)
+    print(f"Log dir: {log_dir}", flush=True)
+
+    log_lines: list[str] = []
+    logic_passed: list[str] = []
+    logic_failed: list[str] = []
+
+    print("Running logic tests...", flush=True)
+    for name, command in LOGIC_TESTS:
+        returncode, _ = run_command(name, command, log_lines, env)
+        if returncode == 0:
+            logic_passed.append(name)
+        else:
+            logic_failed.append(name)
+
+    print("Running Playwright suite...", flush=True)
+    e2e_returncode, _ = run_command(E2E_TEST[0], E2E_TEST[1], log_lines, env)
+
+    raw_text = "\n".join(log_lines).rstrip() + "\n"
+    raw_log_path.write_text(raw_text, encoding="utf-8")
+
+    e2e_text = raw_text
+    prompt_text = build_prompt(raw_log_path, logic_passed, logic_failed, e2e_returncode, e2e_text)
     prompt_path.write_text(prompt_text + "\n", encoding="utf-8")
 
-    console(f"Raw log: {raw_log_path}")
-    console(f"Prompt: {prompt_path}")
-    console("")
-    console(prompt_text)
+    print(f"Raw log: {raw_log_path}", flush=True)
+    print(f"Prompt: {prompt_path}", flush=True)
+    print("", flush=True)
+    print(prompt_text, flush=True)
 
-    if any(not result.succeeded for result in results):
-        console("Completed with failures.")
+    if logic_failed or e2e_returncode != 0:
+        print("Completed with failures.", flush=True)
         return 1
-    console("Completed successfully.")
+
+    print("Completed successfully.", flush=True)
     return 0
 
 
