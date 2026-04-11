@@ -2,8 +2,8 @@ const { test, expect } = require("@playwright/test");
 
 const onePixelPngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9sX6lz0AAAAASUVORK5CYII=";
 
-async function mockMobileFullscreen(page) {
-  await page.addInitScript(() => {
+async function mockMobileFullscreen(page, options = {}) {
+  await page.addInitScript((initOptions) => {
     window.__fullscreenRequested = 0;
     Object.defineProperty(Navigator.prototype, "maxTouchPoints", {
       configurable: true,
@@ -39,10 +39,13 @@ async function mockMobileFullscreen(page) {
       configurable: true,
       value() {
         window.__fullscreenRequested += 1;
+        if (initOptions && initOptions.stallPromise) {
+          return new Promise(() => {});
+        }
         return Promise.resolve();
       }
     });
-  });
+  }, options);
 }
 
 test("launcher offers fullscreen or normal mode on mobile", async ({ page }) => {
@@ -77,7 +80,33 @@ test("launcher can open fullscreen on mobile", async ({ page }) => {
   await expect.poll(async () => page.evaluate(() => window.__fullscreenRequested)).toBe(1);
 });
 
-test("launcher preloads new words emoji assets during boot", async ({ page }) => {
+test("launcher continues even if fullscreen never resolves on mobile", async ({ page }) => {
+  await mockMobileFullscreen(page, { stallPromise: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  await page.locator("#bootFullscreenAction").click();
+
+  await expect(page.locator("#bootOverlay")).toBeHidden();
+  await expect(page.locator(".menuPage")).toBeVisible();
+  await expect.poll(async () => page.evaluate(() => window.__fullscreenRequested)).toBe(1);
+});
+
+test("launcher still opens embedded games when fullscreen stalls on mobile", async ({ page }) => {
+  await mockMobileFullscreen(page, { stallPromise: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  await page.locator("#bootFullscreenAction").click();
+  await expect(page.locator("#bootOverlay")).toBeHidden();
+
+  await page.locator('#menuGrid a.menuCard[href="math/index.html"]').click();
+
+  await expect(page.locator("#gameStage")).toBeVisible();
+  await expect.poll(async () => page.locator("#gameFrame").getAttribute("src")).toContain("math/index.html");
+});
+
+test("launcher warms only the starter words emoji assets after boot", async ({ page }) => {
   const requestedEmojiPaths = [];
 
   await page.route("**/words/data/emojis-new/icon-pack-manifest.tsv", async (route) => {
@@ -86,8 +115,9 @@ test("launcher preloads new words emoji assets during boot", async ({ page }) =>
       contentType: "text/tab-separated-values",
       body: [
         "filename\tgroup\ten\the",
-        "animal-cat.png\tanimals\tcat\tחתול",
-        "transport-airplane.png\ttransport\tairplane\tמטוס"
+        "animal-cat.png\tanimals\tcat\tcat-he",
+        "transport-airplane.png\ttransport\tairplane\tairplane-he",
+        "food_plant_kitchen-apple_red.png\tfood\tapple\tapple-he"
       ].join("\n")
     });
   });
@@ -105,8 +135,8 @@ test("launcher preloads new words emoji assets during boot", async ({ page }) =>
   await page.goto("/");
 
   await expect(page.locator("#bootContinueAction")).toBeVisible({ timeout: 20000 });
-  expect(requestedEmojiPaths).toEqual(expect.arrayContaining([
+  await expect.poll(() => requestedEmojiPaths.slice().sort()).toEqual([
     "/words/data/emojis-new/animal-cat.png",
     "/words/data/emojis-new/transport-airplane.png"
-  ]));
+  ]);
 });

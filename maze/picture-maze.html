@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Picture Maze</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #141312;
+      --panel: #201d1a;
+      --panel-strong: #2b261f;
+      --border: rgba(255, 239, 213, 0.15);
+      --text: #f4efe6;
+      --muted: #c5b9a8;
+      --accent: #f0be6d;
+      --success: #8fd18a;
+      --danger: #ff9c7a;
+      --shadow: 0 22px 55px rgba(0, 0, 0, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(116, 94, 59, 0.28), transparent 35%),
+        linear-gradient(180deg, #28211b 0%, #161311 52%, #100e0d 100%);
+    }
+
+    .app-shell {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+    }
+
+    .scene-panel,
+    .sidebar {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(38, 33, 28, 0.96), rgba(27, 23, 20, 0.96));
+      box-shadow: var(--shadow);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .scene-panel {
+      position: relative;
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scene-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .scene-header h1,
+    .sidebar h2,
+    .section-title {
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .scene-header h1 {
+      font-size: clamp(1.5rem, 2.8vw, 2.15rem);
+    }
+
+    .scene-header p,
+    .sidebar p,
+    .status-copy,
+    .control-list li,
+    .node-meta {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.98rem;
+    }
+
+    .status-pill {
+      align-self: start;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(240, 190, 109, 0.13);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .scene-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      background:
+        linear-gradient(180deg, rgba(8, 7, 6, 0.18), rgba(8, 7, 6, 0.36)),
+        linear-gradient(180deg, #5f5241 0%, #2e261e 100%);
+    }
+
+    .scene-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 560px;
+      object-fit: contain;
+      opacity: 1;
+      transition: opacity 420ms ease;
+      background:
+        radial-gradient(circle at center, rgba(255, 232, 187, 0.12), transparent 45%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.36));
+    }
+
+    .scene-image.is-fading {
+      opacity: 0.08;
+    }
+
+    .scene-overlay {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      pointer-events: none;
+    }
+
+    .message-card,
+    .turn-hints {
+      border: 1px solid rgba(255, 239, 213, 0.12);
+      background: rgba(19, 17, 14, 0.78);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+
+    .message-card {
+      max-width: 520px;
+    }
+
+    .message-card strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 1rem;
+    }
+
+    .turn-hints {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .turn-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 72px;
+    }
+
+    .turn-hint img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.35));
+    }
+
+    .turn-hint span {
+      color: var(--text);
+      font-size: 0.83rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .sidebar {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .section {
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+      border: 1px solid rgba(255, 239, 213, 0.08);
+    }
+
+    .section-title {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .node-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .node-type.decision {
+      background: rgba(240, 190, 109, 0.12);
+      color: var(--accent);
+    }
+
+    .node-type.deadend {
+      background: rgba(255, 156, 122, 0.13);
+      color: var(--danger);
+    }
+
+    .node-type.exit {
+      background: rgba(143, 209, 138, 0.14);
+      color: var(--success);
+    }
+
+    .node-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .node-meta-card {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .node-meta-card strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .maze-select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 239, 213, 0.12);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text);
+      font: inherit;
+    }
+
+    .maze-description {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .control-list {
+      padding-left: 18px;
+      margin: 8px 0 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid rgba(255, 239, 213, 0.18);
+      background: linear-gradient(180deg, #3a3025, #2a221b);
+      color: var(--text);
+      font: inherit;
+      font-weight: 700;
+      border-radius: 14px;
+      padding: 11px 14px;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(240, 190, 109, 0.35);
+      background: linear-gradient(180deg, #47392b, #31271f);
+    }
+
+    .compass {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .compass-cell {
+      padding: 10px 0;
+      border-radius: 12px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 0.82rem;
+    }
+
+    .compass-cell.active {
+      color: #1c1711;
+      background: linear-gradient(180deg, #f0be6d, #d79c4b);
+      border-color: rgba(255, 224, 168, 0.45);
+    }
+
+    .map-card {
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at top, rgba(240, 190, 109, 0.08), transparent 36%),
+        rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 239, 213, 0.08);
+    }
+
+    .maze-map {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(91, 75, 54, 0.34), rgba(27, 22, 18, 0.8)),
+        rgba(14, 12, 10, 0.86);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .map-legend {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .map-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .map-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .map-dot.current {
+      background: #f0be6d;
+    }
+
+    .map-dot.exit {
+      background: #8fd18a;
+    }
+
+    .map-dot.visited {
+      background: #d08dff;
+    }
+
+    .map-dot.path {
+      background: #f4efe6;
+    }
+
+    .path-log {
+      max-height: 220px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      padding-right: 4px;
+    }
+
+    .path-entry {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .path-entry strong {
+      color: var(--text);
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .scene-panel {
+        min-height: auto;
+      }
+
+      .scene-image {
+        min-height: 420px;
+      }
+
+      .scene-overlay {
+        position: static;
+        padding: 18px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .turn-hints {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        background: linear-gradient(180deg, #211b17 0%, #100f0d 100%);
+      }
+
+      .app-shell {
+        width: min(100vw - 16px, 100%);
+        margin: 8px auto 16px;
+        gap: 12px;
+      }
+
+      .scene-header {
+        flex-direction: column;
+      }
+
+      .scene-image {
+        min-height: 320px;
+      }
+
+      .node-meta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <main class="scene-panel">
+      <div class="scene-header">
+        <div>
+          <h1>Picture Maze</h1>
+          <p>Navigate by turning and moving through the maze's decision points, dead ends, and exit.</p>
+        </div>
+        <div class="status-pill" id="status-pill">Exploring</div>
+      </div>
+
+      <div class="scene-wrap">
+        <img class="scene-image" id="scene-image" alt="Current maze scene" />
+        <div class="scene-overlay">
+          <div class="message-card">
+            <strong id="message-title">Welcome</strong>
+            <p class="status-copy" id="message-body">Use the arrow keys to move.</p>
+          </div>
+          <div class="turn-hints" id="turn-hints" aria-hidden="true">
+            <div class="turn-hint" id="left-hint">
+              <img src="assets/maze-picture/l.png" alt="" />
+              <span>Left</span>
+            </div>
+            <div class="turn-hint" id="right-hint">
+              <img src="assets/maze-picture/r.png" alt="" />
+              <span>Right</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="sidebar">
+      <section class="section">
+        <h2>Maze Set</h2>
+        <label class="field-label" for="maze-select">Choose Maze</label>
+        <select class="maze-select" id="maze-select"></select>
+        <p class="maze-description"><strong id="maze-title">Maze</strong><br><span id="maze-description">Loading maze details.</span></p>
+      </section>
+
+      <section class="section">
+        <h2>Current View</h2>
+        <div id="node-type" class="node-type decision">Decision</div>
+        <div class="node-meta-grid">
+          <div class="node-meta-card">
+            <strong>Node</strong>
+            <div class="node-meta" id="node-id">N0</div>
+          </div>
+          <div class="node-meta-card">
+            <strong>Facing</strong>
+            <div class="node-meta" id="facing-label">North</div>
+          </div>
+          <div class="node-meta-card">
+            <strong>Up Arrow</strong>
+            <div class="node-meta" id="forward-state">Blocked</div>
+          </div>
+          <div class="node-meta-card">
+            <strong>Travel Steps</strong>
+            <div class="node-meta" id="step-count">0</div>
+          </div>
+        </div>
+
+        <div class="compass" id="compass">
+          <div class="compass-cell" data-dir="N">N</div>
+          <div class="compass-cell" data-dir="E">E</div>
+          <div class="compass-cell" data-dir="S">S</div>
+          <div class="compass-cell" data-dir="W">W</div>
+        </div>
+
+        <div class="button-row">
+          <button id="restart-button" type="button">Restart</button>
+          <button id="hint-button" type="button">Show Hint</button>
+        </div>
+
+        <div class="map-card">
+          <canvas class="maze-map" id="maze-map" width="280" height="280"></canvas>
+          <div class="map-legend">
+            <div class="map-legend-item"><span class="map-dot current"></span>Current position</div>
+            <div class="map-legend-item"><span class="map-dot exit"></span>Exit</div>
+            <div class="map-legend-item"><span class="map-dot visited"></span>Visited node</div>
+            <div class="map-legend-item"><span class="map-dot path"></span>Maze path</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h3 class="section-title">Controls</h3>
+        <ul class="control-list">
+          <li><strong>Left Arrow</strong>: take the left branch immediately</li>
+          <li><strong>Right Arrow</strong>: take the right branch immediately</li>
+          <li><strong>Down Arrow</strong>: go back the way you came</li>
+          <li><strong>Up Arrow</strong>: go straight, or leave the maze when you are at the exit</li>
+        </ul>
+      </section>
+
+      <section class="section">
+        <h3 class="section-title">Path Log</h3>
+        <p>Corridor nodes are skipped automatically, so each move lands on a decision, dead end, or exit.</p>
+        <div class="path-log" id="path-log"></div>
+      </section>
+    </aside>
+  </div>
+
+  <script type="module" src="./picture-maze.js"></script>
+</body>
+</html>

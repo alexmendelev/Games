@@ -18,6 +18,16 @@
   const embeddedBuildTag = "20260407embed6";
   const wordsEmojiManifestUrl = "words/data/emojis-new/icon-pack-manifest.tsv";
   const wordsEmojiDir = "words/data/emojis-new";
+  const wordsStarterEmojiIds = [
+    "animal-cat",
+    "animal-dog",
+    "animal-rabbit",
+    "reptile_amphibian_sea_insect-snake",
+    "reptile_amphibian_sea_insect-dolphin",
+    "bird-penguin",
+    "bird-rooster",
+    "transport-airplane"
+  ];
   let embeddedLaunchSeq = 0;
   let bootDismissed = false;
   let launchMode = "normal";
@@ -109,7 +119,6 @@
     "multiply/config.js?v=20260322mascot1",
     "multiply/game.js?v=20260403balance4",
     "words/config.js?v=20260322mascot1",
-    wordsEmojiManifestUrl,
     "words/game.js?v=20260403balance5",
     "shapes/config.js?v=20260322mascot1",
     "shapes/game.js?v=20260403balance4",
@@ -275,7 +284,8 @@
       && !event.altKey;
   }
 
-  function requestFullscreenForApp() {
+  function requestFullscreenForApp(options) {
+    const timeoutMs = Math.max(0, Number(options && options.timeoutMs) || 0);
     const el = document.documentElement;
     if (!el) {
       return Promise.resolve();
@@ -295,7 +305,14 @@
     try {
       const result = fn.call(el);
       if (result && typeof result.then === "function") {
-        return result.catch(() => {});
+        const requestPromise = result.catch(() => {});
+        if (timeoutMs > 0) {
+          return Promise.race([
+            requestPromise,
+            wait(timeoutMs)
+          ]);
+        }
+        return requestPromise;
       }
     } catch (_) {
       return Promise.resolve();
@@ -307,15 +324,22 @@
   function parseWordsEmojiManifest(text) {
     const lines = String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
     const rows = lines.length && /^filename\t/i.test(lines[0]) ? lines.slice(1) : lines;
-    return unique(
-      rows
-        .map((line) => String(line.split("\t")[0] || "").trim())
-        .filter((filename) => /\.png$/i.test(filename))
-        .map((filename) => `${wordsEmojiDir}/${filename}`)
-    );
+    return rows
+      .map((line) => {
+        const filename = String(line.split("\t")[0] || "").trim();
+        if (!/\.png$/i.test(filename)) {
+          return null;
+        }
+        return {
+          id: filename.replace(/\.png$/i, ""),
+          filename,
+          src: `${wordsEmojiDir}/${filename}`
+        };
+      })
+      .filter(Boolean);
   }
 
-  async function resolveWordsEmojiUrls() {
+  async function resolveWordsEmojiEntries() {
     try {
       const manifestResponse = await fetch(wordsEmojiManifestUrl, { credentials: "same-origin" });
       if (!manifestResponse.ok) {
@@ -325,6 +349,30 @@
     } catch (_) {
       return [];
     }
+  }
+
+  function resolveStarterEmojiUrls(entries) {
+    const entryById = new Map(
+      (entries || []).map((entry) => [String(entry.id || ""), entry])
+    );
+    return unique(
+      wordsStarterEmojiIds
+        .map((id) => entryById.get(id))
+        .filter(Boolean)
+        .map((entry) => entry.src)
+    );
+  }
+
+  function warmDeferredAssets(urls) {
+    const deferredUrls = unique((urls || []).filter(Boolean));
+    if (!deferredUrls.length) {
+      return;
+    }
+    window.setTimeout(() => {
+      deferredUrls.forEach((url) => {
+        preloadAsset(url);
+      });
+    }, 0);
   }
 
   function buildFreshGameUrl(href) {
@@ -401,10 +449,11 @@
       }
 
       event.preventDefault();
-      if (launchMode === "fullscreen" && isFullscreenPreferredDevice()) {
-        await requestFullscreenForApp();
-      }
+      const fullscreenRequest = launchMode === "fullscreen" && isFullscreenPreferredDevice()
+        ? requestFullscreenForApp({ timeoutMs: 700 })
+        : Promise.resolve();
       openEmbeddedGame(card.getAttribute("href"));
+      await fullscreenRequest;
     });
   }
 
@@ -434,21 +483,21 @@
         ? "Opening full screen..."
         : "Opening...";
     }
-    if (launchMode === "fullscreen" && isFullscreenPreferredDevice()) {
-      await requestFullscreenForApp();
-    }
     dismissBootOverlay();
+    if (launchMode === "fullscreen" && isFullscreenPreferredDevice()) {
+      await requestFullscreenForApp({ timeoutMs: 700 });
+    }
   }
 
   async function boot() {
     const mode = bootMode();
     const minBootMs = mode === "first" ? firstBootMs : returnBootMs;
-    let emojiUrls = [];
+    let emojiEntries = [];
     try {
-      emojiUrls = await resolveWordsEmojiUrls();
+      emojiEntries = await resolveWordsEmojiEntries();
     } catch (_) {}
 
-    const assets = unique(allImageUrls.concat(allAudioUrls, fetchUrls, emojiUrls));
+    const assets = unique(allImageUrls.concat(allAudioUrls, fetchUrls, wordsEmojiManifestUrl));
     let done = 0;
     const startedAt = performance.now();
 
@@ -477,6 +526,7 @@
     } catch (_) {}
 
     updateBootReadyState(true);
+    warmDeferredAssets(resolveStarterEmojiUrls(emojiEntries));
   }
 
   if (fullscreenActionEl) {
