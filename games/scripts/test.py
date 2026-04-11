@@ -4,7 +4,6 @@ import argparse
 import os
 import re
 import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
 from time import monotonic
@@ -22,7 +21,7 @@ LOGIC_TESTS = [
 ]
 E2E_TEST = ("e2e", ["cmd", "/c", "npm", "run", "test:e2e"])
 ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
-FAILED_TEST_RE = re.compile(r"^\s*\[chromium\]\s+[>│|]\s+(.+?)\s*$")
+FAILED_TEST_RE = re.compile(r"^\s*\[chromium\]\s+(?:>|›|│|\|)\s+(.+?)\s*$")
 
 
 def parse_args() -> argparse.Namespace:
@@ -40,15 +39,17 @@ def parse_args() -> argparse.Namespace:
 def clean_output(text: str) -> str:
     text = ANSI_RE.sub("", text)
     replacements = {
-        "Γ£ô": "PASS",
-        "Γ£ù": "PASS",
-        "Γ£ù": "PASS",
-        "Γ£ù": "PASS",
-        "ΓÇ║": ">",
+        "âœ“": "PASS",
+        "âœ˜": "FAIL",
+        "›": ">",
+        "â€º": ">",
         "│": ">",
-        "├ù": ">",
-        "└": "-",
-        "ΓöÇ": "-",
+        "â”‚": ">",
+        "â”œÃ¹": ">",
+        "â””": "-",
+        "â”€": "-",
+        "Î“Ã¶Ã‡": "-",
+        "Ã—": "x",
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
@@ -71,6 +72,14 @@ def now_stamp() -> str:
 def append_log(log_lines: list[str], text: str) -> None:
     for line in text.splitlines():
         log_lines.append(f"[{now_stamp()}] {line}")
+
+
+def format_duration(seconds: float) -> str:
+    whole = int(seconds)
+    hours, rem = divmod(whole, 3600)
+    minutes, secs = divmod(rem, 60)
+    micros = int(round((seconds - whole) * 1_000_000))
+    return f"{hours}:{minutes:02d}:{secs:02d}.{micros:06d}"
 
 
 def run_command(
@@ -103,35 +112,30 @@ def run_command(
     return process.returncode, duration
 
 
-def format_duration(seconds: float) -> str:
-    whole = int(seconds)
-    hours, rem = divmod(whole, 3600)
-    minutes, secs = divmod(rem, 60)
-    millis = int(round((seconds - whole) * 1_000_000))
-    return f"{hours}:{minutes:02d}:{secs:02d}.{millis:06d}"
-
-
 def extract_count(text: str, label: str) -> str | None:
-    match = re.search(rf"(\d+)\s+{re.escape(label)}\b", text)
-    return match.group(1) if match else None
+    matches = re.findall(rf"(\d+)\s+{re.escape(label)}\b", text)
+    return matches[-1] if matches else None
 
 
 def collect_failed_tests(text: str) -> list[str]:
+    lines = [line.strip() for line in text.splitlines()]
     failed: list[str] = []
-    capture = False
+    summary_start = None
 
-    for line in text.splitlines():
-        stripped = line.strip()
-        if re.search(r"^\d+\s+failed\b", stripped):
-            capture = True
-            continue
-        if not capture:
-            continue
-        if re.search(r"^\d+\s+did not run\b", stripped):
+    for index, line in enumerate(lines):
+        if re.search(r"^\d+\s+failed\b", line):
+            summary_start = index
+
+    if summary_start is None:
+        return failed
+
+    for line in lines[summary_start + 1:]:
+        if re.search(r"^\d+\s+(?:flaky|passed|did not run)\b", line):
             break
-        match = FAILED_TEST_RE.match(stripped)
+        match = FAILED_TEST_RE.match(line)
         if match:
             failed.append(match.group(1))
+
     return failed
 
 
@@ -242,8 +246,7 @@ def main() -> int:
     raw_text = "\n".join(log_lines).rstrip() + "\n"
     raw_log_path.write_text(raw_text, encoding="utf-8")
 
-    e2e_text = raw_text
-    prompt_text = build_prompt(raw_log_path, logic_passed, logic_failed, e2e_returncode, e2e_text)
+    prompt_text = build_prompt(raw_log_path, logic_passed, logic_failed, e2e_returncode, raw_text)
     prompt_path.write_text(prompt_text + "\n", encoding="utf-8")
 
     print(f"Raw log: {raw_log_path}", flush=True)
