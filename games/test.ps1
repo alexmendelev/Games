@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Continue"
 
-$logDir = "C:\tmp"
+$repoRoot = $PSScriptRoot
+$logDir = Join-Path $repoRoot ".artifacts\diagnostics"
 $logFile = Join-Path $logDir ("playwright-plugin-diagnostic-" + (Get-Date -Format "yyyyMMdd-HHmmss") + ".log")
 
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
@@ -34,7 +35,7 @@ function Run-Step {
   }
 }
 
-Set-Location "C:\Users\alexm\games\games"
+Set-Location $repoRoot
 
 Write-Log ("Log file: " + $logFile)
 Write-Log ("Current directory: " + (Get-Location).Path)

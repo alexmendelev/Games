@@ -10,7 +10,7 @@ from time import monotonic
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_LOG_DIR = Path(r"C:\tmp")
+DEFAULT_LOG_DIR = REPO_ROOT / ".artifacts" / "test-logs"
 LOGIC_TESTS = [
     ("math", ["node", "scripts/test-math-difficulty-manager.js"]),
     ("clocks", ["node", "scripts/test-clocks-difficulty-manager.js"]),
@@ -21,6 +21,7 @@ LOGIC_TESTS = [
 ]
 E2E_TEST = ("e2e", ["cmd", "/c", "npm", "run", "test:e2e"])
 ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+LOG_PREFIX_RE = re.compile(r"^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]\s?")
 FAILED_TEST_RE = re.compile(r"^\s*\[chromium\]\s+(?:>|›|│|\|)\s+(.+?)\s*$")
 
 
@@ -31,7 +32,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--log-dir",
         default=str(DEFAULT_LOG_DIR),
-        help=r"Directory for the raw log and prompt output. Default: C:\tmp",
+        help="Directory for the raw log and prompt output. Default: <repo>/.artifacts/test-logs",
     )
     return parser.parse_args()
 
@@ -72,6 +73,10 @@ def now_stamp() -> str:
 def append_log(log_lines: list[str], text: str) -> None:
     for line in text.splitlines():
         log_lines.append(f"[{now_stamp()}] {line}")
+
+
+def strip_log_prefix(text: str) -> str:
+    return "\n".join(LOG_PREFIX_RE.sub("", line) for line in text.splitlines())
 
 
 def format_duration(seconds: float) -> str:
@@ -162,11 +167,12 @@ def build_prompt(
     e2e_returncode: int,
     e2e_text: str,
 ) -> str:
-    passed = extract_count(e2e_text, "passed") or "unknown"
-    failed = extract_count(e2e_text, "failed") or "unknown"
-    did_not_run = extract_count(e2e_text, "did not run") or "unknown"
-    failed_tests = collect_failed_tests(e2e_text)
-    key_messages = collect_key_messages(e2e_text)
+    normalized_e2e_text = strip_log_prefix(e2e_text)
+    passed = extract_count(normalized_e2e_text, "passed") or "unknown"
+    failed = extract_count(normalized_e2e_text, "failed") or "unknown"
+    did_not_run = extract_count(normalized_e2e_text, "did not run") or "unknown"
+    failed_tests = collect_failed_tests(normalized_e2e_text)
+    key_messages = collect_key_messages(normalized_e2e_text)
 
     lines = [
         "Use this test summary to diagnose failures and decide the next smallest fixes.",
@@ -213,6 +219,8 @@ def build_prompt(
 def main() -> int:
     args = parse_args()
     log_dir = Path(args.log_dir)
+    if not log_dir.is_absolute():
+        log_dir = REPO_ROOT / log_dir
     log_dir.mkdir(parents=True, exist_ok=True)
 
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -243,6 +251,8 @@ def main() -> int:
     print("Running Playwright suite...", flush=True)
     e2e_returncode, _ = run_command(E2E_TEST[0], E2E_TEST[1], log_lines, env)
 
+    # Playwright may clear output directories during the run, so recreate ours before writing.
+    log_dir.mkdir(parents=True, exist_ok=True)
     raw_text = "\n".join(log_lines).rstrip() + "\n"
     raw_log_path.write_text(raw_text, encoding="utf-8")
 
