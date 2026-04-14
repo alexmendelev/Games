@@ -933,6 +933,20 @@
     };
   }
 
+  function placeTaskForCurrentLayout(nextTask) {
+    if (!nextTask) return null;
+    const tileMetrics = currentTileMetrics();
+    const rect = shell.rect();
+    const lane = shell.fallLane(tileMetrics.width, tileMetrics.margin, rect);
+    nextTask.width = tileMetrics.width;
+    nextTask.height = tileMetrics.height;
+    nextTask.x = utils.randInt(Math.round(lane.minX), Math.round(lane.maxX));
+    nextTask.y = -(tileMetrics.height * spawnYOffsetRatio);
+    nextTask.spawnedAt = performance.now();
+    delete nextTask.__fallSpeedPxPerSec;
+    return nextTask;
+  }
+
   function createPreparedTask() {
     const nextTask = generateTask();
     if (!nextTask) return null;
@@ -1208,18 +1222,23 @@
 
   async function startGame() {
     resetState();
-    shell.refreshLayout();
-    await new Promise((resolve) => {
-      window.requestAnimationFrame(() => resolve());
-    });
     let firstPrepared = takeStartupPreparedTask();
     if (!firstPrepared) {
+      shell.refreshLayout();
+      await new Promise((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+      });
       fillPreparedTasks(1);
       firstPrepared = shiftPreparedTask();
     }
     if (!firstPrepared) return;
     await firstPrepared.readyPromise;
-    const firstTask = firstPrepared.task;
+    meta.hideOverlay();
+    shell.refreshLayout();
+    await new Promise((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+    const firstTask = placeTaskForCurrentLayout(firstPrepared.task);
     task = firstTask;
     if (!task) return;
     recentCorrectIds = firstTask.correctId ? [firstTask.correctId] : [];
@@ -1229,10 +1248,6 @@
     running = true;
     paused = false;
     pauseBtn.classList.remove("paused");
-    meta.hideOverlay();
-    await new Promise((resolve) => {
-      window.requestAnimationFrame(() => resolve());
-    });
     refreshBackgroundEmojiWarmup();
     falling.start(firstTask);
   }
