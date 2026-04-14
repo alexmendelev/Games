@@ -1086,13 +1086,20 @@
       return Promise.resolve(task);
     }
     if (prepared.ready) {
-      task = falling.setItem(prepared.task, "spawn");
-      refreshBackgroundEmojiWarmup();
-      return Promise.resolve(task);
+      return applyTaskUi(prepared.task).then(() => {
+        if (token !== spawnRequestToken || !running || falling.getItem()) {
+          return null;
+        }
+        task = falling.setItem(prepared.task, "spawn");
+        refreshBackgroundEmojiWarmup();
+        return task;
+      });
     }
     task = null;
     refreshBackgroundEmojiWarmup();
     return prepared.readyPromise.then(() => {
+      return applyTaskUi(prepared.task);
+    }).then(() => {
       if (token !== spawnRequestToken || !running || falling.getItem()) {
         return null;
       }
