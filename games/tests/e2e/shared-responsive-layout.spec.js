@@ -38,6 +38,14 @@ async function getBox(locator) {
   return box;
 }
 
+async function expectAllHidden(locator) {
+  const count = await locator.count();
+  expect(count).toBeGreaterThan(0);
+  for (let index = 0; index < count; index += 1) {
+    await expect(locator.nth(index)).toBeHidden();
+  }
+}
+
 for (const gameCase of GAME_CASES) {
   test(`${gameCase.name} uses the shared portrait gameplay layout on phone`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -108,7 +116,7 @@ for (const gameCase of GAME_CASES) {
     expect(actionsBox.y).toBeGreaterThanOrEqual(leaderboardBox.y + leaderboardBox.height - 1);
 
     await expect(page.locator(".metaCard--dashboard-results .metaProfileHint")).toBeHidden();
-    await expect(page.locator(".metaCard--dashboard-results .metaStatusLabel")).toBeHidden();
+    await expectAllHidden(page.locator(".metaCard--dashboard-results .metaStatusLabel"));
     await expect(page.locator(".metaCard--dashboard-results .metaDashboardSettingsLabel")).toBeHidden();
   });
 

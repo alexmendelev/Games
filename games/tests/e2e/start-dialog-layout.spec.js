@@ -23,6 +23,14 @@ async function getBox(locator) {
   return box;
 }
 
+async function expectAllHidden(locator) {
+  const count = await locator.count();
+  expect(count).toBeGreaterThan(0);
+  for (let index = 0; index < count; index += 1) {
+    await expect(locator.nth(index)).toBeHidden();
+  }
+}
+
 async function expectLeaderboardRowAligned(rowLocator, tolerance = 16) {
   const rankBox = await getBox(rowLocator.locator(".metaStartLeaderboardCell--rank"));
   const avatarBox = await getBox(rowLocator.locator(".metaStartLeaderboardCell--avatar"));
@@ -74,7 +82,7 @@ for (const gameCase of GAME_CASES) {
     expect(Math.abs(levelBox.y - settingsBox.y)).toBeLessThan(12);
 
     await expect(page.locator(".metaCard--dashboard-start .metaProfileHint")).toBeHidden();
-    await expect(page.locator(".metaCard--dashboard-start .metaStatusLabel")).toBeHidden();
+    await expectAllHidden(page.locator(".metaCard--dashboard-start .metaStatusLabel"));
     await expect(page.locator(".metaCard--dashboard-start .metaDashboardSettingsLabel")).toBeHidden();
 
     const leaderboardMetrics = await page.locator(".metaStartLeaderboardList").evaluate((el) => ({

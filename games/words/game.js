@@ -104,8 +104,16 @@
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let task = null;
+  let preparedTasks = [];
+  let backgroundEmojiQueue = [];
+  let backgroundEmojiTimer = 0;
   let lockInputUntil = 0;
+  let spawnRequestToken = 0;
   const recentCorrectLimit = 8;
+  const preparedTaskTarget = 3;
+  const backgroundEmojiBatchSize = 6;
+  const backgroundEmojiDelayMs = 180;
+  const backgroundEmojiHiddenDelayMs = 700;
   const warmedEmojiUrls = new Set();
   const spawnYOffsetRatio = 0.35;
   let mascotAnimToken = 0;
@@ -179,7 +187,17 @@
 
   function preloadImages(urls) {
     const uniqueUrls = Array.from(new Set((urls || []).filter(Boolean)));
+    uniqueUrls.forEach((url) => {
+      warmedEmojiUrls.add(url);
+    });
     return Promise.all(uniqueUrls.map((url) => preloadImage(url)));
+  }
+
+  function taskOptionUrls(nextTask) {
+    if (!nextTask || !Array.isArray(nextTask.options)) {
+      return [];
+    }
+    return nextTask.options.map((item) => item && item.src).filter(Boolean);
   }
 
   function warm(url) {
@@ -490,6 +508,8 @@
     session.finishLevel();
     await meta.showResults(session.buildResultsPayload());
     syncCheckpointState();
+    preparedTasks = [];
+    stopBackgroundEmojiWarmup();
     session.beginLevel();
     running = true;
     paused = false;
@@ -811,6 +831,108 @@
     };
   }
 
+  function createPreparedTask() {
+    const nextTask = generateTask();
+    if (!nextTask) return null;
+    const prepared = {
+      task: nextTask,
+      ready: false,
+      readyPromise: Promise.resolve()
+    };
+    prepared.readyPromise = preloadImages(taskOptionUrls(nextTask))
+      .catch(() => {})
+      .finally(() => {
+        prepared.ready = true;
+      });
+    return prepared;
+  }
+
+  function fillPreparedTasks(minCount) {
+    const targetCount = Math.max(0, Number(minCount) || 0);
+    while (preparedTasks.length < targetCount) {
+      const prepared = createPreparedTask();
+      if (!prepared) {
+        break;
+      }
+      preparedTasks.push(prepared);
+    }
+  }
+
+  function shiftPreparedTask() {
+    fillPreparedTasks(1);
+    const prepared = preparedTasks.shift() || null;
+    fillPreparedTasks(preparedTaskTarget);
+    return prepared;
+  }
+
+  function cancelPendingSpawns() {
+    spawnRequestToken += 1;
+  }
+
+  function stopBackgroundEmojiWarmup() {
+    backgroundEmojiQueue = [];
+    if (backgroundEmojiTimer) {
+      clearTimeout(backgroundEmojiTimer);
+      backgroundEmojiTimer = 0;
+    }
+  }
+
+  function buildBackgroundEmojiQueue() {
+    const orderedUrls = [];
+    const seen = new Set();
+
+    function addUrl(url) {
+      const value = String(url || "").trim();
+      if (!value || seen.has(value) || warmedEmojiUrls.has(value)) {
+        return;
+      }
+      seen.add(value);
+      orderedUrls.push(value);
+    }
+
+    function addTaskUrls(nextTask) {
+      taskOptionUrls(nextTask).forEach(addUrl);
+    }
+
+    addTaskUrls(task);
+    preparedTasks.forEach((prepared) => {
+      addTaskUrls(prepared && prepared.task);
+    });
+    activeEmojiPool(currentDifficultyKey()).forEach((item) => addUrl(item && item.src));
+    emojis.forEach((item) => addUrl(item && item.src));
+
+    return orderedUrls;
+  }
+
+  function pumpBackgroundEmojiWarmup() {
+    backgroundEmojiTimer = 0;
+    if (!running || paused) {
+      return;
+    }
+    const batch = backgroundEmojiQueue.splice(0, backgroundEmojiBatchSize);
+    batch.forEach((url) => warm(url));
+    if (backgroundEmojiQueue.length) {
+      scheduleBackgroundEmojiWarmup();
+    }
+  }
+
+  function scheduleBackgroundEmojiWarmup() {
+    if (backgroundEmojiTimer || !running || paused || !backgroundEmojiQueue.length) {
+      return;
+    }
+    const delayMs = document.hidden ? backgroundEmojiHiddenDelayMs : backgroundEmojiDelayMs;
+    backgroundEmojiTimer = window.setTimeout(pumpBackgroundEmojiWarmup, delayMs);
+  }
+
+  function refreshBackgroundEmojiWarmup() {
+    if (!emojis.length) {
+      stopBackgroundEmojiWarmup();
+      return;
+    }
+    backgroundEmojiQueue = buildBackgroundEmojiQueue();
+    scheduleBackgroundEmojiWarmup();
+  }
+
   function renderTask(nextTask, rectArg, phase) {
     task = nextTask;
     if (!task) return;
@@ -844,9 +966,34 @@
     syncWaterReflection(task, rectArg);
   }
 
+  function spawnPreparedTask(prepared, token) {
+    if (!prepared) {
+      task = falling.spawn();
+      refreshBackgroundEmojiWarmup();
+      return Promise.resolve(task);
+    }
+    if (prepared.ready) {
+      task = falling.setItem(prepared.task, "spawn");
+      refreshBackgroundEmojiWarmup();
+      return Promise.resolve(task);
+    }
+    task = null;
+    refreshBackgroundEmojiWarmup();
+    return prepared.readyPromise.then(() => {
+      if (token !== spawnRequestToken || !running || falling.getItem()) {
+        return null;
+      }
+      task = falling.setItem(prepared.task, "spawn");
+      refreshBackgroundEmojiWarmup();
+      return task;
+    });
+  }
+
   function spawnTask() {
-    task = falling.spawn();
-    return task;
+    cancelPendingSpawns();
+    const token = spawnRequestToken;
+    const prepared = shiftPreparedTask();
+    return spawnPreparedTask(prepared, token);
   }
 
   function playSplash(x) {
@@ -919,6 +1066,7 @@
   }
 
   function resetState() {
+    cancelPendingSpawns();
     syncCheckpointState();
     paused = false;
     levelPausePending = false;
@@ -929,6 +1077,8 @@
     correctDeckLanguageId = "";
     deckPos = 0;
     recentCorrectIds = [];
+    preparedTasks = [];
+    stopBackgroundEmojiWarmup();
     lockInputUntil = 0;
     falling.stop("reset");
     clearAnswerMarks();
@@ -941,14 +1091,18 @@
     await new Promise((resolve) => {
       window.requestAnimationFrame(() => resolve());
     });
-    const firstTask = generateTask();
+    fillPreparedTasks(preparedTaskTarget);
+    const firstPrepared = shiftPreparedTask();
+    if (!firstPrepared) return;
+    await firstPrepared.readyPromise;
+    const firstTask = firstPrepared.task;
     task = firstTask;
     if (!task) return;
-    await preloadImages(task.options.map((item) => item.src));
     session.beginLevel();
     running = true;
     paused = false;
     pauseBtn.classList.remove("paused");
+    refreshBackgroundEmojiWarmup();
     falling.start(firstTask);
   }
 
@@ -972,11 +1126,13 @@
       session.pause();
       audio.bgm.pause();
       falling.pause();
+      stopBackgroundEmojiWarmup();
     }
     if (!paused) {
       session.resume();
       audio.bgm.resume();
       falling.resume();
+      refreshBackgroundEmojiWarmup();
     }
   }
 
@@ -1045,6 +1201,18 @@
         wrong(btn);
       }
     }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!running) {
+      stopBackgroundEmojiWarmup();
+      return;
+    }
+    if (paused || document.hidden) {
+      stopBackgroundEmojiWarmup();
+      return;
+    }
+    refreshBackgroundEmojiWarmup();
   });
 
   setMascot("idle");

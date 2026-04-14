@@ -17,7 +17,7 @@ module.exports = defineConfig({
     video: 'retain-on-failure'
   },
   webServer: {
-    command: 'cmd /c server.bat',
+    command: 'node scripts/static-server.js',
     url: 'http://127.0.0.1:8000',
     reuseExistingServer: true,
     timeout: 15000

@@ -134,7 +134,7 @@ test("launcher warms only the starter words emoji assets after boot", async ({ p
 
   await page.goto("/");
 
-  await expect(page.locator("#bootContinueAction")).toBeVisible({ timeout: 20000 });
+  await expect(page.locator("#bootProgress")).toBeHidden({ timeout: 20000 });
   await expect.poll(() => requestedEmojiPaths.slice().sort()).toEqual([
     "/words/data/emojis-new/animal-cat.png",
     "/words/data/emojis-new/transport-airplane.png"
