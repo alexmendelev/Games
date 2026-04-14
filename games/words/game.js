@@ -108,6 +108,7 @@
   let backgroundEmojiQueue = [];
   let backgroundEmojiTimer = 0;
   let lockInputUntil = 0;
+  let spawnRequestToken = 0;
   const recentCorrectLimit = 8;
   const preparedTaskTarget = 3;
   const backgroundEmojiBatchSize = 6;
@@ -864,6 +865,10 @@
     return prepared;
   }
 
+  function cancelPendingSpawns() {
+    spawnRequestToken += 1;
+  }
+
   function stopBackgroundEmojiWarmup() {
     backgroundEmojiQueue = [];
     if (backgroundEmojiTimer) {
@@ -961,11 +966,34 @@
     syncWaterReflection(task, rectArg);
   }
 
-  function spawnTask() {
-    const prepared = shiftPreparedTask();
-    task = prepared ? falling.setItem(prepared.task, "spawn") : falling.spawn();
+  function spawnPreparedTask(prepared, token) {
+    if (!prepared) {
+      task = falling.spawn();
+      refreshBackgroundEmojiWarmup();
+      return Promise.resolve(task);
+    }
+    if (prepared.ready) {
+      task = falling.setItem(prepared.task, "spawn");
+      refreshBackgroundEmojiWarmup();
+      return Promise.resolve(task);
+    }
+    task = null;
     refreshBackgroundEmojiWarmup();
-    return task;
+    return prepared.readyPromise.then(() => {
+      if (token !== spawnRequestToken || !running || falling.getItem()) {
+        return null;
+      }
+      task = falling.setItem(prepared.task, "spawn");
+      refreshBackgroundEmojiWarmup();
+      return task;
+    });
+  }
+
+  function spawnTask() {
+    cancelPendingSpawns();
+    const token = spawnRequestToken;
+    const prepared = shiftPreparedTask();
+    return spawnPreparedTask(prepared, token);
   }
 
   function playSplash(x) {
@@ -1038,6 +1066,7 @@
   }
 
   function resetState() {
+    cancelPendingSpawns();
     syncCheckpointState();
     paused = false;
     levelPausePending = false;
