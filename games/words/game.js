@@ -110,6 +110,10 @@
   let lockInputUntil = 0;
   let spawnRequestToken = 0;
   let renderedTaskUi = null;
+  let emojiLoadPromise = null;
+  let startupPreparedTask = null;
+  let startupPreparedKey = "";
+  let startupWarmupToken = 0;
   const recentCorrectLimit = 8;
   const preparedTaskTarget = 3;
   const backgroundEmojiBatchSize = 6;
@@ -306,6 +310,10 @@
   function currentLanguageId() {
     const rawLanguageId = String(document.documentElement.getAttribute("lang") || "").trim().toLowerCase();
     return rawLanguageId || "he";
+  }
+
+  function startupTaskKey() {
+    return `${currentDifficultyKey()}|${currentLanguageId()}`;
   }
 
   function normalizeEmojiLabelKey(key) {
@@ -959,6 +967,37 @@
     return prepared;
   }
 
+  function takeStartupPreparedTask() {
+    const key = startupTaskKey();
+    if (!startupPreparedTask || startupPreparedKey !== key) {
+      return null;
+    }
+    const prepared = startupPreparedTask;
+    startupPreparedTask = null;
+    startupPreparedKey = "";
+    return prepared;
+  }
+
+  function scheduleStartupTaskWarmup() {
+    const token = ++startupWarmupToken;
+    ensureEmojiListLoaded({ silent: true }).then((ok) => {
+      if (!ok || token !== startupWarmupToken) {
+        return;
+      }
+      const key = startupTaskKey();
+      if (startupPreparedTask && startupPreparedKey === key) {
+        return;
+      }
+      const prepared = createPreparedTask();
+      if (!prepared) {
+        return;
+      }
+      startupPreparedTask = prepared;
+      startupPreparedKey = key;
+      prepared.readyPromise.catch(() => {});
+    }).catch(() => {});
+  }
+
   function cancelPendingSpawns() {
     spawnRequestToken += 1;
   }
@@ -1141,6 +1180,7 @@
 
   function resetState() {
     cancelPendingSpawns();
+    startupWarmupToken += 1;
     syncCheckpointState();
     paused = false;
     levelPausePending = false;
@@ -1165,13 +1205,18 @@
     await new Promise((resolve) => {
       window.requestAnimationFrame(() => resolve());
     });
-    fillPreparedTasks(preparedTaskTarget);
-    const firstPrepared = shiftPreparedTask();
+    let firstPrepared = takeStartupPreparedTask();
+    if (!firstPrepared) {
+      fillPreparedTasks(1);
+      firstPrepared = shiftPreparedTask();
+    }
     if (!firstPrepared) return;
     await firstPrepared.readyPromise;
     const firstTask = firstPrepared.task;
     task = firstTask;
     if (!task) return;
+    recentCorrectIds = firstTask.correctId ? [firstTask.correctId] : [];
+    fillPreparedTasks(preparedTaskTarget);
     await applyTaskUi(task);
     session.beginLevel();
     running = true;
@@ -1240,6 +1285,44 @@
     return true;
   }
 
+  async function ensureEmojiListLoaded(options) {
+    if (emojis.length) return true;
+    if (emojiLoadPromise) {
+      return emojiLoadPromise;
+    }
+    const silent = !!(options && options.silent);
+    if (!silent) {
+      tileEl.textContent = "\u05d8\u05d5\u05e2\u05df...";
+    }
+    emojiLoadPromise = (async () => {
+      try {
+        emojis = await loadEmojiTsv();
+      } catch (_) {
+        emojis = [];
+      }
+      if (emojis.length < 8) {
+        emojis = fallbackEmojiList();
+      }
+      if (emojis.length < 8) {
+        if (!silent) {
+          tileEl.textContent = "\u05d0\u05d9\u05df \u05de\u05e1\u05e4\u05d9\u05e7 \u05d0\u05d9\u05de\u05d5\u05d2'\u05d9\u05dd";
+          overlayEl.style.display = "grid";
+        }
+        return false;
+      }
+      emojiPoolsLanguageId = "";
+      rebuildEmojiPools();
+      await Promise.all([
+        preloadImage(cfg.assets.mascotSheet.url),
+        preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url)
+      ]);
+      return true;
+    })().finally(() => {
+      emojiLoadPromise = null;
+    });
+    return emojiLoadPromise;
+  }
+
   pauseBtn.addEventListener("click", () => {
     audio.ensureAudio();
     togglePause();
@@ -1294,6 +1377,17 @@
     refreshBackgroundEmojiWarmup();
   });
 
+  if (diffsEl) {
+    diffsEl.addEventListener("click", () => {
+      window.setTimeout(() => {
+        scheduleStartupTaskWarmup();
+      }, 0);
+    });
+  }
+
   setMascot("idle");
   syncSessionUi(session.getState());
+  window.setTimeout(() => {
+    scheduleStartupTaskWarmup();
+  }, 0);
 })();
