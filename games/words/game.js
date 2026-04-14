@@ -109,6 +109,7 @@
   let backgroundEmojiTimer = 0;
   let lockInputUntil = 0;
   let spawnRequestToken = 0;
+  let renderedTaskUi = null;
   const recentCorrectLimit = 8;
   const preparedTaskTarget = 3;
   const backgroundEmojiBatchSize = 6;
@@ -150,6 +151,7 @@
     onMiss: miss,
     onClear: () => {
       task = null;
+      renderedTaskUi = null;
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
       tileEl.removeAttribute("data-reward");
       shell.hideWaterReflection();
@@ -178,10 +180,23 @@
   function preloadImage(url) {
     return new Promise((resolve) => {
       const img = new Image();
-      img.onload = () => resolve();
+      const finish = () => {
+        if (typeof img.decode === "function") {
+          img.decode().catch(() => {}).finally(resolve);
+          return;
+        }
+        resolve();
+      };
+      img.onload = finish;
       img.onerror = () => resolve();
       img.src = url;
-      if (img.complete) resolve();
+      if (img.complete) {
+        if (img.naturalWidth > 0) {
+          finish();
+        } else {
+          resolve();
+        }
+      }
     });
   }
 
@@ -204,9 +219,88 @@
     if (!url || warmedEmojiUrls.has(url)) return;
     warmedEmojiUrls.add(url);
     const img = new Image();
-    img.decoding = "async";
+    img.decoding = "sync";
     img.loading = "eager";
     img.src = url;
+  }
+
+  function bindAnswerImage(img, src) {
+    return new Promise((resolve) => {
+      if (!img) {
+        resolve();
+        return;
+      }
+      const token = (Number(img._loadToken) || 0) + 1;
+      img._loadToken = token;
+      img.decoding = "sync";
+      img.loading = "eager";
+      img.classList.remove("is-ready");
+
+      function finish(ready) {
+        if (img._loadToken !== token) {
+          resolve();
+          return;
+        }
+        if (ready) {
+          img.classList.add("is-ready");
+        } else {
+          img.classList.remove("is-ready");
+        }
+        resolve();
+      }
+
+      function finalizeReady() {
+        if (typeof img.decode === "function") {
+          img.decode().catch(() => {}).finally(() => finish(true));
+          return;
+        }
+        finish(true);
+      }
+
+      img.onload = finalizeReady;
+      img.onerror = () => finish(false);
+
+      if (img.getAttribute("src") !== src) {
+        img.src = src;
+      }
+
+      if (img.complete) {
+        if (img.naturalWidth > 0) {
+          finalizeReady();
+        } else {
+          finish(false);
+        }
+      }
+    });
+  }
+
+  function applyTaskUi(nextTask) {
+    if (!nextTask) {
+      return Promise.resolve();
+    }
+    task = nextTask;
+    renderedTaskUi = nextTask;
+    clearAnswerMarks();
+    tileEl.textContent = nextTask.word;
+    tileEl.setAttribute("lang", nextTask.wordLang || "he");
+    tileEl.setAttribute("dir", nextTask.wordDir || "rtl");
+    tileEl.setAttribute("data-word-dir", nextTask.wordDir || "rtl");
+    tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
+    if (nextTask.rewardCoins > 0) {
+      tileEl.classList.add("tile--special", `tile--${nextTask.tabletType}`);
+      tileEl.setAttribute("data-reward", String(nextTask.rewardCoins));
+    } else {
+      tileEl.removeAttribute("data-reward");
+    }
+    const imagePromises = [];
+    for (let i = 0; i < ansImgs.length; i += 1) {
+      const emoji = nextTask.options[i];
+      const img = ansImgs[i];
+      ansBtns[i].dataset.value = emoji.id;
+      imagePromises.push(bindAnswerImage(img, emoji.src));
+      warm(emoji.src);
+    }
+    return Promise.all(imagePromises);
   }
 
   function currentLanguageId() {
@@ -938,28 +1032,8 @@
     if (!task) return;
     if (phase !== "frame") {
       session.noteQuestionPresented();
-      clearAnswerMarks();
-      tileEl.textContent = task.word;
-      tileEl.setAttribute("lang", task.wordLang || "he");
-      tileEl.setAttribute("dir", task.wordDir || "rtl");
-      tileEl.setAttribute("data-word-dir", task.wordDir || "rtl");
-      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
-      if (task.rewardCoins > 0) {
-        tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
-        tileEl.setAttribute("data-reward", String(task.rewardCoins));
-      } else {
-        tileEl.removeAttribute("data-reward");
-      }
-      for (let i = 0; i < ansImgs.length; i += 1) {
-        const emoji = task.options[i];
-        const img = ansImgs[i];
-        ansBtns[i].dataset.value = emoji.id;
-        img.classList.remove("is-ready");
-        img.onload = () => img.classList.add("is-ready");
-        img.onerror = () => img.classList.remove("is-ready");
-        img.src = emoji.src;
-        if (img.complete && img.naturalWidth > 0) img.classList.add("is-ready");
-        warm(emoji.src);
+      if (renderedTaskUi !== task) {
+        applyTaskUi(task);
       }
     }
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
@@ -1078,6 +1152,7 @@
     deckPos = 0;
     recentCorrectIds = [];
     preparedTasks = [];
+    renderedTaskUi = null;
     stopBackgroundEmojiWarmup();
     lockInputUntil = 0;
     falling.stop("reset");
@@ -1086,7 +1161,6 @@
 
   async function startGame() {
     resetState();
-    meta.hideOverlay();
     shell.refreshLayout();
     await new Promise((resolve) => {
       window.requestAnimationFrame(() => resolve());
@@ -1098,10 +1172,15 @@
     const firstTask = firstPrepared.task;
     task = firstTask;
     if (!task) return;
+    await applyTaskUi(task);
     session.beginLevel();
     running = true;
     paused = false;
     pauseBtn.classList.remove("paused");
+    meta.hideOverlay();
+    await new Promise((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
     refreshBackgroundEmojiWarmup();
     falling.start(firstTask);
   }
