@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /c/Users/alexm/games/games/shared/scripts/*.js)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

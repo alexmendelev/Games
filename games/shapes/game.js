@@ -402,9 +402,6 @@
     return candidate;
   }
 
-  function level() {
-    return session.getState().levelNumber;
-  }
 
   function getSpeed(item) {
     return shell.speedForFallDuration(item, 12);
@@ -800,8 +797,7 @@
       session.pause();
       audio.bgm.pause();
       falling.pause();
-    }
-    if (!paused) {
+    } else {
       session.resume();
       audio.bgm.resume();
       falling.resume();

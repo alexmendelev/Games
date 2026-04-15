@@ -4,6 +4,10 @@ window.GAMES_V2_SHELL = (function (utils) {
     upTo5: "hard",
     upTo10: "super"
   };
+  // Per-difficulty reward scaling.
+  // completionBonus: flat coins awarded when a level ends.
+  // specialChanceMul: multiplies the per-question special-tablet roll probability.
+  // weightMultipliers: shifts the weighted draw toward rarer (higher-value) tablet types on harder levels.
   const DIFFICULTY_REWARD_PROFILES = {
     easy: {
       completionBonus: 1,

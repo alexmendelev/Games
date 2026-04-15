@@ -3,6 +3,7 @@ const path = require("path");
 const vm = require("vm");
 const assert = require("assert");
 const difficultyApi = require(path.join(__dirname, "..", "shared", "scripts", "difficulty-manager.js"));
+const { createSeededRandom, choice, shuffle } = require(path.join(__dirname, "test-helpers.js"));
 
 function loadWordsConfig() {
   const filePath = path.join(__dirname, "..", "words", "config.js");
@@ -26,30 +27,6 @@ function loadWordsManifest() {
       he: String(parts[3] || "").trim()
     };
   });
-}
-
-function createSeededRandom(seed) {
-  let state = seed >>> 0;
-  return function next() {
-    state += 0x6d2b79f5;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function choice(rng, items) {
-  return items[Math.floor(rng() * items.length)];
-}
-
-function shuffle(rng, items) {
-  const copy = items.slice();
-  for (let index = copy.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(rng() * (index + 1));
-    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
-  }
-  return copy;
 }
 
 function normalizeWord(word) {

@@ -3,6 +3,7 @@ const path = require("path");
 const vm = require("vm");
 const assert = require("assert");
 const difficultyApi = require(path.join(__dirname, "..", "shared", "scripts", "difficulty-manager.js"));
+const { createSeededRandom, randInt, choice, shuffleInPlace } = require(path.join(__dirname, "test-helpers.js"));
 
 function loadClocksConfig() {
   const filePath = path.join(__dirname, "..", "clocks", "config.js");
@@ -10,35 +11,6 @@ function loadClocksConfig() {
   const context = { window: {} };
   vm.runInNewContext(source, context, { filename: filePath });
   return context.window.GAME_V3_CLOCKS_CONFIG;
-}
-
-function createSeededRandom(seed) {
-  let state = seed >>> 0;
-  return function next() {
-    state += 0x6d2b79f5;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function choice(rng, values) {
-  return values[Math.floor(rng() * values.length)];
-}
-
-function randInt(rng, min, max) {
-  return Math.floor(rng() * ((max - min) + 1)) + min;
-}
-
-function shuffleInPlace(values, rng) {
-  for (let index = values.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(rng() * (index + 1));
-    const tmp = values[index];
-    values[index] = values[swapIndex];
-    values[swapIndex] = tmp;
-  }
-  return values;
 }
 
 function toClockHour(hour24) {

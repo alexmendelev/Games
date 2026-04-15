@@ -304,9 +304,6 @@
     drawFrame();
   }
 
-  function level() {
-    return session.getState().levelNumber;
-  }
 
   async function showLevelResults() {
     if (levelPausePending) {

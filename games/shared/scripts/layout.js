@@ -152,9 +152,9 @@ window.GAMES_V2_LAYOUT = (function (utils) {
     Custom: {}
   };
 
+  // Local alias with NaN guard (utils.clamp doesn't protect against non-finite input)
   function clamp(value, min, max) {
-    const safeValue = Number.isFinite(value) ? value : min;
-    return Math.min(max, Math.max(min, safeValue));
+    return utils.clamp(Number.isFinite(value) ? value : min, min, max);
   }
 
   function round(value) {

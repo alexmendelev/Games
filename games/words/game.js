@@ -584,7 +584,6 @@
   }
 
   function syncSessionUi(state) {
-    selected = state.diffKey || selected;
     selected = currentDifficultyKey();
     coins = state.coins;
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
@@ -936,7 +935,7 @@
   function placeTaskForCurrentLayout(nextTask) {
     if (!nextTask) return null;
     const tileMetrics = currentTileMetrics();
-    const rect = shell.rect();
+    const rect = gameEl.getBoundingClientRect();
     const lane = shell.fallLane(tileMetrics.width, tileMetrics.margin, rect);
     nextTask.width = tileMetrics.width;
     nextTask.height = tileMetrics.height;
@@ -944,6 +943,15 @@
     nextTask.y = -(tileMetrics.height * spawnYOffsetRatio);
     nextTask.spawnedAt = performance.now();
     delete nextTask.__fallSpeedPxPerSec;
+    return nextTask;
+  }
+
+  function clampTaskInsideGame(nextTask) {
+    if (!nextTask) return nextTask;
+    const rect = gameEl.getBoundingClientRect();
+    const width = Math.max(1, Number(nextTask.width) || currentTileMetrics().width || cfg.gameplay.tileWidth);
+    const maxX = Math.max(0, Math.floor(rect.width - width));
+    nextTask.x = utils.clamp(Math.round(Number(nextTask.x) || 0), 0, maxX);
     return nextTask;
   }
 
@@ -1081,7 +1089,7 @@
   }
 
   function renderTask(nextTask, rectArg, phase) {
-    task = nextTask;
+    task = clampTaskInsideGame(nextTask);
     if (!task) return;
     if (phase !== "frame") {
       session.noteQuestionPresented();
@@ -1273,38 +1281,12 @@
       audio.bgm.pause();
       falling.pause();
       stopBackgroundEmojiWarmup();
-    }
-    if (!paused) {
+    } else {
       session.resume();
       audio.bgm.resume();
       falling.resume();
       refreshBackgroundEmojiWarmup();
     }
-  }
-
-  async function ensureEmojiListLoaded() {
-    if (emojis.length) return true;
-    tileEl.textContent = "טוען...";
-    try {
-      emojis = await loadEmojiTsv();
-    } catch (_) {
-      emojis = [];
-    }
-    if (emojis.length < 8) {
-      emojis = fallbackEmojiList();
-    }
-    if (emojis.length < 8) {
-      tileEl.textContent = "אין מספיק אימוג'ים";
-      overlayEl.style.display = "grid";
-      return false;
-    }
-    emojiPoolsLanguageId = "";
-    rebuildEmojiPools();
-    await Promise.all([
-      preloadImage(cfg.assets.mascotSheet.url),
-      preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url)
-    ]);
-    return true;
   }
 
   async function ensureEmojiListLoaded(options) {

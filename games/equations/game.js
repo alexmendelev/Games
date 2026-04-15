@@ -796,8 +796,7 @@
       session.pause();
       audio.bgm.pause();
       falling.pause();
-    }
-    if (!paused) {
+    } else {
       session.resume();
       audio.bgm.resume();
       falling.resume();

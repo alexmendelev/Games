@@ -213,13 +213,6 @@
     return assetsReadyPromise;
   }
 
-  function splashOffsetFor(rect) {
-    return cfg.splashOffsetBasePx * Math.pow(rect.height / cfg.splashOffsetBaselineHeight, cfg.splashOffsetExponent);
-  }
-
-  function level() {
-    return session.getState().levelNumber;
-  }
 
   function speedPxPerSec(item) {
     return shell.speedForFallDuration(item, 12);
@@ -712,8 +705,7 @@
       session.pause();
       audio.bgm.pause();
       falling.pause();
-    }
-    if (!paused) {
+    } else {
       session.resume();
       audio.bgm.resume();
       falling.resume();

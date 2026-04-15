@@ -209,10 +209,6 @@
     return assetsReadyPromise;
   }
 
-  function splashOffsetFor(rect) {
-    return cfg.splashOffsetBasePx * Math.pow(rect.height / cfg.splashOffsetBaselineHeight, cfg.splashOffsetExponent);
-  }
-
   function currentDifficultyProfile() {
     return cfg.difficulties[selected] || cfg.difficulties.easy;
   }
@@ -605,102 +601,6 @@
     return arr;
   }
 
-  function makeTask() {
-    const stage = currentStage();
-    const op = utils.choice(stage.ops);
-
-    let a;
-    let b;
-    let answer;
-    let text;
-
-    if (op === "+") {
-      const addRange = stage.addRange || [0, 10];
-      a = utils.randInt(addRange[0], addRange[1]);
-      b = utils.randInt(addRange[0], addRange[1]);
-      answer = a + b;
-      text = `${a}+${b}`;
-    } else if (op === "-") {
-      const subRange = stage.subRange || [0, 10];
-      a = utils.randInt(subRange[0], subRange[1]);
-      b = utils.randInt(subRange[0], subRange[1]);
-      if ((!stage.allowNegResult || !negativesAllowed()) && b > a) {
-        [a, b] = [b, a];
-      }
-      answer = a - b;
-      text = `${a}-${b}`;
-    } else if (op === "*") {
-      const mulRange = stage.mulRange || [1, 10];
-      a = utils.randInt(mulRange[0], mulRange[1]);
-      b = utils.randInt(mulRange[0], mulRange[1]);
-      answer = a * b;
-      text = `${a}×${b}`;
-    } else {
-      const divDivisorRange = stage.divDivisorRange || [1, 10];
-      const divAnswerRange = stage.divAnswerRange || [1, 10];
-      b = utils.randInt(divDivisorRange[0], divDivisorRange[1]);
-      answer = utils.randInt(divAnswerRange[0], divAnswerRange[1]);
-      a = answer * b;
-      text = `${a}÷${b}`;
-    }
-
-    return { answer, text };
-  }
-
-  function uniqueWrongs(correct) {
-    const stage = currentStage();
-    const set = new Set([correct]);
-    const blockNegativeOptions = stage.noNegOptions || !negativesAllowed();
-
-    function ok(value) {
-      return !(blockNegativeOptions && value < 0);
-    }
-
-    let guard = 0;
-    while (set.size < 4 && guard < 200) {
-      guard += 1;
-      const near = Math.max(2, stage.wrongNear || 6);
-      const far = Math.max(near + 2, stage.wrongFar || 12);
-      const delta = utils.randInt(-near, near) || 1;
-      let wrong = correct + delta;
-      if (Math.random() < 0.25) {
-        wrong = correct + utils.randInt(-far, far);
-      }
-      if (!ok(wrong)) {
-        continue;
-      }
-      set.add(wrong);
-    }
-
-    while (set.size < 4) {
-      const fallback = Math.max(0, correct + set.size);
-      if (ok(fallback)) {
-        set.add(fallback);
-      } else {
-        set.add(correct + set.size);
-      }
-    }
-
-    const arr = Array.from(set);
-    utils.shuffleInPlace(arr);
-    let idx = arr.indexOf(correct);
-    if (idx === prevCorrectIdx) {
-      const swapWith = (idx + 1) % 4;
-      [arr[idx], arr[swapWith]] = [arr[swapWith], arr[idx]];
-      idx = swapWith;
-    }
-    prevCorrectIdx = idx;
-    return arr;
-  }
-
-  function makeTask() {
-    return buildDifficultyTask();
-  }
-
-  function uniqueWrongs(correct) {
-    return buildDifficultyWrongs(correct);
-  }
-
   function createTask() {
     const tileMetrics = currentTileMetrics();
     const tabletReward = rollSpecialTablet();
@@ -877,8 +777,7 @@
       session.pause();
       audio.bgm.pause();
       falling.pause();
-    }
-    if (!paused) {
+    } else {
       session.resume();
       audio.bgm.resume();
       falling.resume();
