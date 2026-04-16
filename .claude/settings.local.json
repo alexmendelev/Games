@@ -4,7 +4,10 @@
       "Bash(wc -l /c/Users/alexm/games/games/shared/scripts/*.js)",
       "Bash(grep:*)",
       "Bash(wc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(npx playwright:*)",
+      "Bash(ls:*)",
+      "Bash(node -e ':*)"
     ]
   }
 }

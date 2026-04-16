@@ -7,6 +7,7 @@
   const fxApi = window.GAMES_V2_FX;
   const metaApi = window.GAMES_V2_META;
   const sessionApi = window.GAMES_V2_SESSION;
+  const gameBehaviors = window.GAMES_V2_BEHAVIORS;
   const cfg = window.GAME_V3_CLOCKS_CONFIG;
 
   const gameEl = document.getElementById("game");
@@ -95,9 +96,14 @@
   let task = null;
   let lockInputUntil = 0;
   let assetsReadyPromise = null;
-  let mascotAnimToken = 0;
   let levelPausePending = false;
-  let coinAwardPending = false;
+  const bh = gameBehaviors.create({
+    cfg,
+    audio,
+    fx,
+    session,
+    elements: { mascotEl, coinIconEl, coinEl, ansBtns }
+  });
   session.loadCheckpoint(initialSnapshot, selected);
 
   function syncWaterEffects(nextTask, rectArg) {
@@ -141,31 +147,14 @@
     muteBtn.setAttribute("aria-label", muted ? "Enable sound" : "Mute sound");
   }
 
-  function preloadImage(url) {
-    return new Promise((resolve) => {
-      if (!url) {
-        resolve();
-        return;
-      }
-      const img = new Image();
-      const finish = () => resolve();
-      img.onload = finish;
-      img.onerror = finish;
-      img.src = url;
-      if (img.complete) {
-        resolve();
-      }
-    });
-  }
-
   function ensureAssetsReady() {
     if (!assetsReadyPromise) {
       assetsReadyPromise = Promise.all([
-        preloadImage(cfg.assets.mascotSheet.url),
-        preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url),
-        preloadImage(cfg.assets.dialUrl),
-        preloadImage(cfg.assets.dialNoNumbersUrl),
-        preloadImage(cfg.assets.dialPlainUrl)
+        bh.preloadImage(cfg.assets.mascotSheet.url),
+        bh.preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url),
+        bh.preloadImage(cfg.assets.dialUrl),
+        bh.preloadImage(cfg.assets.dialNoNumbersUrl),
+        bh.preloadImage(cfg.assets.dialPlainUrl)
       ]);
     }
     return assetsReadyPromise;
@@ -211,99 +200,8 @@
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
     setHUD();
-    updateStreakMeter();
+    bh.updateStreakMeter(levelProgressCurrent, levelProgressTarget);
   }
-
-  function updateStreakMeter() {
-    const ratio = Math.max(0, Math.min(1, levelProgressCurrent / Math.max(1, levelProgressTarget)));
-    streakFillEl.style.width = `${ratio * 100}%`;
-    streakMeterEl.style.setProperty("--segments", String(Math.max(1, levelProgressTarget)));
-    streakMeterEl.classList.toggle("is-warm", ratio >= 0.6 && ratio < 1);
-    streakMeterEl.classList.toggle("is-imminent", ratio >= 0.85 && ratio < 1);
-    streakMeterEl.classList.toggle("is-full", ratio >= 1);
-  }
-
-  function animateStarGained() {
-    coinIconEl.classList.remove("star-hit", "star-gain");
-    void coinIconEl.offsetWidth;
-    coinIconEl.classList.add("star-gain");
-  }
-
-  function setMascot(state) {
-    const sprite = state === "shame"
-      ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet)
-      : cfg.assets.mascotSheet;
-    mascotAnimToken += 1;
-    mascotEl.classList.remove("is-celebrating");
-    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
-    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
-    mascotEl.style.backgroundPosition = "0% 0%";
-  }
-
-  function playMascotDance(repeats, withGlow) {
-    const sprite = cfg.assets.mascotSheet;
-    const token = ++mascotAnimToken;
-    let frame = 0;
-    let loopsLeft = Math.max(1, repeats || 1);
-    const frameDelay = 1000 / Math.max(1, sprite.fps || 10);
-
-    if (withGlow) {
-      mascotEl.classList.add("is-celebrating");
-      fx.playStarsAroundElement(mascotEl, { starCount: 12, spreadMul: 1, durationMul: 1 });
-    }
-
-    function drawFrame() {
-      if (token !== mascotAnimToken) return;
-      const col = frame % sprite.cols;
-      const row = Math.floor(frame / sprite.cols);
-      const x = sprite.cols > 1 ? (col / (sprite.cols - 1)) * 100 : 0;
-      const y = sprite.rows > 1 ? (row / (sprite.rows - 1)) * 100 : 0;
-      mascotEl.style.backgroundPosition = `${x}% ${y}%`;
-      frame += 1;
-      if (frame < sprite.frames) {
-        setTimeout(drawFrame, frameDelay);
-      } else if (loopsLeft > 1) {
-        loopsLeft -= 1;
-        frame = 0;
-        if (withGlow) {
-          fx.playStarsAroundElement(mascotEl, { starCount: 10, spreadMul: 0.92, durationMul: 0.9 });
-        }
-        setTimeout(drawFrame, Math.max(40, Math.round(frameDelay * 0.65)));
-      } else {
-        setMascot();
-      }
-    }
-
-    drawFrame();
-  }
-
-  function playMascotShame() {
-    const sprite = cfg.assets.mascotSadSheet || cfg.assets.mascotSheet;
-    const token = ++mascotAnimToken;
-    let frame = 0;
-    const frameDelay = (1000 / Math.max(1, sprite.fps || 10)) * 2;
-    mascotEl.classList.remove("is-celebrating");
-    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
-    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
-
-    function drawFrame() {
-      if (token !== mascotAnimToken) return;
-      const col = frame % sprite.cols;
-      const row = Math.floor(frame / sprite.cols);
-      const x = sprite.cols > 1 ? (col / (sprite.cols - 1)) * 100 : 0;
-      const y = sprite.rows > 1 ? (row / (sprite.rows - 1)) * 100 : 0;
-      mascotEl.style.backgroundPosition = `${x}% ${y}%`;
-      frame += 1;
-      if (frame < sprite.frames) {
-        setTimeout(drawFrame, frameDelay);
-      } else {
-        setMascot("idle");
-      }
-    }
-
-    drawFrame();
-  }
-
 
   async function showLevelResults() {
     if (levelPausePending) {
@@ -335,39 +233,6 @@
     });
   }
 
-  function awardTabletBonus(burstX, burstY, rewardCoins) {
-    if (rewardCoins <= 0) {
-      return;
-    }
-    coinAwardPending = true;
-    fx.awardCoinFromBurst(burstX, burstY).then(() => {
-      const pulseDurationMs = 220;
-      const stepDelayMs = rewardCoins >= 10 ? 60 : 110;
-      let awarded = 0;
-      audio.sfx.coin();
-      playMascotDance();
-      return new Promise((resolve) => {
-        function addNextCoin() {
-          awarded += 1;
-          session.addCoins(1);
-          animateStarGained();
-          coinEl.classList.remove("pulse");
-          void coinEl.offsetWidth;
-          coinEl.classList.add("pulse");
-          setTimeout(() => coinEl.classList.remove("pulse"), pulseDurationMs);
-          if (awarded >= rewardCoins) {
-            resolve();
-            return;
-          }
-          setTimeout(addNextCoin, stepDelayMs);
-        }
-        addNextCoin();
-      });
-    }).finally(() => {
-      coinAwardPending = false;
-    });
-  }
-
   function sinkCurrentTask(currentTask) {
     if (!currentTask) return;
     const drownX = currentTask.x + currentTask.width / 2;
@@ -375,7 +240,7 @@
     falling.clear("attempt-limit");
     audio.sfx.splash();
     playSplash(drownX, currentTask);
-    playMascotShame();
+    bh.playMascotShame();
     if (sinkOutcome.levelComplete) {
       showLevelResults();
       return;
@@ -583,7 +448,7 @@
     const missOutcome = session.handleMiss();
     audio.sfx.splash();
     playSplash(drownX, currentTask);
-    playMascotShame();
+    bh.playMascotShame();
     if (missOutcome.levelComplete) {
       showLevelResults();
       return;
@@ -604,7 +469,7 @@
   function handleCorrect(btn) {
     const currentTask = task;
     falling.clear("correct");
-    setMascot("idle");
+    bh.setMascot("idle");
     const burstCenter = currentTileCenter();
     const burstX = burstCenter.x;
     const burstY = burstCenter.y;
@@ -613,7 +478,7 @@
     audio.sfx.correct();
 
     if (currentTask.rewardCoins > 0) {
-      awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
+      bh.awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
     }
 
     fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
@@ -622,7 +487,7 @@
       if (!running || falling.getItem() || levelPausePending) return;
       const proceedAfterReward = () => {
         if (!running || falling.getItem() || levelPausePending) return;
-        if (coinAwardPending) {
+        if (bh.isCoinAwardPending()) {
           setTimeout(proceedAfterReward, 80);
           return;
         }
@@ -653,7 +518,6 @@
     syncCheckpointState();
     paused = false;
     levelPausePending = false;
-    coinAwardPending = false;
     pauseBtn.classList.remove("paused");
     task = null;
     lockInputUntil = 0;
@@ -672,7 +536,7 @@
     });
     resetState();
     session.beginLevel();
-    setMascot("idle");
+    bh.setMascot("idle");
     running = true;
     falling.start();
   }
@@ -749,6 +613,6 @@
 
   syncGameplayMetrics();
   ensureAssetsReady();
-  setMascot("idle");
+  bh.setMascot("idle");
   syncSessionUi(session.getState());
 })();

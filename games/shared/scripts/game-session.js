@@ -1,4 +1,14 @@
-window.GAMES_V2_SESSION = (function () {
+(function (root, factory) {
+  const api = factory(
+    typeof performance !== "undefined" ? performance : { now: () => Date.now() }
+  );
+  if (typeof module === "object" && module.exports) {
+    module.exports = api;
+  }
+  if (root) {
+    root.GAMES_V2_SESSION = api;
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this, function (perf) {
   function createPauseableTimer(onFire) {
     let handle = null;
     let remainingMs = null;
@@ -33,7 +43,7 @@ window.GAMES_V2_SESSION = (function () {
       if (handle === null || !Number.isFinite(remainingMs)) {
         return;
       }
-      remainingMs = Math.max(0, remainingMs - (performance.now() - startedAt));
+      remainingMs = Math.max(0, remainingMs - (perf.now() - startedAt));
       clearHandle();
     }
 
@@ -41,7 +51,7 @@ window.GAMES_V2_SESSION = (function () {
       if (!Number.isFinite(remainingMs) || remainingMs <= 0 || handle !== null) {
         return;
       }
-      startedAt = performance.now();
+      startedAt = perf.now();
       handle = setTimeout(fire, remainingMs);
     }
 
@@ -57,7 +67,7 @@ window.GAMES_V2_SESSION = (function () {
       if (handle === null) {
         return remainingMs;
       }
-      return Math.max(0, remainingMs - (performance.now() - startedAt));
+      return Math.max(0, remainingMs - (perf.now() - startedAt));
     }
 
     return {
@@ -176,7 +186,7 @@ window.GAMES_V2_SESSION = (function () {
       levelClockStarted = true;
       levelClockRunning = true;
       levelClockAccumulatedMs = 0;
-      levelClockStartedAt = performance.now();
+      levelClockStartedAt = perf.now();
       levelTimer.clear();
       if (levelRules.timeLimitMs) {
         levelTimer.start(levelRules.timeLimitMs);
@@ -186,7 +196,7 @@ window.GAMES_V2_SESSION = (function () {
 
     function pause() {
       if (levelClockRunning) {
-        levelClockAccumulatedMs += performance.now() - levelClockStartedAt;
+        levelClockAccumulatedMs += perf.now() - levelClockStartedAt;
         levelClockRunning = false;
       }
       levelTimer.pause();
@@ -194,7 +204,7 @@ window.GAMES_V2_SESSION = (function () {
 
     function resume() {
       if (levelClockStarted && !levelClockRunning) {
-        levelClockStartedAt = performance.now();
+        levelClockStartedAt = perf.now();
         levelClockRunning = true;
       }
       levelTimer.resume();
@@ -208,13 +218,13 @@ window.GAMES_V2_SESSION = (function () {
     }
 
     function noteQuestionPresented() {
-      questionStartedAt = performance.now();
+      questionStartedAt = perf.now();
       notifyStateChange();
     }
 
     function handleCorrect() {
       if (questionStartedAt > 0) {
-        correctAnswerLatencyTotalMs += Math.max(0, performance.now() - questionStartedAt);
+        correctAnswerLatencyTotalMs += Math.max(0, perf.now() - questionStartedAt);
         correctAnswerSamples += 1;
         questionStartedAt = 0;
       }
@@ -265,7 +275,7 @@ window.GAMES_V2_SESSION = (function () {
     }
 
     function getElapsedMs() {
-      const runningElapsed = levelClockRunning ? (performance.now() - levelClockStartedAt) : 0;
+      const runningElapsed = levelClockRunning ? (perf.now() - levelClockStartedAt) : 0;
       return Math.max(0, levelClockAccumulatedMs + runningElapsed);
     }
 
@@ -362,4 +372,4 @@ window.GAMES_V2_SESSION = (function () {
   return {
     createArcadeSession
   };
-})();
+});

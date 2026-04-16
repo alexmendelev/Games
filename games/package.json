@@ -9,6 +9,8 @@
     "test:logic:multiply": "node scripts/test-multiply-difficulty-manager.js",
     "test:logic:shapes": "node scripts/test-shapes-difficulty-manager.js",
     "test:logic:words": "node scripts/test-words-difficulty-manager.js",
+    "test:logic:session": "node scripts/test-game-session.js",
+    "test:logic:layout": "node scripts/test-layout.js",
     "test:e2e:clocks-difficulty": "playwright test clocks-difficulty-manager.spec.js --workers=1",
     "test:e2e:equations-difficulty": "playwright test equations-difficulty-manager.spec.js --workers=1",
     "test:e2e:math-difficulty": "playwright test math-difficulty-manager.spec.js --workers=1",
