@@ -192,7 +192,7 @@
 
   function setHUD() {
     coinEl.textContent = String(coins);
-    const languageId = document.documentElement.lang === "en" ? "en" : "he";
+    const languageId = document.documentElement.lang || "he";
     if (metaApi && typeof metaApi.applyHudDifficulty === "function") {
       metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, selected, languageId);
     }
