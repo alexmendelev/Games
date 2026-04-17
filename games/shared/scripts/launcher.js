@@ -136,6 +136,11 @@
   }
 
   function isFullscreenPreferredDevice() {
+    try {
+      if (new URLSearchParams(window.location.search).get("testFullscreen") === "1") {
+        return true;
+      }
+    } catch (_) {}
     const coarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
     const touchPoints = Math.max(
       Number(navigator.maxTouchPoints) || 0,
@@ -165,18 +170,15 @@
       actionsEl.hidden = !ready;
     }
     if (fullscreenActionEl) {
-      fullscreenActionEl.hidden = !(ready && mobileDevice);
-      fullscreenActionEl.disabled = false;
+      fullscreenActionEl.hidden = true;
     }
     if (continueActionEl) {
       continueActionEl.hidden = !ready;
-      continueActionEl.textContent = mobileDevice ? "Continue Normally" : "Continue";
+      continueActionEl.textContent = "Continue";
       continueActionEl.disabled = false;
     }
     if (textEl && ready) {
-      textEl.textContent = mobileDevice
-        ? "Everything is ready. Choose how to open the games."
-        : "Everything is ready. Click to continue.";
+      textEl.textContent = "Everything is ready. Click to continue.";
     }
   }
 
@@ -539,7 +541,7 @@
   }
   if (continueActionEl) {
     continueActionEl.addEventListener("click", () => {
-      finishBoot("normal");
+      finishBoot(isFullscreenPreferredDevice() ? "fullscreen" : "normal");
     });
   }
 
