@@ -430,7 +430,7 @@ window.GAMES_V2_META_UI = (function (utils, s) {
         "<div class=\"metaSettingsTop\">" +
           "<section class=\"metaSettingPanel metaSettingPanel--language\">" +
             buildSettingsPanelHeader("🌍", copy.language) +
-            "<div class=\"metaChoiceGrid metaChoiceGrid--twoCols\">" + buildLanguageButtons(state) + "</div>" +
+            "<div class=\"metaChoiceGrid metaChoiceGrid--threeCols\">" + buildLanguageButtons(state) + "</div>" +
           "</section>" +
           "<section class=\"metaSettingPanel metaSettingPanel--sound\">" +
             buildSettingsPanelHeader("🔊", copy.sound) +
