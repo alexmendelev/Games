@@ -34,7 +34,8 @@ window.GAMES_V2_META_STATE = (function (utils) {
   }, {});
   const LANGUAGES = {
     he: { id: "he", dir: "rtl", label: "עברית", flag: "🇮🇱" },
-    en: { id: "en", dir: "ltr", label: "English", flag: "🇬🇧" }
+    en: { id: "en", dir: "ltr", label: "English", flag: "🇬🇧" },
+    ru: { id: "ru", dir: "ltr", label: "Русский", flag: "🇷🇺" }
   };
   const GAME_BADGES = {
     equations: { icon: "?", menuIcon: "../shared/assets/ui/equation.png", labelHe: "משוואות", labelEn: "Equations" },
