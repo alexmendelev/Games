@@ -64,7 +64,6 @@
   const meta = metaApi.createGameMeta({
     overlayEl,
     diffOptions,
-    initialLanguage: document.documentElement.lang || "he",
     onStartRequested: handleStartRequested,
     onExitRequested: () => shell.exitGame(),
     audio,
@@ -209,7 +208,7 @@
 
   function setHUD() {
     coinEl.textContent = String(coins);
-    const languageId = document.documentElement.lang || "he";
+    const languageId = meta.getLanguage();
     if (metaApi && typeof metaApi.applyHudDifficulty === "function") {
       metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, selected, languageId);
     }

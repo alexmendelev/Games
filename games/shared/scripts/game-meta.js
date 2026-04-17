@@ -13,13 +13,28 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
   const { applyRoundResult } = lb;
   const { buildDashboardMarkup, buildStartMarkup, buildResultsMarkup, buildSettingsMarkup, buildProfileMarkup } = ui;
 
+  function detectBrowserLanguage() {
+    try {
+      const langs = (navigator.languages && navigator.languages.length)
+        ? Array.from(navigator.languages)
+        : [navigator.language || ""];
+      for (let i = 0; i < langs.length; i++) {
+        const prefix = langs[i].split("-")[0].toLowerCase();
+        if (prefix === "he") return "he";
+        if (prefix === "en") return "en";
+        if (prefix === "ru") return "ru";
+      }
+    } catch (_) {}
+    return "he";
+  }
+
   function createGameMeta(options) {
     const rawOptions = options || {};
     const settings = Object.assign({
       overlayEl: null,
       diffOptions: [],
       defaultLives: 5,
-      initialLanguage: "he",
+      initialLanguage: detectBrowserLanguage(),
       initialSoundEnabled: true,
       testMode: isTestModeEnabled(),
       onStartRequested: null,
@@ -579,6 +594,9 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
       showResults,
       getSnapshot() {
         return getStatusSnapshot(state, settings.gameKey);
+      },
+      getLanguage() {
+        return state.player.language || "he";
       },
       getSelectedDiff() {
         return resolveSelectedDiff(currentStartOptions);
