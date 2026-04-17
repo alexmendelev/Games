@@ -7,6 +7,7 @@
   const fxApi = window.GAMES_V2_FX;
   const metaApi = window.GAMES_V2_META;
   const sessionApi = window.GAMES_V2_SESSION;
+  const gameBehaviors = window.GAMES_V2_BEHAVIORS;
   const cfg = window.GAME_V2_SHAPES_CONFIG;
 
   const gameEl = document.getElementById("game");
@@ -135,9 +136,14 @@
   const recentCorrectLimit = 8;
   const spawnYOffsetRatio = 0.35;
   let assetsReadyPromise = null;
-  let mascotAnimToken = 0;
   let levelPausePending = false;
-  let coinAwardPending = false;
+  const bh = gameBehaviors.create({
+    cfg,
+    audio,
+    fx,
+    session,
+    elements: { mascotEl, coinIconEl, coinEl, ansBtns }
+  });
   session.loadCheckpoint(initialSnapshot, selected);
 
   function syncWaterReflection(nextTask, rectArg) {
@@ -167,30 +173,13 @@
     }
   });
 
-  function preloadImage(url) {
-    return new Promise((resolve) => {
-      if (!url) {
-        resolve();
-        return;
-      }
-      const img = new Image();
-      const finish = () => resolve();
-      img.onload = finish;
-      img.onerror = finish;
-      img.src = url;
-      if (img.complete) {
-        resolve();
-      }
-    });
-  }
-
   function ensureAssetsReady() {
     if (!assetsReadyPromise) {
       const sprayUrls = Object.values(cfg.assets.sprayByColor || {});
       assetsReadyPromise = Promise.all([
-        preloadImage(cfg.assets.mascotSheet.url),
-        preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url),
-        ...sprayUrls.map((url) => preloadImage(url))
+        bh.preloadImage(cfg.assets.mascotSheet.url),
+        bh.preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url),
+        ...sprayUrls.map((url) => bh.preloadImage(url))
       ]);
     }
     return assetsReadyPromise;
@@ -238,81 +227,10 @@
     });
   }
 
-  function clearAnswerMarks() {
-    ansBtns.forEach((btn, idx) => {
-      if (btn._markTimer) {
-        clearTimeout(btn._markTimer);
-        btn._markTimer = null;
-      }
-      if (btn._pressTimer) {
-        clearTimeout(btn._pressTimer);
-        btn._pressTimer = null;
-      }
-      btn.classList.remove("mark-correct", "mark-wrong", "is-pressed");
-      if (idx < activeAnswerCount) {
-        btn.disabled = false;
-      }
-    });
-  }
-
-  function showAnswerMark(btn, isCorrect, duration) {
-    const markDuration = duration || cfg.answerLockMs;
-    if (btn._markTimer) {
-      clearTimeout(btn._markTimer);
-    }
-    if (btn._pressTimer) {
-      clearTimeout(btn._pressTimer);
-    }
-    btn.classList.add("is-pressed");
-    btn._pressTimer = setTimeout(() => {
-      btn.classList.remove("is-pressed");
-      btn._pressTimer = null;
-    }, 140);
-    btn.classList.remove("mark-correct", "mark-wrong");
-    btn.classList.add(isCorrect ? "mark-correct" : "mark-wrong");
-    btn._markTimer = setTimeout(() => {
-      btn.classList.remove("mark-correct", "mark-wrong");
-      btn._markTimer = null;
-    }, markDuration);
-  }
-
   function rollSpecialTablet() {
     return shellApi.rollSpecialTablet(gameplayRules, selected, {
       gameKey: "shapes",
       consecutiveGameCount: shapesRunStreak
-    });
-  }
-
-  function awardTabletBonus(burstX, burstY, rewardCoins) {
-    if (rewardCoins <= 0) {
-      return;
-    }
-    coinAwardPending = true;
-    fx.awardCoinFromBurst(burstX, burstY).then(() => {
-      const pulseDurationMs = 220;
-      const stepDelayMs = rewardCoins >= 10 ? 60 : 110;
-      let awarded = 0;
-      audio.sfx.coin();
-      playMascotDance();
-      return new Promise((resolve) => {
-        function addNextCoin() {
-          awarded += 1;
-          session.addCoins(1);
-          animateStarGained();
-          coinEl.classList.remove("pulse");
-          void coinEl.offsetWidth;
-          coinEl.classList.add("pulse");
-          setTimeout(() => coinEl.classList.remove("pulse"), pulseDurationMs);
-          if (awarded >= rewardCoins) {
-            resolve();
-            return;
-          }
-          setTimeout(addNextCoin, stepDelayMs);
-        }
-        addNextCoin();
-      });
-    }).finally(() => {
-      coinAwardPending = false;
     });
   }
 
@@ -323,7 +241,7 @@
     falling.clear("attempt-limit");
     audio.sfx.splash();
     playSplash(drownX);
-    playMascotShame();
+    bh.playMascotShame();
     if (sinkOutcome.levelComplete) {
       showLevelResults();
       return;
@@ -401,9 +319,6 @@
     return candidate;
   }
 
-  function level() {
-    return session.getState().levelNumber;
-  }
 
   function getSpeed(item) {
     return shell.speedForFallDuration(item, 12);
@@ -425,7 +340,7 @@
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
     setHUD();
-    updateStreakMeter();
+    bh.updateStreakMeter(levelProgressCurrent, levelProgressTarget);
   }
 
   function syncCheckpointState() {
@@ -455,84 +370,6 @@
     if (!falling.getItem()) {
       spawnTask();
     }
-  }
-
-  function updateStreakMeter() {
-    const ratio = Math.max(0, Math.min(1, levelProgressCurrent / Math.max(1, levelProgressTarget)));
-    if (streakFillEl) {
-      streakFillEl.style.width = `${ratio * 100}%`;
-    }
-    if (streakMeterEl) {
-      streakMeterEl.style.setProperty("--segments", String(Math.max(1, levelProgressTarget)));
-      streakMeterEl.classList.toggle("is-warm", ratio >= 0.6 && ratio < 1);
-      streakMeterEl.classList.toggle("is-imminent", ratio >= 0.85 && ratio < 1);
-      streakMeterEl.classList.toggle("is-full", ratio >= 1);
-    }
-  }
-
-  function animateStarGained() {
-    coinIconEl.classList.remove("star-hit");
-    coinIconEl.classList.remove("star-gain");
-    void coinIconEl.offsetWidth;
-    coinIconEl.classList.add("star-gain");
-  }
-
-  function setMascot(_state) {
-    const sprite = _state === "shame" ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet) : cfg.assets.mascotSheet;
-    mascotAnimToken += 1;
-    mascotEl.classList.remove("is-celebrating");
-    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
-    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
-    mascotEl.style.backgroundPosition = "0% 0%";
-  }
-
-  function playMascotAnimation(sprite, repeats, withGlow, frameDelayMul) {
-    const token = ++mascotAnimToken;
-    let frame = 0;
-    let loopsLeft = Math.max(1, repeats || 1);
-    const frameDelay = (1000 / Math.max(1, sprite.fps || 10)) * Math.max(1, frameDelayMul || 1);
-
-    if (withGlow) {
-      mascotEl.classList.add("is-celebrating");
-      fx.playStarsAroundElement(mascotEl, { starCount: 12, spreadMul: 1, durationMul: 1 });
-    } else {
-      mascotEl.classList.remove("is-celebrating");
-    }
-
-    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
-    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
-
-    function drawFrame() {
-      if (token !== mascotAnimToken) return;
-      const col = frame % sprite.cols;
-      const row = Math.floor(frame / sprite.cols);
-      const x = sprite.cols > 1 ? (col / (sprite.cols - 1)) * 100 : 0;
-      const y = sprite.rows > 1 ? (row / (sprite.rows - 1)) * 100 : 0;
-      mascotEl.style.backgroundPosition = `${x}% ${y}%`;
-      frame += 1;
-      if (frame < sprite.frames) {
-        setTimeout(drawFrame, frameDelay);
-      } else if (loopsLeft > 1) {
-        loopsLeft -= 1;
-        frame = 0;
-        if (withGlow) {
-          fx.playStarsAroundElement(mascotEl, { starCount: 10, spreadMul: 0.92, durationMul: 0.9 });
-        }
-        setTimeout(drawFrame, Math.max(40, Math.round(frameDelay * 0.65)));
-      } else {
-        setMascot("idle");
-      }
-    }
-
-    drawFrame();
-  }
-
-  function playMascotDance(repeats, withGlow) {
-    playMascotAnimation(cfg.assets.mascotSheet, repeats, withGlow, 1);
-  }
-
-  function playMascotShame() {
-    playMascotAnimation(cfg.assets.mascotSadSheet || cfg.assets.mascotSheet, 1, false, 2);
   }
 
   function shapeSvg(shapeId, colorHex, strokeHex) {
@@ -650,7 +487,7 @@
     }
     if (phase !== "frame") {
       session.noteQuestionPresented();
-      clearAnswerMarks();
+      bh.clearAnswerMarks((btn, idx) => idx < activeAnswerCount);
       tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
       if (task.rewardCoins > 0) {
         tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
@@ -684,7 +521,7 @@
     if (!currentTask) return;
     const drownX = currentTask.x + cfg.gameplay.tileWidth / 2;
     const missOutcome = session.handleMiss();
-    playMascotShame();
+    bh.playMascotShame();
     audio.sfx.splash();
     playSplash(drownX);
     if (missOutcome.levelComplete) {
@@ -706,13 +543,13 @@
       const currentTask = task;
       session.handleCorrect();
       falling.clear("correct");
-      setMascot("idle");
-      showAnswerMark(btn, true, cfg.answerLockMs + 80);
+      bh.setMascot("idle");
+      bh.showAnswerMark(btn, true, cfg.answerLockMs + 80);
       const burstX = currentTask.x + cfg.gameplay.tileWidth / 2;
       const burstY = currentTask.y + cfg.gameplay.tileHeight / 2;
       audio.sfx.correct();
       if (currentTask.rewardCoins > 0) {
-        awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
+        bh.awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
       }
       fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
       lockInputUntil = now + cfg.answerLockMs;
@@ -724,7 +561,7 @@
           if (!running || falling.getItem() || levelPausePending) {
             return;
           }
-          if (coinAwardPending) {
+          if (bh.isCoinAwardPending()) {
             setTimeout(proceedAfterReward, 80);
             return;
           }
@@ -747,14 +584,13 @@
       sinkCurrentTask(task);
       return;
     }
-    showAnswerMark(btn, false, 260);
+    bh.showAnswerMark(btn, false, 260);
   }
 
   function resetState() {
     syncCheckpointState();
     paused = false;
     levelPausePending = false;
-    coinAwardPending = false;
     pauseBtn.classList.remove("paused");
     correctDeck = [];
     deckPos = 0;
@@ -762,7 +598,7 @@
     task = null;
     lockInputUntil = 0;
     falling.stop("reset");
-    clearAnswerMarks();
+    bh.clearAnswerMarks((btn, idx) => idx < activeAnswerCount);
   }
 
   async function startGame() {
@@ -798,8 +634,7 @@
       session.pause();
       audio.bgm.pause();
       falling.pause();
-    }
-    if (!paused) {
+    } else {
       session.resume();
       audio.bgm.resume();
       falling.resume();
@@ -841,6 +676,6 @@
   syncGameplayMetrics();
   applyAnswerCount(currentDifficultyProfile().answerCount);
   ensureAssetsReady();
-  setMascot("idle");
+  bh.setMascot("idle");
   syncSessionUi(session.getState());
 })();

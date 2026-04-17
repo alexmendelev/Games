@@ -1,4 +1,14 @@
-window.GAMES_V2_LAYOUT = (function (utils) {
+(function (root, factory) {
+  const api = factory(
+    (typeof globalThis !== "undefined" ? globalThis : this).GAMES_V2_UTILS || {}
+  );
+  if (typeof module === "object" && module.exports) {
+    module.exports = api;
+  }
+  if (root) {
+    root.GAMES_V2_LAYOUT = api;
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this, function (utils) {
   "use strict";
 
   const DEFAULTS = {
@@ -152,9 +162,9 @@ window.GAMES_V2_LAYOUT = (function (utils) {
     Custom: {}
   };
 
+  // Local alias with NaN guard (utils.clamp doesn't protect against non-finite input)
   function clamp(value, min, max) {
-    const safeValue = Number.isFinite(value) ? value : min;
-    return Math.min(max, Math.max(min, safeValue));
+    return utils.clamp(Number.isFinite(value) ? value : min, min, max);
   }
 
   function round(value) {
@@ -743,4 +753,4 @@ window.GAMES_V2_LAYOUT = (function (utils) {
     ensureAnswerButtons,
     createLayoutEngine
   };
-})(window.GAMES_V2_UTILS || {});
+});

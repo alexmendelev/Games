@@ -146,6 +146,9 @@
     const avgTimeRatio = avgAnswerMs / questionTimeLimitMs;
     const misclicksPerCorrect = wrongClicks / Math.max(correctCount, 1);
 
+    // "comfortable": passed, answered within 45% of the time limit, and ≤0.25 wrong clicks per correct answer
+    // "struggling":  failed the level, OR used ≥75% of time per question, OR ≥0.75 wrong clicks per correct answer
+    // anything else is "balanced" (no difficulty change)
     let label = "balanced";
     if (passed && avgTimeRatio <= 0.45 && misclicksPerCorrect <= 0.25) {
       label = "comfortable";

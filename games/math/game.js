@@ -7,6 +7,7 @@
   const fxApi = window.GAMES_V2_FX;
   const metaApi = window.GAMES_V2_META;
   const sessionApi = window.GAMES_V2_SESSION;
+  const gameBehaviors = window.GAMES_V2_BEHAVIORS;
   const cfg = window.GAME_V3_MATH_CONFIG;
 
   const gameEl = document.getElementById("game");
@@ -104,10 +105,15 @@
   let prevCorrectIdx = -1;
   let task = null;
   const spawnYOffsetRatio = 0.35;
-  let mascotAnimToken = 0;
   let assetsReadyPromise = null;
   let levelPausePending = false;
-  let coinAwardPending = false;
+  const bh = gameBehaviors.create({
+    cfg,
+    audio,
+    fx,
+    session,
+    elements: { mascotEl, coinIconEl, coinEl, ansBtns }
+  });
   session.loadCheckpoint(initialSnapshot, selected);
 
   function currentTileMetrics(rectArg) {
@@ -182,35 +188,14 @@
     };
   }
 
-  function preloadImage(url) {
-    return new Promise((resolve) => {
-      if (!url) {
-        resolve();
-        return;
-      }
-      const img = new Image();
-      const finish = () => resolve();
-      img.onload = finish;
-      img.onerror = finish;
-      img.src = url;
-      if (img.complete) {
-        resolve();
-      }
-    });
-  }
-
   function ensureAssetsReady() {
     if (!assetsReadyPromise) {
       assetsReadyPromise = Promise.all([
-        preloadImage(cfg.assets.mascotSheet.url),
-        preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url)
+        bh.preloadImage(cfg.assets.mascotSheet.url),
+        bh.preloadImage(cfg.assets.mascotSadSheet && cfg.assets.mascotSadSheet.url)
       ]);
     }
     return assetsReadyPromise;
-  }
-
-  function splashOffsetFor(rect) {
-    return cfg.splashOffsetBasePx * Math.pow(rect.height / cfg.splashOffsetBaselineHeight, cfg.splashOffsetExponent);
   }
 
   function currentDifficultyProfile() {
@@ -235,7 +220,7 @@
     levelProgressCurrent = state.levelProgress ? state.levelProgress.current : state.correctCount;
     levelProgressTarget = state.levelProgress ? state.levelProgress.target : ((state.levelRules && state.levelRules.correctTarget) || 1);
     setHUD();
-    updateStreakMeter();
+    bh.updateStreakMeter(levelProgressCurrent, levelProgressTarget);
   }
 
   function syncCheckpointState() {
@@ -263,98 +248,9 @@
     }
   }
 
-  function updateStreakMeter() {
-    const ratio = Math.max(0, Math.min(1, levelProgressCurrent / Math.max(1, levelProgressTarget)));
-    if (streakFillEl) {
-      streakFillEl.style.width = `${ratio * 100}%`;
-    }
-    if (streakMeterEl) {
-      streakMeterEl.style.setProperty("--segments", String(Math.max(1, levelProgressTarget)));
-      streakMeterEl.classList.toggle("is-warm", ratio >= 0.6 && ratio < 1);
-      streakMeterEl.classList.toggle("is-imminent", ratio >= 0.85 && ratio < 1);
-      streakMeterEl.classList.toggle("is-full", ratio >= 1);
-    }
-  }
-
-  function animateStarGained() {
-    coinIconEl.classList.remove("star-hit");
-    coinIconEl.classList.remove("star-gain");
-    void coinIconEl.offsetWidth;
-    coinIconEl.classList.add("star-gain");
-  }
-
-  function clearAnswerMarks() {
-    ansBtns.forEach((btn) => {
-      if (btn._markTimer) {
-        clearTimeout(btn._markTimer);
-        btn._markTimer = null;
-      }
-      if (btn._pressTimer) {
-        clearTimeout(btn._pressTimer);
-        btn._pressTimer = null;
-      }
-      btn.classList.remove("mark-correct", "mark-wrong", "is-pressed");
-      btn.disabled = false;
-    });
-  }
-
-  function showAnswerMark(btn, isCorrect, duration) {
-    const markDuration = duration || cfg.answerFeedbackMs;
-    if (btn._markTimer) {
-      clearTimeout(btn._markTimer);
-    }
-    if (btn._pressTimer) {
-      clearTimeout(btn._pressTimer);
-    }
-    btn.classList.add("is-pressed");
-    btn._pressTimer = setTimeout(() => {
-      btn.classList.remove("is-pressed");
-      btn._pressTimer = null;
-    }, 140);
-    btn.classList.remove("mark-correct", "mark-wrong");
-    btn.classList.add(isCorrect ? "mark-correct" : "mark-wrong");
-    btn._markTimer = setTimeout(() => {
-      btn.classList.remove("mark-correct", "mark-wrong");
-      btn._markTimer = null;
-    }, markDuration);
-  }
-
   function rollSpecialTablet() {
     return shellApi.rollSpecialTablet(gameplayRules, selected, {
       gameKey: "math"
-    });
-  }
-
-  function awardTabletBonus(burstX, burstY, rewardCoins) {
-    if (rewardCoins <= 0) {
-      return;
-    }
-    coinAwardPending = true;
-    fx.awardCoinFromBurst(burstX, burstY).then(() => {
-      const pulseDurationMs = 220;
-      const stepDelayMs = rewardCoins >= 10 ? 60 : 110;
-      let awarded = 0;
-      audio.sfx.coin();
-      playMascotDance();
-      return new Promise((resolve) => {
-        function addNextCoin() {
-          awarded += 1;
-          session.addCoins(1);
-          animateStarGained();
-          coinEl.classList.remove("pulse");
-          void coinEl.offsetWidth;
-          coinEl.classList.add("pulse");
-          setTimeout(() => coinEl.classList.remove("pulse"), pulseDurationMs);
-          if (awarded >= rewardCoins) {
-            resolve();
-            return;
-          }
-          setTimeout(addNextCoin, stepDelayMs);
-        }
-        addNextCoin();
-      });
-    }).finally(() => {
-      coinAwardPending = false;
     });
   }
 
@@ -367,70 +263,12 @@
     falling.clear("attempt-limit");
     audio.sfx.splash();
     playSplashAtTile(rect, currentTask);
-    playMascotShame();
+    bh.playMascotShame();
     if (sinkOutcome.levelComplete) {
       showLevelResults();
       return;
     }
     falling.spawn();
-  }
-
-  function setMascot(_state) {
-    const sprite = _state === "shame" ? (cfg.assets.mascotSadSheet || cfg.assets.mascotSheet) : cfg.assets.mascotSheet;
-    mascotAnimToken += 1;
-    mascotEl.classList.remove("is-celebrating");
-    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
-    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
-    mascotEl.style.backgroundPosition = "0% 0%";
-  }
-
-  function playMascotAnimation(sprite, repeats, withGlow, frameDelayMul) {
-    const token = ++mascotAnimToken;
-    let frame = 0;
-    let loopsLeft = Math.max(1, repeats || 1);
-    const frameDelay = (1000 / Math.max(1, sprite.fps || 10)) * Math.max(1, frameDelayMul || 1);
-
-    if (withGlow) {
-      mascotEl.classList.add("is-celebrating");
-      fx.playStarsAroundElement(mascotEl, { starCount: 12, spreadMul: 1, durationMul: 1 });
-    } else {
-      mascotEl.classList.remove("is-celebrating");
-    }
-
-    mascotEl.style.backgroundImage = `url("${sprite.url}")`;
-    mascotEl.style.backgroundSize = `${sprite.cols * 100}% ${sprite.rows * 100}%`;
-
-    function drawFrame() {
-      if (token !== mascotAnimToken) return;
-      const col = frame % sprite.cols;
-      const row = Math.floor(frame / sprite.cols);
-      const x = sprite.cols > 1 ? (col / (sprite.cols - 1)) * 100 : 0;
-      const y = sprite.rows > 1 ? (row / (sprite.rows - 1)) * 100 : 0;
-      mascotEl.style.backgroundPosition = `${x}% ${y}%`;
-      frame += 1;
-      if (frame < sprite.frames) {
-        setTimeout(drawFrame, frameDelay);
-      } else if (loopsLeft > 1) {
-        loopsLeft -= 1;
-        frame = 0;
-        if (withGlow) {
-          fx.playStarsAroundElement(mascotEl, { starCount: 10, spreadMul: 0.92, durationMul: 0.9 });
-        }
-        setTimeout(drawFrame, Math.max(40, Math.round(frameDelay * 0.65)));
-      } else {
-        setMascot("idle");
-      }
-    }
-
-    drawFrame();
-  }
-
-  function playMascotDance(repeats, withGlow) {
-    playMascotAnimation(cfg.assets.mascotSheet, repeats, withGlow, 1);
-  }
-
-  function playMascotShame() {
-    playMascotAnimation(cfg.assets.mascotSadSheet || cfg.assets.mascotSheet, 1, false, 2);
   }
 
   function randomTileX() {
@@ -605,102 +443,6 @@
     return arr;
   }
 
-  function makeTask() {
-    const stage = currentStage();
-    const op = utils.choice(stage.ops);
-
-    let a;
-    let b;
-    let answer;
-    let text;
-
-    if (op === "+") {
-      const addRange = stage.addRange || [0, 10];
-      a = utils.randInt(addRange[0], addRange[1]);
-      b = utils.randInt(addRange[0], addRange[1]);
-      answer = a + b;
-      text = `${a}+${b}`;
-    } else if (op === "-") {
-      const subRange = stage.subRange || [0, 10];
-      a = utils.randInt(subRange[0], subRange[1]);
-      b = utils.randInt(subRange[0], subRange[1]);
-      if ((!stage.allowNegResult || !negativesAllowed()) && b > a) {
-        [a, b] = [b, a];
-      }
-      answer = a - b;
-      text = `${a}-${b}`;
-    } else if (op === "*") {
-      const mulRange = stage.mulRange || [1, 10];
-      a = utils.randInt(mulRange[0], mulRange[1]);
-      b = utils.randInt(mulRange[0], mulRange[1]);
-      answer = a * b;
-      text = `${a}×${b}`;
-    } else {
-      const divDivisorRange = stage.divDivisorRange || [1, 10];
-      const divAnswerRange = stage.divAnswerRange || [1, 10];
-      b = utils.randInt(divDivisorRange[0], divDivisorRange[1]);
-      answer = utils.randInt(divAnswerRange[0], divAnswerRange[1]);
-      a = answer * b;
-      text = `${a}÷${b}`;
-    }
-
-    return { answer, text };
-  }
-
-  function uniqueWrongs(correct) {
-    const stage = currentStage();
-    const set = new Set([correct]);
-    const blockNegativeOptions = stage.noNegOptions || !negativesAllowed();
-
-    function ok(value) {
-      return !(blockNegativeOptions && value < 0);
-    }
-
-    let guard = 0;
-    while (set.size < 4 && guard < 200) {
-      guard += 1;
-      const near = Math.max(2, stage.wrongNear || 6);
-      const far = Math.max(near + 2, stage.wrongFar || 12);
-      const delta = utils.randInt(-near, near) || 1;
-      let wrong = correct + delta;
-      if (Math.random() < 0.25) {
-        wrong = correct + utils.randInt(-far, far);
-      }
-      if (!ok(wrong)) {
-        continue;
-      }
-      set.add(wrong);
-    }
-
-    while (set.size < 4) {
-      const fallback = Math.max(0, correct + set.size);
-      if (ok(fallback)) {
-        set.add(fallback);
-      } else {
-        set.add(correct + set.size);
-      }
-    }
-
-    const arr = Array.from(set);
-    utils.shuffleInPlace(arr);
-    let idx = arr.indexOf(correct);
-    if (idx === prevCorrectIdx) {
-      const swapWith = (idx + 1) % 4;
-      [arr[idx], arr[swapWith]] = [arr[swapWith], arr[idx]];
-      idx = swapWith;
-    }
-    prevCorrectIdx = idx;
-    return arr;
-  }
-
-  function makeTask() {
-    return buildDifficultyTask();
-  }
-
-  function uniqueWrongs(correct) {
-    return buildDifficultyWrongs(correct);
-  }
-
   function createTask() {
     const tileMetrics = currentTileMetrics();
     const tabletReward = rollSpecialTablet();
@@ -733,7 +475,7 @@
       } else {
         tileEl.removeAttribute("data-reward");
       }
-      clearAnswerMarks();
+      bh.clearAnswerMarks();
 
       const answers = buildDifficultyWrongs(task.answer);
       for (let i = 0; i < ansBtns.length; i += 1) {
@@ -775,7 +517,7 @@
       return;
     }
     const missOutcome = session.handleMiss();
-    playMascotShame();
+    bh.playMascotShame();
 
     audio.sfx.splash();
     playSplashAtTile(rect, currentTask);
@@ -790,8 +532,8 @@
     const currentTask = task;
     session.handleCorrect();
     falling.clear("correct");
-    setMascot("idle");
-    showAnswerMark(clickedBtn, true, cfg.answerFeedbackMs);
+    bh.setMascot("idle");
+    bh.showAnswerMark(clickedBtn, true, cfg.answerFeedbackMs);
     audio.sfx.correct();
 
     const burstCenter = currentTileCenter();
@@ -799,7 +541,7 @@
     const burstY = burstCenter.y;
 
     if (currentTask && currentTask.rewardCoins > 0) {
-      awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
+      bh.awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
     }
 
     fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
@@ -812,7 +554,7 @@
         if (!running || falling.getItem() || levelPausePending) {
           return;
         }
-        if (coinAwardPending) {
+        if (bh.isCoinAwardPending()) {
           setTimeout(proceedAfterReward, 80);
           return;
         }
@@ -839,7 +581,7 @@
       sinkCurrentTask(currentTask, shell.rect());
       return;
     }
-    showAnswerMark(clickedBtn, false, 260);
+    bh.showAnswerMark(clickedBtn, false, 260);
   }
 
   async function start(diffKey) {
@@ -850,13 +592,12 @@
     await waitForNextFrame();
     paused = false;
     levelPausePending = false;
-    coinAwardPending = false;
     pauseBtn.classList.remove("paused");
     setHUD();
     syncCheckpointState();
     session.beginLevel();
     prevCorrectIdx = -1;
-    setMascot("idle");
+    bh.setMascot("idle");
     falling.stop("start-reset");
     running = true;
     falling.start();
@@ -877,8 +618,7 @@
       session.pause();
       audio.bgm.pause();
       falling.pause();
-    }
-    if (!paused) {
+    } else {
       session.resume();
       audio.bgm.resume();
       falling.resume();
@@ -913,7 +653,7 @@
     });
   });
 
-  setMascot("idle");
+  bh.setMascot("idle");
   ensureAssetsReady();
   syncSessionUi(session.getState());
 })();

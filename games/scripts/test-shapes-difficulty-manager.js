@@ -3,6 +3,7 @@ const path = require("path");
 const vm = require("vm");
 const assert = require("assert");
 const difficultyApi = require(path.join(__dirname, "..", "shared", "scripts", "difficulty-manager.js"));
+const { createSeededRandom, shuffleInPlace } = require(path.join(__dirname, "test-helpers.js"));
 
 function loadShapesConfig() {
   const filePath = path.join(__dirname, "..", "shapes", "config.js");
@@ -10,27 +11,6 @@ function loadShapesConfig() {
   const context = { window: {} };
   vm.runInNewContext(source, context, { filename: filePath });
   return context.window.GAME_V2_SHAPES_CONFIG;
-}
-
-function createSeededRandom(seed) {
-  let state = seed >>> 0;
-  return function next() {
-    state += 0x6d2b79f5;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function shuffleInPlace(array, rng) {
-  for (let index = array.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(rng() * (index + 1));
-    const tmp = array[index];
-    array[index] = array[swapIndex];
-    array[swapIndex] = tmp;
-  }
-  return array;
 }
 
 function buildPairs(cfg) {

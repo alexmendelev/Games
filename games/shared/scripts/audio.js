@@ -1,11 +1,11 @@
-window.GAMES_V2_AUDIO = (function () {
+window.GAMES_V2_AUDIO = (function (utils) {
   function createArcadeAudio(options) {
     const settings = Object.assign({
       sfxGain: 0.1,
       bgmVolume: 0.22,
-      bgmFadeOutMs: 1800,
-      bgmFadeInMs: 4200,
-      bgmSwitchGapMs: 260,
+      bgmFadeOutMs: 1800,   // fade out over 1.8s when switching tracks or muting
+      bgmFadeInMs: 4200,    // fade in over 4.2s on track start (avoids jarring volume jump)
+      bgmSwitchGapMs: 260,  // silence gap between fade-out and next track start
       bgmStartVolume: 0.004,
       splashUrl: "",
       coinUrl: "",
@@ -54,14 +54,6 @@ window.GAMES_V2_AUDIO = (function () {
       return el;
     });
 
-    function shuffle(list) {
-      const copy = list.slice();
-      for (let i = copy.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy;
-    }
 
     function unlockAudio() {
       try {
@@ -75,7 +67,9 @@ window.GAMES_V2_AUDIO = (function () {
         if (audioCtx.state === "suspended") {
           audioCtx.resume();
         }
-      } catch (_) {}
+      } catch (err) {
+        console.warn("[audio] AudioContext init failed:", err);
+      }
 
       if (audioUnlocked) {
         return;
@@ -113,7 +107,8 @@ window.GAMES_V2_AUDIO = (function () {
         musicQueueIndex = 0;
         return;
       }
-      musicQueue = shuffle(musicUrls);
+      musicQueue = musicUrls.slice();
+      utils.shuffleInPlace(musicQueue);
       if (musicQueue.length > 1 && musicQueue[0] === currentMusicUrl) {
         musicQueue.push(musicQueue.shift());
       }
@@ -526,4 +521,4 @@ window.GAMES_V2_AUDIO = (function () {
   return {
     createArcadeAudio
   };
-})();
+})(window.GAMES_V2_UTILS || {});

@@ -3,6 +3,7 @@ const path = require("path");
 const vm = require("vm");
 const assert = require("assert");
 const difficultyApi = require(path.join(__dirname, "..", "shared", "scripts", "difficulty-manager.js"));
+const { createSeededRandom, randInt, choice, randomInRange } = require(path.join(__dirname, "test-helpers.js"));
 
 const MULTIPLY_SYMBOL = "\u00d7";
 const DIVIDE_SYMBOL = "\u00f7";
@@ -13,30 +14,6 @@ function loadEquationsConfig() {
   const context = { window: {} };
   vm.runInNewContext(source, context, { filename: filePath });
   return context.window.GAME_V3_EQUATIONS_CONFIG;
-}
-
-function createSeededRandom(seed) {
-  let state = seed >>> 0;
-  return function next() {
-    state += 0x6d2b79f5;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function randInt(rng, min, max) {
-  return Math.floor(rng() * ((max - min) + 1)) + min;
-}
-
-function choice(rng, items) {
-  return items[randInt(rng, 0, items.length - 1)];
-}
-
-function randomInRange(rng, range, fallbackMin, fallbackMax) {
-  const safeRange = Array.isArray(range) && range.length >= 2 ? range : [fallbackMin, fallbackMax];
-  return randInt(rng, safeRange[0], safeRange[1]);
 }
 
 function generateAdditionTask(profile, rng) {
