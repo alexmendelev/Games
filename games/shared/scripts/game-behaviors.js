@@ -17,6 +17,8 @@
     const fx       = options.fx;
     const session  = options.session;
     const elements = options.elements;
+    const streakFillEl  = (elements && elements.streakFillEl)  || document.getElementById("streakFill");
+    const streakMeterEl = (elements && elements.streakMeterEl) || document.getElementById("streakMeter");
 
     // --- internal state ---
     let mascotAnimToken = 0;
@@ -146,14 +148,14 @@
 
     function updateStreakMeter(current, target) {
       const ratio = Math.max(0, Math.min(1, current / Math.max(1, target)));
-      if (elements.streakFillEl) {
-        elements.streakFillEl.style.width = `${ratio * 100}%`;
+      if (streakFillEl) {
+        streakFillEl.style.width = `${ratio * 100}%`;
       }
-      if (elements.streakMeterEl) {
-        elements.streakMeterEl.style.setProperty("--segments", String(Math.max(1, target)));
-        elements.streakMeterEl.classList.toggle("is-warm", ratio >= 0.6 && ratio < 1);
-        elements.streakMeterEl.classList.toggle("is-imminent", ratio >= 0.85 && ratio < 1);
-        elements.streakMeterEl.classList.toggle("is-full", ratio >= 1);
+      if (streakMeterEl) {
+        streakMeterEl.style.setProperty("--segments", String(Math.max(1, target)));
+        streakMeterEl.classList.toggle("is-warm", ratio >= 0.6 && ratio < 1);
+        streakMeterEl.classList.toggle("is-imminent", ratio >= 0.85 && ratio < 1);
+        streakMeterEl.classList.toggle("is-full", ratio >= 1);
       }
     }
 

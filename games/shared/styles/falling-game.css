@@ -765,18 +765,7 @@ html[lang="en"] .hudLabel--streak::before {
 }
 
 .streakMeter::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.14) 0,
-      rgba(255, 255, 255, 0.14) calc((100% / var(--segments)) - 1px),
-      rgba(255, 255, 255, 0.32) calc((100% / var(--segments)) - 1px),
-      rgba(255, 255, 255, 0.32) calc(100% / var(--segments))
-    );
-  pointer-events: none;
+  content: none;
 }
 
 .streakFill {

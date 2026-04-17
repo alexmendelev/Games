@@ -101,7 +101,7 @@
     "shared/styles/falling-words.css?v=20260330layout2",
     "shared/styles/falling-shapes.css?v=20260330shapes3",
     "shared/styles/falling-clocks.css?v=20260324clocksmobile7",
-    "shared/styles/game-meta.css?v=20260405meta82",
+    "shared/styles/game-meta.css?v=20260417meta85",
     "equations/style.css?v=20260405equations4",
     "shared/scripts/utils.js?v=20260314p",
     "shared/scripts/utils.js?v=20260314l",

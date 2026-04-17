@@ -375,9 +375,7 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     const leaderboardRows = isResults
       ? leaderboardSource
       : getStartLeaderboardRows(leaderboardSource, "me", snapshot.player);
-    const leaderboardSection = isResults
-      ? buildLeaderboardSectionMarkup(leaderboardRows, languageId, copy, "all", "me")
-      : { markup: buildStartLeaderboardTableMarkup(leaderboardRows, languageId, copy, "me") };
+    const leaderboardSection = buildLeaderboardSectionMarkup(leaderboardRows, languageId, copy, "all", "me");
     const previewButton = safeOptions.testMode && !isResults
       ? "<button class=\"metaGhostButton metaDashboardPreviewButton\" type=\"button\" data-action=\"preview-results\">" + escapeHtml(copy.previewResults) + "</button>"
       : "";

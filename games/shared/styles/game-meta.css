@@ -4149,8 +4149,8 @@ html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList
 
 .metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar,
 .metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar {
-  width: clamp(48px, 7vw, 74px);
-  height: clamp(48px, 7vw, 74px);
+  width: clamp(44px, min(10.5vw, 14vh), 111px);
+  height: clamp(44px, min(10.5vw, 14vh), 111px);
   border-radius: calc(18px * var(--ui, 1));
 }
 
@@ -4206,8 +4206,8 @@ html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList
 .metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg,
 .metaCard--dashboard-results .metaStatusIcon,
 .metaCard--dashboard-results .metaDashboardSettingsCard .metaDashboardToolIcon svg {
-  width: clamp(24px, 3.1vw, 38px);
-  height: clamp(24px, 3.1vw, 38px);
+  width: clamp(24px, min(4.65vw, 8vh), 57px);
+  height: clamp(24px, min(4.65vw, 8vh), 57px);
 }
 
 .metaCard--dashboard-start .metaStatusValue,
@@ -4443,8 +4443,8 @@ html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaProfileBu
 html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar,
 html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaHeroAvatar,
 html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaProfileButton--dashboard .metaHeroAvatar {
-  width: clamp(40px, 10vw, 52px);
-  height: clamp(40px, 10vw, 52px);
+  width: calc(78px * var(--ui, 1));
+  height: calc(78px * var(--ui, 1));
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard .metaProfileName,
@@ -4483,7 +4483,7 @@ html[data-dashboard-layout="portrait"] .metaCard--dashboard-start .metaStatusVal
 html[data-dashboard-layout="portrait"] .metaCard--dashboard-results .metaStatusValue,
 html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusValue,
 html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusValue {
-  font-size: clamp(18px, 4.6vw, 24px);
+  font-size: calc(36px * var(--ui, 1));
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaStatusIcon,
@@ -4498,8 +4498,8 @@ html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .m
 html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaDashboardSettingsCard .metaDashboardToolIcon svg,
 html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaStatusIcon,
 html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results .metaDashboardSettingsCard .metaDashboardToolIcon svg {
-  width: clamp(20px, 4.4vw, 26px);
-  height: clamp(20px, 4.4vw, 26px);
+  width: calc(40px * var(--ui, 1));
+  height: calc(40px * var(--ui, 1));
 }
 
 html[data-layout-aspect-band="portrait-narrow"] .metaCard--dashboard-start .metaProfileButton--dashboard,
