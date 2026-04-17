@@ -34,16 +34,6 @@ function buildPairs(cfg) {
   return pairs;
 }
 
-function buildLabelMap(pairs) {
-  const map = new Map();
-  for (const item of pairs) {
-    if (!map.has(item.label)) {
-      map.set(item.label, []);
-    }
-    map.get(item.label).push(item);
-  }
-  return map;
-}
 
 function buildPoolForProfile(pairs, profile) {
   const allowedShapes = new Set(profile.shapePool || []);
@@ -208,10 +198,10 @@ async function startShapesLevel(page) {
   }, null, { timeout: 15000 });
 }
 
-async function readCurrentLabel(page) {
+async function readCurrentCorrectId(page) {
   return page.evaluate(() => {
-    const label = document.getElementById("tileLabel");
-    return label ? String(label.textContent || "").trim() : "";
+    const tile = document.getElementById("tile");
+    return tile ? String(tile.dataset.correctId || "").trim() : "";
   });
 }
 
@@ -252,9 +242,9 @@ async function waitForQuestionOrResults(page, expectedOptionId) {
     await page.waitForTimeout(100);
   }
 
-  const label = await readCurrentLabel(page);
+  const correctId = await readCurrentCorrectId(page);
   const optionIds = await getVisibleOptionIds(page);
-  throw new Error(`Timed out waiting for shape/results. expected=${expectedValue || "*"} label=${label} options=${optionIds.join(",")}`);
+  throw new Error(`Timed out waiting for shape/results. expected=${expectedValue || "*"} correctId=${correctId} options=${optionIds.join(",")}`);
 }
 
 async function answerCurrentTask(page, answerId) {
@@ -267,7 +257,7 @@ async function answerCurrentTask(page, answerId) {
   return true;
 }
 
-async function answerPreferredOrCurrentShapesTask(page, labelMap, preferredCorrectId) {
+async function answerPreferredOrCurrentShapesTask(page, preferredCorrectId) {
   const state = await waitForQuestionOrResults(page, null);
   if (state === "results") {
     return null;
@@ -284,7 +274,7 @@ async function answerPreferredOrCurrentShapesTask(page, labelMap, preferredCorre
     };
   }
 
-  const currentTask = await readCurrentShapesTask(page, labelMap);
+  const currentTask = await readCurrentShapesTask(page);
   if (!currentTask) {
     return null;
   }
@@ -337,7 +327,7 @@ async function readAdaptiveShapesState(page) {
   }, META_STORAGE_KEY);
 }
 
-async function waitForPlayableShapesTask(page, labelMap) {
+async function waitForPlayableShapesTask(page) {
   const timeoutMs = 15000;
   const deadline = Date.now() + timeoutMs;
 
@@ -346,36 +336,25 @@ async function waitForPlayableShapesTask(page, labelMap) {
       return null;
     }
 
-    const label = await readCurrentLabel(page);
+    const correctId = await readCurrentCorrectId(page);
     const optionIds = await getVisibleOptionIds(page);
-    if (!label || !optionIds.length) {
-      await page.waitForTimeout(100);
-      continue;
-    }
-
-    const candidates = labelMap.get(label) || [];
-    const matchIds = candidates.map((item) => item.id).filter((id) => optionIds.includes(id));
-    if (matchIds.length === 1) {
-      return {
-        label,
-        optionIds,
-        correctId: matchIds[0]
-      };
+    if (correctId && optionIds.includes(correctId)) {
+      return { correctId, optionIds };
     }
 
     await page.waitForTimeout(100);
   }
 
-  const label = await readCurrentLabel(page);
+  const correctId = await readCurrentCorrectId(page);
   const optionIds = await getVisibleOptionIds(page);
-  throw new Error(`Timed out waiting for playable shape task. label=${label} options=${optionIds.join(",")}`);
+  throw new Error(`Timed out waiting for playable shape task. correctId=${correctId} options=${optionIds.join(",")}`);
 }
 
 function shapesTaskSignature(task) {
-  return `${task.label}::${task.optionIds.join("|")}`;
+  return `${task.correctId}::${task.optionIds.join("|")}`;
 }
 
-async function waitForNextPlayableShapesTaskOrResults(page, labelMap, previousSignature) {
+async function waitForNextPlayableShapesTaskOrResults(page, previousSignature) {
   const timeoutMs = 15000;
   const deadline = Date.now() + timeoutMs;
 
@@ -384,7 +363,7 @@ async function waitForNextPlayableShapesTaskOrResults(page, labelMap, previousSi
       return null;
     }
 
-    const playableTask = await waitForPlayableShapesTask(page, labelMap).catch(() => null);
+    const playableTask = await waitForPlayableShapesTask(page).catch(() => null);
     if (playableTask && shapesTaskSignature(playableTask) !== previousSignature) {
       return playableTask;
     }
@@ -392,32 +371,31 @@ async function waitForNextPlayableShapesTaskOrResults(page, labelMap, previousSi
     await page.waitForTimeout(100);
   }
 
-  const label = await readCurrentLabel(page);
+  const correctId = await readCurrentCorrectId(page);
   const optionIds = await getVisibleOptionIds(page);
-  throw new Error(`Timed out waiting for next playable shape task. previous=${previousSignature} label=${label} options=${optionIds.join(",")}`);
+  throw new Error(`Timed out waiting for next playable shape task. previous=${previousSignature} correctId=${correctId} options=${optionIds.join(",")}`);
 }
 
-async function readCurrentShapesTask(page, labelMap) {
-  const playableTask = await waitForPlayableShapesTask(page, labelMap);
+async function readCurrentShapesTask(page) {
+  const playableTask = await waitForPlayableShapesTask(page);
   if (!playableTask) {
     return null;
   }
   return {
-    label: playableTask.label,
     optionIds: playableTask.optionIds,
     correctId: playableTask.correctId,
     distractorIds: playableTask.optionIds.filter((id) => id !== playableTask.correctId)
   };
 }
 
-async function playCurrentShapesLevel(page, labelMap, mode) {
+async function playCurrentShapesLevel(page, mode) {
   for (let step = 0; step < 10; step += 1) {
     const stateBefore = await waitForQuestionOrResults(page, null);
     if (stateBefore === "results") {
       return;
     }
 
-    const task = await readCurrentShapesTask(page, labelMap);
+    const task = await readCurrentShapesTask(page);
     if (!task) {
       return;
     }
@@ -429,18 +407,18 @@ async function playCurrentShapesLevel(page, labelMap, mode) {
       if (!answered) {
         return;
       }
-      await waitForNextPlayableShapesTaskOrResults(page, labelMap, previousSignature);
+      await waitForNextPlayableShapesTaskOrResults(page, previousSignature);
     } else if (mode === "struggling") {
       await page.waitForTimeout(80);
       const clickedWrong = await clickWrongAnswer(page, task.correctId);
       if (!clickedWrong) {
         return;
       }
-      const recoveryAnswer = await answerPreferredOrCurrentShapesTask(page, labelMap, task.correctId);
+      const recoveryAnswer = await answerPreferredOrCurrentShapesTask(page, task.correctId);
       if (!recoveryAnswer) {
         return;
       }
-      await waitForNextPlayableShapesTaskOrResults(page, labelMap, recoveryAnswer.signature || previousSignature);
+      await waitForNextPlayableShapesTaskOrResults(page, recoveryAnswer.signature || previousSignature);
     } else {
       throw new Error(`Unsupported play mode: ${mode}`);
     }
@@ -600,13 +578,12 @@ for (const diffKey of ["easy", "medium", "hard", "super"]) {
     const cfg = loadShapesConfig();
     const pairs = buildPairs(cfg);
     const pairsById = new Map(pairs.map((item) => [item.id, item]));
-    const labelMap = buildLabelMap(pairs);
 
     await pinShapesDifficulty(page, diffKey);
     await startShapesLevel(page);
 
     for (let index = 0; index < 2; index += 1) {
-      const task = await readCurrentShapesTask(page, labelMap);
+      const task = await readCurrentShapesTask(page);
       expect(task).not.toBeNull();
       expectRuntimeTaskMatchesDifficulty(cfg, pairsById, diffKey, task);
       await answerCurrentTask(page, task.correctId);
@@ -616,14 +593,10 @@ for (const diffKey of ["easy", "medium", "hard", "super"]) {
 
 test("shapes browser run upgrades after two comfortable levels, then recovers and downgrades after two struggling levels", async ({ page }) => {
   test.setTimeout(60000);
-  const cfg = loadShapesConfig();
-  const pairs = buildPairs(cfg);
-  const labelMap = buildLabelMap(pairs);
-
   await pinShapesDifficulty(page, "medium", { minDifficulty: "easy", maxDifficulty: "super" });
   await startShapesLevel(page);
 
-  await playCurrentShapesLevel(page, labelMap, "comfortable");
+  await playCurrentShapesLevel(page, "comfortable");
   await waitForResultsOverlay(page);
   let adaptiveState = await readAdaptiveShapesState(page);
   expect(adaptiveState).toMatchObject({
@@ -634,7 +607,7 @@ test("shapes browser run upgrades after two comfortable levels, then recovers an
   });
   await continueAfterResults(page);
 
-  await playCurrentShapesLevel(page, labelMap, "comfortable");
+  await playCurrentShapesLevel(page, "comfortable");
   await waitForResultsOverlay(page);
   adaptiveState = await readAdaptiveShapesState(page);
   expect(adaptiveState).toMatchObject({
@@ -645,7 +618,7 @@ test("shapes browser run upgrades after two comfortable levels, then recovers an
   });
   await continueAfterResults(page);
 
-  await playCurrentShapesLevel(page, labelMap, "struggling");
+  await playCurrentShapesLevel(page, "struggling");
   await waitForResultsOverlay(page);
   adaptiveState = await readAdaptiveShapesState(page);
   expect(adaptiveState).toMatchObject({
@@ -656,7 +629,7 @@ test("shapes browser run upgrades after two comfortable levels, then recovers an
   });
   await continueAfterResults(page);
 
-  await playCurrentShapesLevel(page, labelMap, "struggling");
+  await playCurrentShapesLevel(page, "struggling");
   await waitForResultsOverlay(page);
   adaptiveState = await readAdaptiveShapesState(page);
   expect(adaptiveState).toMatchObject({

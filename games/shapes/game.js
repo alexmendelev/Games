@@ -497,6 +497,7 @@
       }
       tileShapeEl.innerHTML = shapeSvg(task.correct.shapeId, "#f8fafc", "#1e293b");
       tileColorEl.innerHTML = colorBadge(task.correct.colorId);
+      tileEl.dataset.correctId = task.correct.id;
       for (let i = 0; i < activeAnswerCount; i += 1) {
         const option = task.options[i];
         ansBtns[i].dataset.value = option.id;
