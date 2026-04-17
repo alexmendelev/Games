@@ -482,11 +482,14 @@ async function playCurrentWordsLevel(page, labelMap, manifestById, mode) {
 
     if (mode === "comfortable") {
       await page.waitForTimeout(80);
-      const answered = await answerCurrentTask(page, task.correctId);
-      if (!answered) {
+      // Re-read the current task after the wait in case the question changed during the delay
+      const currentTask = await readCurrentWordsTask(page, labelMap, manifestById);
+      if (!currentTask) {
         return;
       }
-      await waitForNextPlayableWordsTaskOrResults(page, labelMap, previousSignature);
+      await page.locator(`#answers .ans[data-value="${currentTask.correctId}"]`).click({ timeout: 5000 });
+      await page.waitForTimeout(180);
+      await waitForNextPlayableWordsTaskOrResults(page, labelMap, wordsTaskSignature(currentTask));
     } else if (mode === "struggling") {
       await page.waitForTimeout(80);
       const clickedWrong = await clickWrongAnswer(page, task.correctId);

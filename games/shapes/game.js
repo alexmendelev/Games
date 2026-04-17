@@ -18,7 +18,6 @@
   const tileEl = document.getElementById("tile");
   const tileShapeEl = document.getElementById("tileShape");
   const tileColorEl = document.getElementById("tileColor");
-  const tileLabelEl = document.getElementById("tileLabel");
   const overlayEl = document.getElementById("overlay");
   const diffsEl = document.getElementById("diffs");
   const pauseBtn = document.getElementById("pauseBtn");
@@ -412,7 +411,7 @@
 
   function setHUD() {
     coinEl.textContent = String(coins);
-    const languageId = document.documentElement.lang === "en" ? "en" : "he";
+    const languageId = document.documentElement.lang || "he";
     if (metaApi && typeof metaApi.applyHudDifficulty === "function") {
       metaApi.applyHudDifficulty(difficultyLabelEl, difficultyValueEl, selected, languageId);
     }
@@ -661,7 +660,6 @@
       }
       tileShapeEl.innerHTML = shapeSvg(task.correct.shapeId, "#f8fafc", "#1e293b");
       tileColorEl.innerHTML = colorBadge(task.correct.colorId);
-      tileLabelEl.textContent = task.correct.label;
       for (let i = 0; i < activeAnswerCount; i += 1) {
         const option = task.options[i];
         ansBtns[i].dataset.value = option.id;

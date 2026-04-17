@@ -12,18 +12,18 @@ window.GAMES_V2_META = (function (utils) {
     "קדימה, לשלב הבא!"
   ];
   const AVATARS = [
-    { id: "lion", image: "../shared/assets/avatars/lion.png", accent: "#f59e0b", labelHe: "אריה", labelEn: "Lion", legacyIds: ["avatar1"] },
-    { id: "tiger", image: "../shared/assets/avatars/tiger.png", accent: "#f97316", labelHe: "טיגריס", labelEn: "Tiger", legacyIds: ["avatar2"] },
-    { id: "penguin", image: "../shared/assets/avatars/penguin.png", accent: "#60a5fa", labelHe: "פינגווין", labelEn: "Penguin", legacyIds: ["avatar3"] },
-    { id: "frog", image: "../shared/assets/avatars/frog.png", accent: "#34d399", labelHe: "צפרדע", labelEn: "Frog", legacyIds: ["avatar4"] },
-    { id: "cat", image: "../shared/assets/avatars/cat.png", accent: "#f97316", labelHe: "חתול", labelEn: "Cat" },
-    { id: "dog", image: "../shared/assets/avatars/dog.png", accent: "#f59e0b", labelHe: "כלב", labelEn: "Dog" },
-    { id: "dolphin", image: "../shared/assets/avatars/dolphin.png", accent: "#38bdf8", labelHe: "דולפין", labelEn: "Dolphin" },
-    { id: "bunny", image: "../shared/assets/avatars/bunny.png", accent: "#f9a8d4", labelHe: "ארנבון", labelEn: "Bunny" },
-    { id: "rabbit", image: "../shared/assets/avatars/rabbit.png", accent: "#d8b4fe", labelHe: "ארנבת", labelEn: "Rabbit" },
-    { id: "shark", image: "../shared/assets/avatars/shark.png", accent: "#67e8f9", labelHe: "כריש", labelEn: "Shark" },
-    { id: "squirrel", image: "../shared/assets/avatars/squirrel.png", accent: "#fb923c", labelHe: "סנאי", labelEn: "Squirrel" },
-    { id: "whale", image: "../shared/assets/avatars/whale.png", accent: "#818cf8", labelHe: "לווייתן", labelEn: "Whale" }
+    { id: "lion", image: "../shared/assets/avatars/lion.png", accent: "#f59e0b", labelHe: "אריה", labelEn: "Lion", labelRu: "Лев", legacyIds: ["avatar1"] },
+    { id: "tiger", image: "../shared/assets/avatars/tiger.png", accent: "#f97316", labelHe: "טיגריס", labelEn: "Tiger", labelRu: "Тигр", legacyIds: ["avatar2"] },
+    { id: "penguin", image: "../shared/assets/avatars/penguin.png", accent: "#60a5fa", labelHe: "פינגווין", labelEn: "Penguin", labelRu: "Пингвин", legacyIds: ["avatar3"] },
+    { id: "frog", image: "../shared/assets/avatars/frog.png", accent: "#34d399", labelHe: "צפרדע", labelEn: "Frog", labelRu: "Лягушка", legacyIds: ["avatar4"] },
+    { id: "cat", image: "../shared/assets/avatars/cat.png", accent: "#f97316", labelHe: "חתול", labelEn: "Cat", labelRu: "Кот" },
+    { id: "dog", image: "../shared/assets/avatars/dog.png", accent: "#f59e0b", labelHe: "כלב", labelEn: "Dog", labelRu: "Пёс" },
+    { id: "dolphin", image: "../shared/assets/avatars/dolphin.png", accent: "#38bdf8", labelHe: "דולפין", labelEn: "Dolphin", labelRu: "Дельфин" },
+    { id: "bunny", image: "../shared/assets/avatars/bunny.png", accent: "#f9a8d4", labelHe: "ארנבון", labelEn: "Bunny", labelRu: "Зайчик" },
+    { id: "rabbit", image: "../shared/assets/avatars/rabbit.png", accent: "#d8b4fe", labelHe: "ארנבת", labelEn: "Rabbit", labelRu: "Кролик" },
+    { id: "shark", image: "../shared/assets/avatars/shark.png", accent: "#67e8f9", labelHe: "כריש", labelEn: "Shark", labelRu: "Акула" },
+    { id: "squirrel", image: "../shared/assets/avatars/squirrel.png", accent: "#fb923c", labelHe: "סנאי", labelEn: "Squirrel", labelRu: "Белка" },
+    { id: "whale", image: "../shared/assets/avatars/whale.png", accent: "#818cf8", labelHe: "לווייתן", labelEn: "Whale", labelRu: "Кит" }
   ];
   const AVATAR_ID_MAP = AVATARS.reduce((acc, avatar) => {
     acc[avatar.id] = avatar.id;
@@ -34,15 +34,16 @@ window.GAMES_V2_META = (function (utils) {
   }, {});
   const LANGUAGES = {
     he: { id: "he", dir: "rtl", label: "עברית", flag: "🇮🇱" },
-    en: { id: "en", dir: "ltr", label: "English", flag: "🇬🇧" }
+    en: { id: "en", dir: "ltr", label: "English", flag: "🇬🇧" },
+    ru: { id: "ru", dir: "ltr", label: "Русский", flag: "🇷🇺" }
   };
   const GAME_BADGES = {
-    equations: { icon: "?", menuIcon: "../shared/assets/ui/equation.png", labelHe: "משוואות", labelEn: "Equations" },
-    clocks: { icon: "🕒", menuIcon: "../shared/assets/ui/clocks.png", labelHe: "שעונים", labelEn: "Clocks" },
-    math: { icon: "➕", menuIcon: "../shared/assets/ui/numbers.png", labelHe: "חשבון", labelEn: "Math" },
-    multiply: { icon: "✖️", menuIcon: "../shared/assets/ui/multiply.png", labelHe: "כפל", labelEn: "Multiply" },
-    shapes: { icon: "🔷", menuIcon: "../shared/assets/ui/shapes.png", labelHe: "צורות", labelEn: "Shapes" },
-    words: { icon: "🔤", menuIcon: "../shared/assets/ui/words.png", labelHe: "מילים", labelEn: "Words" }
+    equations: { icon: "?", menuIcon: "../shared/assets/ui/equation.png", labelHe: "משוואות", labelEn: "Equations", labelRu: "Уравнения" },
+    clocks: { icon: "🕒", menuIcon: "../shared/assets/ui/clocks.png", labelHe: "שעונים", labelEn: "Clocks", labelRu: "Часы" },
+    math: { icon: "➕", menuIcon: "../shared/assets/ui/numbers.png", labelHe: "חשבון", labelEn: "Math", labelRu: "Математика" },
+    multiply: { icon: "✖️", menuIcon: "../shared/assets/ui/multiply.png", labelHe: "כפל", labelEn: "Multiply", labelRu: "Умножение" },
+    shapes: { icon: "🔷", menuIcon: "../shared/assets/ui/shapes.png", labelHe: "צורות", labelEn: "Shapes", labelRu: "Фигуры" },
+    words: { icon: "🔤", menuIcon: "../shared/assets/ui/words.png", labelHe: "מילים", labelEn: "Words", labelRu: "Слова" }
   };
   const GAME_KEYS = Object.keys(GAME_BADGES);
   const MAX_VISIBLE_RESULT_ROWS = 5;
@@ -162,15 +163,73 @@ window.GAMES_V2_META = (function (utils) {
       previewResults: "Preview results screen",
       progressBadge(levelNumber) { return "Best checkpoint: Level " + levelNumber; },
       defaultPlayerName: "You"
+    },
+    ru: {
+      startTitle: "Следующий уровень готов",
+      startSubtitle: "Прогресс, настройки и таблица лидеров сохраняются в браузере.",
+      status: "Текущий статус",
+      points: "Очки",
+      coins: "Монеты",
+      lives: "Жизни",
+      bestLevel: "Лучший уровень",
+      settings: "Настройки",
+      exit: "Выход",
+      sound: "Звук",
+      soundOn: "Вкл",
+      soundOff: "Выкл",
+      minDifficulty: "Минимальная сложность",
+      maxDifficulty: "Максимальная сложность",
+      settingsTitle: "Настройки",
+      settingsBack: "Назад",
+      profileTitle: "Ваш профиль",
+      profileSave: "Сохранить",
+      profileBack: "Назад",
+      playerName: "Имя игрока",
+      playerNamePlaceholder: "Введите имя",
+      editProfile: "Изменить аватар и имя",
+      levelOnly(levelNumber) { return "Уровень " + levelNumber; },
+      startLevel(levelNumber, difficultyLabel) { return "Уровень " + levelNumber + " • " + difficultyLabel; },
+      continueLevel(levelNumber, difficultyLabel) { return "Продолжить уровень " + levelNumber + " • " + difficultyLabel; },
+      resultsTitle(levelNumber) { return "Итоги уровня " + levelNumber; },
+      resultsSummary: "Итоги раунда",
+      correct: "Правильно",
+      wrong: "Неверно",
+      missed: "Пропущено",
+      accuracy: "Точность",
+      bestStreak: "Лучшая серия",
+      coinsEarned: "Заработано монет",
+      levelPassed: "Уровень пройден",
+      time: "Время",
+      targetReached: "Цель достигнута",
+      timeUp: "Время вышло",
+      leaderboard: "Таблица лидеров",
+      leaderboardHint: "Другие игроки тоже зарабатывают монеты каждый раунд.",
+      language: "Язык",
+      avatar: "Аватар",
+      gameOverTitle: "Попробовать снова",
+      gameOverSubtitle: "Последний чекпоинт сохранён после завершённого уровня.",
+      holdingRank(rank) { return "Удерживаем место " + rank; },
+      rankUp(rank) { return "Поднялись на место " + rank; },
+      rankDown(rank) { return "Опустились на место " + rank; },
+      champion: "Первое место!",
+      you: "Вы",
+      selected: "Выбрано",
+      messageTitle: "Небольшой заряд перед следующим уровнем",
+      showMore: "Показать больше",
+      showLess: "Показать меньше",
+      testMode: "Режим тестирования",
+      previewResults: "Предпросмотр экрана результатов",
+      progressBadge(levelNumber) { return "Лучший результат: уровень " + levelNumber; },
+      defaultPlayerName: "Вы"
     }
   };
   const DIFF_LABELS = {
-    easy: { he: "קל", en: "Easy" },
-    medium: { he: "בינוני", en: "Medium" },
-    hard: { he: "קשה", en: "Hard" },
-    super: { he: "סופר", en: "Super" },
-    upTo5: { he: "כפל 1-5", en: "Times 1-5" },
-    upTo10: { he: "כפל 1-10", en: "Times 1-10" }
+    easy: { he: "קל", en: "Easy", ru: "Легко" },
+    medium: { he: "בינוני", en: "Medium", ru: "Средне" },
+    hard: { he: "קשה", en: "Hard", ru: "Сложно" },
+    super: { he: "סופר", en: "Super", ru: "Супер" },
+    upTo5: { he: "כפל 1-5", en: "Times 1-5", ru: "До 5" },
+    upTo10: { he: "כפל 1-10", en: "Times 1-10", ru: "До 10" }
   };
 
   function escapeHtml(value) {
@@ -293,7 +352,9 @@ window.GAMES_V2_META = (function (utils) {
 
   function labelForAvatar(avatarId, languageId) {
     const avatar = getAvatar(avatarId);
-    return languageId === "en" ? avatar.labelEn : avatar.labelHe;
+    if (languageId === "en") return avatar.labelEn;
+    if (languageId === "ru") return avatar.labelRu || avatar.labelEn;
+    return avatar.labelHe;
   }
 
   function diffLabel(diffKey, languageId) {
@@ -305,7 +366,7 @@ window.GAMES_V2_META = (function (utils) {
   }
 
   function applyHudDifficulty(labelEl, valueEl, diffKey, languageId) {
-    const safeLanguageId = languageId === "en" ? "en" : "he";
+    const safeLanguageId = LANGUAGES[languageId] ? languageId : "he";
     const difficultyText = diffLabel(diffKey, safeLanguageId);
     if (labelEl) {
       labelEl.textContent = "";
@@ -327,7 +388,7 @@ window.GAMES_V2_META = (function (utils) {
     return {
       icon: entry.icon,
       menuIcon: entry.menuIcon,
-      label: languageId === "en" ? entry.labelEn : entry.labelHe
+      label: languageId === "en" ? entry.labelEn : languageId === "ru" ? (entry.labelRu || entry.labelEn) : entry.labelHe
     };
   }
 
@@ -1263,7 +1324,7 @@ window.GAMES_V2_META = (function (utils) {
     const source = Array.isArray(avatarOptions) && avatarOptions.length ? avatarOptions : AVATARS;
     return source.map((avatar) => {
       const selectedClass = avatar.id === state.player.avatar ? " is-selected" : "";
-      const label = languageId === "en" ? avatar.labelEn : avatar.labelHe;
+      const label = labelForAvatar(avatar.id, languageId);
       return "<button class=\"metaChoiceButton metaAvatarButton" + selectedClass + "\" type=\"button\" data-action=\"" + escapeHtml(nextAction) + "\" data-avatar=\"" + escapeHtml(avatar.id) + "\" style=\"--avatar-accent: " + escapeHtml(avatar.accent) + "\" aria-label=\"" + escapeHtml(label) + "\" title=\"" + escapeHtml(label) + "\">" +
         "<span class=\"metaAvatarButtonIcon\" aria-hidden=\"true\">" + avatarImageMarkup(avatar, "metaAvatarImage metaAvatarImage--button") + "</span>" +
       "</button>";
@@ -1333,7 +1394,7 @@ window.GAMES_V2_META = (function (utils) {
     const languageId = state.player.language;
     const copy = getCopy(languageId);
     const language = getLanguage(languageId);
-    const difficultyTitle = languageId === "he" ? "קושי" : "Difficulty";
+    const difficultyTitle = languageId === "he" ? "קושי" : languageId === "ru" ? "Сложность" : "Difficulty";
 
     return "<div class=\"metaCard metaCard--settings\" dir=\"" + escapeHtml(language.dir) + "\">" +
       "<div class=\"metaCardHead metaCardHead--settings\">" +
@@ -1345,7 +1406,7 @@ window.GAMES_V2_META = (function (utils) {
         "<div class=\"metaSettingsTop\">" +
           "<section class=\"metaSettingPanel metaSettingPanel--language\">" +
             buildSettingsPanelHeader("🌍", copy.language) +
-            "<div class=\"metaChoiceGrid metaChoiceGrid--twoCols\">" + buildLanguageButtons(state) + "</div>" +
+            "<div class=\"metaChoiceGrid metaChoiceGrid--threeCols\">" + buildLanguageButtons(state) + "</div>" +
           "</section>" +
           "<section class=\"metaSettingPanel metaSettingPanel--sound\">" +
             buildSettingsPanelHeader("🔊", copy.sound) +
