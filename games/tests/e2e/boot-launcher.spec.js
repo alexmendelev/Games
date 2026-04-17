@@ -48,17 +48,17 @@ async function mockMobileFullscreen(page, options = {}) {
   }, options);
 }
 
-test("launcher offers fullscreen or normal mode on mobile", async ({ page }) => {
+test("launcher shows only continue button on mobile (fullscreen is auto-triggered)", async ({ page }) => {
   await mockMobileFullscreen(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  await expect(page.locator("#bootFullscreenAction")).toBeVisible({ timeout: 20000 });
-  await expect(page.locator("#bootContinueAction")).toBeVisible();
+  await expect(page.locator("#bootContinueAction")).toBeVisible({ timeout: 20000 });
+  await expect(page.locator("#bootFullscreenAction")).toBeHidden();
   await expect(page.locator("#bootProgress")).toBeHidden();
 });
 
-test("launcher can continue normally on mobile without fullscreen", async ({ page }) => {
+test("launcher auto-triggers fullscreen when continue is clicked on mobile", async ({ page }) => {
   await mockMobileFullscreen(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -66,15 +66,15 @@ test("launcher can continue normally on mobile without fullscreen", async ({ pag
   await page.locator("#bootContinueAction").click();
 
   await expect(page.locator("#bootOverlay")).toBeHidden();
-  await expect.poll(async () => page.evaluate(() => window.__fullscreenRequested)).toBe(0);
+  await expect.poll(async () => page.evaluate(() => window.__fullscreenRequested)).toBe(1);
 });
 
-test("launcher can open fullscreen on mobile", async ({ page }) => {
+test("launcher dismisses boot overlay on mobile after fullscreen", async ({ page }) => {
   await mockMobileFullscreen(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  await page.locator("#bootFullscreenAction").click();
+  await page.locator("#bootContinueAction").click();
 
   await expect(page.locator("#bootOverlay")).toBeHidden();
   await expect.poll(async () => page.evaluate(() => window.__fullscreenRequested)).toBe(1);
@@ -85,7 +85,7 @@ test("launcher continues even if fullscreen never resolves on mobile", async ({ 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  await page.locator("#bootFullscreenAction").click();
+  await page.locator("#bootContinueAction").click();
 
   await expect(page.locator("#bootOverlay")).toBeHidden();
   await expect(page.locator(".menuPage")).toBeVisible();
@@ -97,7 +97,7 @@ test("launcher still opens embedded games when fullscreen stalls on mobile", asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  await page.locator("#bootFullscreenAction").click();
+  await page.locator("#bootContinueAction").click();
   await expect(page.locator("#bootOverlay")).toBeHidden();
 
   await page.locator('#menuGrid a.menuCard[href="math/index.html"]').click();
