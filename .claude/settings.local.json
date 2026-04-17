@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls c:/Users/alexm/games/games/shared/assets/ui/maya*)",
+      "Bash(ls c:/Users/alexm/games/games/*.png)",
+      "Bash(ls c:/Users/alexm/games/games/maya*)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(list\\(d.keys\\(\\)\\), indent=2\\)\\)\")",
+      "Bash(npm run:*)",
+      "Bash(git stash:*)",
+      "Bash(npx playwright:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
+    ]
+  }
+}
