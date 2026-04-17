@@ -113,6 +113,8 @@
 
 .metaCard--profile {
   width: min(820px, 96%);
+  max-height: none;
+  overflow: visible;
   background:
     radial-gradient(circle at top left, rgba(147, 197, 253, 0.34), rgba(147, 197, 253, 0) 34%),
     radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), rgba(59, 130, 246, 0) 30%),
@@ -530,6 +532,10 @@
 .metaChoiceGrid--diffs,
 .metaChoiceGrid--twoCols {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metaChoiceGrid--threeCols {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .metaChoiceGrid--single {
@@ -2041,13 +2047,13 @@ html[dir="rtl"] .metaLeaderboardCoinIcon,
 
   .metaCard--profile {
     width: min(96vw, 580px);
-    min-height: min(72dvh, 720px);
-    max-height: min(90dvh, 860px);
+    min-height: 0;
+    max-height: none;
     padding: calc(20px * var(--ui, 1));
     display: flex;
     flex-direction: column;
     row-gap: 0;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .metaSettingsStack--profile {
@@ -2094,6 +2100,93 @@ html[dir="rtl"] .metaLeaderboardCoinIcon,
   .metaCard--profile .metaPrimaryButton {
     margin-top: auto;
     min-height: calc(72px * var(--ui, 1));
+  }
+}
+
+@media (max-height: 820px) {
+  .metaCard--settings {
+    padding: calc(18px * var(--ui, 1));
+    gap: calc(12px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaCardHead {
+    margin-bottom: calc(8px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaTitle {
+    font-size: clamp(32px, calc(34px * var(--ui, 1)), 44px);
+  }
+
+  .metaCard--settings .metaGhostButton {
+    min-height: calc(48px * var(--ui, 1));
+    padding: 0 calc(18px * var(--ui, 1));
+    font-size: calc(18px * var(--ui, 1));
+  }
+
+  .metaSettingsMascot {
+    display: none;
+  }
+
+  .metaSettingsBoard {
+    gap: calc(12px * var(--ui, 1));
+  }
+
+  .metaSettingsTop {
+    gap: calc(12px * var(--ui, 1));
+  }
+
+  .metaSettingPanel {
+    padding: calc(12px * var(--ui, 1));
+  }
+
+  .metaSettingPanelHead {
+    margin-bottom: calc(8px * var(--ui, 1));
+  }
+
+  .metaSettingPanelTitle {
+    font-size: clamp(20px, calc(22px * var(--ui, 1)), 28px);
+  }
+
+  .metaSettingPanelIcon {
+    width: calc(40px * var(--ui, 1));
+    height: calc(40px * var(--ui, 1));
+    font-size: calc(20px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaChoiceButton {
+    min-height: calc(70px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaChoiceVisual {
+    width: calc(48px * var(--ui, 1));
+    height: calc(48px * var(--ui, 1));
+    flex-basis: calc(48px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaChoiceLabel {
+    font-size: calc(22px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaDiffStepper {
+    min-height: calc(78px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaDiffValue {
+    font-size: calc(24px * var(--ui, 1));
+  }
+
+  .metaDifficultyColumn {
+    padding: calc(10px * var(--ui, 1));
+    gap: calc(8px * var(--ui, 1));
+  }
+
+  .metaSectionTitle--difficulty {
+    font-size: calc(14px * var(--ui, 1));
+  }
+
+  .metaCard--settings .metaSectionTitle {
+    font-size: calc(16px * var(--ui, 1));
+    margin-bottom: calc(6px * var(--ui, 1));
   }
 }
 

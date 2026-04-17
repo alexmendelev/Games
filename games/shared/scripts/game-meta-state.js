@@ -12,18 +12,18 @@ window.GAMES_V2_META_STATE = (function (utils) {
     "קדימה, לשלב הבא!"
   ];
   const AVATARS = [
-    { id: "lion", image: "../shared/assets/avatars/lion.png", accent: "#f59e0b", labelHe: "אריה", labelEn: "Lion", legacyIds: ["avatar1"] },
-    { id: "tiger", image: "../shared/assets/avatars/tiger.png", accent: "#f97316", labelHe: "טיגריס", labelEn: "Tiger", legacyIds: ["avatar2"] },
-    { id: "penguin", image: "../shared/assets/avatars/penguin.png", accent: "#60a5fa", labelHe: "פינגווין", labelEn: "Penguin", legacyIds: ["avatar3"] },
-    { id: "frog", image: "../shared/assets/avatars/frog.png", accent: "#34d399", labelHe: "צפרדע", labelEn: "Frog", legacyIds: ["avatar4"] },
-    { id: "cat", image: "../shared/assets/avatars/cat.png", accent: "#f97316", labelHe: "חתול", labelEn: "Cat" },
-    { id: "dog", image: "../shared/assets/avatars/dog.png", accent: "#f59e0b", labelHe: "כלב", labelEn: "Dog" },
-    { id: "dolphin", image: "../shared/assets/avatars/dolphin.png", accent: "#38bdf8", labelHe: "דולפין", labelEn: "Dolphin" },
-    { id: "bunny", image: "../shared/assets/avatars/bunny.png", accent: "#f9a8d4", labelHe: "ארנבון", labelEn: "Bunny" },
-    { id: "rabbit", image: "../shared/assets/avatars/rabbit.png", accent: "#d8b4fe", labelHe: "ארנבת", labelEn: "Rabbit" },
-    { id: "shark", image: "../shared/assets/avatars/shark.png", accent: "#67e8f9", labelHe: "כריש", labelEn: "Shark" },
-    { id: "squirrel", image: "../shared/assets/avatars/squirrel.png", accent: "#fb923c", labelHe: "סנאי", labelEn: "Squirrel" },
-    { id: "whale", image: "../shared/assets/avatars/whale.png", accent: "#818cf8", labelHe: "לווייתן", labelEn: "Whale" }
+    { id: "lion", image: "../shared/assets/avatars/lion.png", accent: "#f59e0b", labelHe: "אריה", labelEn: "Lion", labelRu: "Лев", legacyIds: ["avatar1"] },
+    { id: "tiger", image: "../shared/assets/avatars/tiger.png", accent: "#f97316", labelHe: "טיגריס", labelEn: "Tiger", labelRu: "Тигр", legacyIds: ["avatar2"] },
+    { id: "penguin", image: "../shared/assets/avatars/penguin.png", accent: "#60a5fa", labelHe: "פינגווין", labelEn: "Penguin", labelRu: "Пингвин", legacyIds: ["avatar3"] },
+    { id: "frog", image: "../shared/assets/avatars/frog.png", accent: "#34d399", labelHe: "צפרדע", labelEn: "Frog", labelRu: "Лягушка", legacyIds: ["avatar4"] },
+    { id: "cat", image: "../shared/assets/avatars/cat.png", accent: "#f97316", labelHe: "חתול", labelEn: "Cat", labelRu: "Кот" },
+    { id: "dog", image: "../shared/assets/avatars/dog.png", accent: "#f59e0b", labelHe: "כלב", labelEn: "Dog", labelRu: "Пёс" },
+    { id: "dolphin", image: "../shared/assets/avatars/dolphin.png", accent: "#38bdf8", labelHe: "דולפין", labelEn: "Dolphin", labelRu: "Дельфин" },
+    { id: "bunny", image: "../shared/assets/avatars/bunny.png", accent: "#f9a8d4", labelHe: "ארנבון", labelEn: "Bunny", labelRu: "Зайчик" },
+    { id: "rabbit", image: "../shared/assets/avatars/rabbit.png", accent: "#d8b4fe", labelHe: "ארנבת", labelEn: "Rabbit", labelRu: "Кролик" },
+    { id: "shark", image: "../shared/assets/avatars/shark.png", accent: "#67e8f9", labelHe: "כריש", labelEn: "Shark", labelRu: "Акула" },
+    { id: "squirrel", image: "../shared/assets/avatars/squirrel.png", accent: "#fb923c", labelHe: "סנאי", labelEn: "Squirrel", labelRu: "Белка" },
+    { id: "whale", image: "../shared/assets/avatars/whale.png", accent: "#818cf8", labelHe: "לווייתן", labelEn: "Whale", labelRu: "Кит" }
   ];
   const AVATAR_ID_MAP = AVATARS.reduce((acc, avatar) => {
     acc[avatar.id] = avatar.id;
