@@ -595,6 +595,9 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
       getSnapshot() {
         return getStatusSnapshot(state, settings.gameKey);
       },
+      getLanguage() {
+        return state.player.language || "he";
+      },
       getSelectedDiff() {
         return resolveSelectedDiff(currentStartOptions);
       },
