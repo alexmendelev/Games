@@ -163,13 +163,71 @@ window.GAMES_V2_META_STATE = (function (utils) {
       previewResults: "Preview results screen",
       progressBadge(levelNumber) { return "Best checkpoint: Level " + levelNumber; },
       defaultPlayerName: "You"
+    },
+    ru: {
+      startTitle: "Следующий уровень ждёт тебя",
+      startSubtitle: "Прогресс, настройки и таблица лидеров сохраняются в браузере.",
+      status: "Текущий статус",
+      points: "Очки",
+      coins: "Монеты",
+      lives: "Жизни",
+      bestLevel: "Лучший уровень",
+      settings: "Настройки",
+      exit: "Выход",
+      sound: "Звук",
+      soundOn: "Вкл",
+      soundOff: "Выкл",
+      minDifficulty: "Минимальная сложность",
+      maxDifficulty: "Максимальная сложность",
+      settingsTitle: "Настройки",
+      settingsBack: "Назад",
+      profileTitle: "Твой профиль",
+      profileSave: "Сохранить",
+      profileBack: "Назад",
+      playerName: "Имя игрока",
+      playerNamePlaceholder: "Введи имя",
+      editProfile: "Изменить аватар и имя",
+      levelOnly(levelNumber) { return "Уровень " + levelNumber; },
+      startLevel(levelNumber, difficultyLabel) { return "Уровень " + levelNumber + " • " + difficultyLabel; },
+      continueLevel(levelNumber, difficultyLabel) { return "Продолжить уровень " + levelNumber + " • " + difficultyLabel; },
+      resultsTitle(levelNumber) { return "Итоги уровня " + levelNumber; },
+      resultsSummary: "Итоги раунда",
+      correct: "Верно",
+      wrong: "Неверно",
+      missed: "Пропущено",
+      accuracy: "Точность",
+      bestStreak: "Лучшая серия",
+      coinsEarned: "Монет заработано",
+      levelPassed: "Уровень пройден",
+      time: "Время",
+      targetReached: "Цель достигнута",
+      timeUp: "Время вышло",
+      leaderboard: "Таблица лидеров",
+      leaderboardHint: "Другие игроки тоже зарабатывают монеты каждый раунд.",
+      language: "Язык",
+      avatar: "Аватар",
+      gameOverTitle: "Попробуй ещё раз",
+      gameOverSubtitle: "Последний прогресс сохранён после завершённого уровня.",
+      holdingRank(rank) { return "Удерживаешь место " + rank; },
+      rankUp(rank) { return "Поднялся на место " + rank; },
+      rankDown(rank) { return "Опустился на место " + rank; },
+      champion: "Первое место!",
+      you: "Ты",
+      selected: "Выбрано",
+      messageTitle: "Короткое сообщение перед следующим уровнем",
+      showMore: "Показать больше",
+      showLess: "Показать меньше",
+      testMode: "Режим тестирования",
+      previewResults: "Предпросмотр результатов",
+      progressBadge(levelNumber) { return "Лучший результат: уровень " + levelNumber; },
+      defaultPlayerName: "Ты"
     }
   };
   const DIFF_LABELS = {
-    easy: { he: "קל", en: "Easy" },
-    medium: { he: "בינוני", en: "Medium" },
-    hard: { he: "קשה", en: "Hard" },
-    super: { he: "סופר", en: "Super" },
+    easy: { he: "קל", en: "Easy", ru: "Лёгкий" },
+    medium: { he: "בינוני", en: "Medium", ru: "Средний" },
+    hard: { he: "קשה", en: "Hard", ru: "Сложный" },
+    super: { he: "סופר", en: "Super", ru: "Супер" },
     upTo5: { he: "כפל 1-5", en: "Times 1-5" },
     upTo10: { he: "כפל 1-10", en: "Times 1-10" }
   };
@@ -294,7 +352,9 @@ window.GAMES_V2_META_STATE = (function (utils) {
 
   function labelForAvatar(avatarId, languageId) {
     const avatar = getAvatar(avatarId);
-    return languageId === "en" ? avatar.labelEn : avatar.labelHe;
+    if (languageId === "en") return avatar.labelEn;
+    if (languageId === "ru") return avatar.labelRu || avatar.labelEn;
+    return avatar.labelHe;
   }
 
   function diffLabel(diffKey, languageId) {
@@ -306,7 +366,7 @@ window.GAMES_V2_META_STATE = (function (utils) {
   }
 
   function applyHudDifficulty(labelEl, valueEl, diffKey, languageId) {
-    const safeLanguageId = languageId === "en" ? "en" : "he";
+    const safeLanguageId = LANGUAGES[languageId] ? languageId : "he";
     const difficultyText = diffLabel(diffKey, safeLanguageId);
     if (labelEl) {
       labelEl.textContent = "";
