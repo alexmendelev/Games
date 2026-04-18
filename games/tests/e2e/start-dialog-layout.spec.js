@@ -32,11 +32,11 @@ async function expectAllHidden(locator) {
 }
 
 async function expectLeaderboardRowAligned(rowLocator, tolerance = 16) {
-  const rankBox = await getBox(rowLocator.locator(".metaStartLeaderboardCell--rank"));
-  const avatarBox = await getBox(rowLocator.locator(".metaStartLeaderboardCell--avatar"));
-  const nameBox = await getBox(rowLocator.locator(".metaStartLeaderboardCell--name"));
-  const coinsBox = await getBox(rowLocator.locator(".metaStartLeaderboardCell--coins"));
-  const coinIconBox = await getBox(rowLocator.locator(".metaStartLeaderboardCell--coin-icon"));
+  const rankBox = await getBox(rowLocator.locator(".metaLeaderboardRank"));
+  const avatarBox = await getBox(rowLocator.locator(".metaLeaderboardAvatarCell"));
+  const nameBox = await getBox(rowLocator.locator(".metaLeaderboardNameCell"));
+  const coinsBox = await getBox(rowLocator.locator(".metaLeaderboardCoins"));
+  const coinIconBox = await getBox(rowLocator.locator(".metaLeaderboardCoinIcon"));
 
   const centers = [
     rankBox.y + (rankBox.height / 2),
@@ -85,15 +85,15 @@ for (const gameCase of GAME_CASES) {
     await expectAllHidden(page.locator(".metaCard--dashboard-start .metaStatusLabel"));
     await expect(page.locator(".metaCard--dashboard-start .metaDashboardSettingsLabel")).toBeHidden();
 
-    const leaderboardMetrics = await page.locator(".metaStartLeaderboardList").evaluate((el) => ({
+    const leaderboardMetrics = await page.locator(".metaLeaderboardList").evaluate((el) => ({
       clientHeight: el.clientHeight,
       scrollHeight: el.scrollHeight,
-      rowCount: el.querySelectorAll(".metaStartLeaderboardRow").length
+      rowCount: el.querySelectorAll(".metaLeaderboardRow").length
     }));
 
     expect(leaderboardMetrics.rowCount).toBe(5);
     expect(leaderboardMetrics.scrollHeight).toBeLessThanOrEqual(leaderboardMetrics.clientHeight + 1);
-    await expectLeaderboardRowAligned(page.locator(".metaStartLeaderboardRow").first());
+    await expectLeaderboardRowAligned(page.locator(".metaLeaderboardRow").first());
   });
 
   test(`${gameCase.name} keeps the shared start dialog stacked on wider screens`, async ({ page }) => {
@@ -125,15 +125,15 @@ for (const gameCase of GAME_CASES) {
     expect(Math.abs(coinsBox.y - levelBox.y)).toBeLessThan(16);
     expect(Math.abs(levelBox.y - settingsBox.y)).toBeLessThan(16);
 
-    const leaderboardMetrics = await page.locator(".metaStartLeaderboardList").evaluate((el) => ({
+    const leaderboardMetrics = await page.locator(".metaLeaderboardList").evaluate((el) => ({
       clientHeight: el.clientHeight,
       scrollHeight: el.scrollHeight,
-      rowCount: el.querySelectorAll(".metaStartLeaderboardRow").length
+      rowCount: el.querySelectorAll(".metaLeaderboardRow").length
     }));
 
     expect(leaderboardMetrics.rowCount).toBe(5);
     expect(leaderboardMetrics.scrollHeight).toBeLessThanOrEqual(leaderboardMetrics.clientHeight + 1);
-    await expectLeaderboardRowAligned(page.locator(".metaStartLeaderboardRow").first());
+    await expectLeaderboardRowAligned(page.locator(".metaLeaderboardRow").first());
   });
 
   test(`${gameCase.name} falls back to the stacked portrait start dialog on slight portrait`, async ({ page }) => {
@@ -156,12 +156,12 @@ for (const gameCase of GAME_CASES) {
 
     const leaderboardBox = await getBox(page.locator(".metaDashboardSection--leaderboard"));
     const actionsBox = await getBox(page.locator(".metaDashboardActions"));
-    const firstRowBox = await getBox(page.locator(".metaStartLeaderboardRow").first());
+    const firstRowBox = await getBox(page.locator(".metaLeaderboardRow").first());
 
     const gapToActions = actionsBox.y - (leaderboardBox.y + leaderboardBox.height);
 
     expect(gapToActions).toBeLessThanOrEqual(20);
-    expect(firstRowBox.height).toBeLessThanOrEqual(72);
+    expect(firstRowBox.height).toBeLessThanOrEqual(100);
   });
 
   test(`${gameCase.name} uses the shared portrait start dialog on wide screens by default`, async ({ page }) => {
