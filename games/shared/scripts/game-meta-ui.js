@@ -220,11 +220,8 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     return Object.keys(LANGUAGES).map((languageId) => {
       const selectedClass = state.player.language === languageId ? " is-selected" : "";
       const language = getLanguage(languageId);
-      const flagInner = language.flagImg
-        ? "<img class=\"metaFlagImage\" src=\"" + escapeHtml(language.flagImg) + "\" alt=\"\" aria-hidden=\"true\">"
-        : escapeHtml(language.flag || "");
       return "<button class=\"metaChoiceButton metaLanguageButton" + selectedClass + "\" type=\"button\" data-action=\"pick-language\" data-language=\"" + escapeHtml(languageId) + "\">" +
-        "<span class=\"metaChoiceVisual metaFlagVisual\" aria-hidden=\"true\">" + flagInner + "</span>" +
+        choiceFlagMarkup(language.flag || "", "metaFlagVisual") +
         "<span class=\"metaChoiceLabel\">" + escapeHtml(language.label) + "</span>" +
       "</button>";
     }).join("");

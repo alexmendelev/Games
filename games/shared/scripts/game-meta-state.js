@@ -33,9 +33,9 @@ window.GAMES_V2_META_STATE = (function (utils) {
     return acc;
   }, {});
   const LANGUAGES = {
-    he: { id: "he", dir: "rtl", label: "עברית", flag: "🇮🇱", flagImg: "../shared/assets/flags/il.svg" },
-    en: { id: "en", dir: "ltr", label: "English", flag: "🇬🇧", flagImg: "../shared/assets/flags/gb.svg" },
-    ru: { id: "ru", dir: "ltr", label: "Русский", flag: "🇷🇺", flagImg: "../shared/assets/flags/ru.svg" }
+    he: { id: "he", dir: "rtl", label: "עברית", flag: "🇮🇱" },
+    en: { id: "en", dir: "ltr", label: "English", flag: "🇬🇧" },
+    ru: { id: "ru", dir: "ltr", label: "Русский", flag: "🇷🇺" }
   };
   const GAME_BADGES = {
     equations: { icon: "?", menuIcon: "../shared/assets/ui/equation.png", labelHe: "משוואות", labelEn: "Equations" },

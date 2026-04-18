@@ -653,15 +653,6 @@
 .metaFlagVisual {
   font-size: calc(28px * var(--ui, 1));
   line-height: 1;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-.metaFlagImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
 }
 
 .metaChoiceLabel {
@@ -1148,19 +1139,6 @@
   gap: calc(16px * var(--ui, 1));
   padding: calc(22px * var(--ui, 1)) calc(14px * var(--ui, 1));
   text-align: center;
-}
-
-.metaCard--settings .metaLanguageButton .metaChoiceLabel {
-  font-size: calc(18px * var(--ui, 1));
-  word-break: break-word;
-  hyphens: auto;
-}
-
-.metaCard--settings .metaFlagVisual .metaFlagImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 6px;
 }
 
 .metaCard--settings .metaLanguageButton.is-selected {
