@@ -90,6 +90,7 @@ function buildPinnedMetaState(options) {
         clocks: currentDifficulty
       },
       soundEnabled: false,
+      mysteryEnabled: false,
       diffBoundsByGame: {
         clocks: {
           min: minDifficulty,

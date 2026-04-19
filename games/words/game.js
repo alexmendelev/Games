@@ -1217,6 +1217,9 @@
   async function startGame() {
     resetState();
     let firstPrepared = takeStartupPreparedTask();
+    if (firstPrepared && firstPrepared.task && firstPrepared.task.mystery) {
+      firstPrepared = null;
+    }
     if (!firstPrepared) {
       shell.refreshLayout();
       await new Promise((resolve) => {
