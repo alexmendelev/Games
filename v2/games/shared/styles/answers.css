@@ -1,0 +1,18 @@
+/* Shared answer-area refinements.
+   Layout size comes from the JS layout engine; these selectors only tune
+   the shared answer container by answer type so games keep one code path. */
+
+.answers[data-answer-type="FourLargeCards"] .ans {
+  border-width: 2px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 20px rgba(0, 0, 0, 0.16);
+}
+
+.answers[data-answer-type="DenseOptionGrid"] .ans {
+  border-width: 1.5px;
+}
+
+.answers[data-answer-type="DenseOptionGrid"] .ans::after {
+  right: calc(6px * var(--ui, 1));
+  width: calc(28px * var(--ui, 1));
+  height: calc(28px * var(--ui, 1));
+}

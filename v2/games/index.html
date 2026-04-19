@@ -1,0 +1,74 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Maya and Friends</title>
+  <link rel="icon" href="shared/assets/ui/maya-and-friends-192.png" type="image/png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Maya and Friends">
+  <link rel="apple-touch-icon" href="shared/assets/ui/maya-and-friends-192.png">
+  <link rel="preload" href="shared/assets/ui/starting.png" as="image">
+  <link rel="preload" href="shared/assets/ui/title.png" as="image">
+<link rel="stylesheet" href="shared/styles/tokens.css?v=20260331font1">
+  <link rel="stylesheet" href="shared/styles/menu.css?v=20260320v3l">
+  <link rel="preload" href="shared/assets/music/minuet-g-major.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="shared/assets/music/turkish-march.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="shared/assets/music/entertainer.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="shared/assets/music/wildcatblues.mp3" as="audio" type="audio/mpeg">
+</head>
+<body class="booting">
+  <div id="bootOverlay" class="bootOverlay" aria-live="polite">
+    <div class="bootBox">
+      <img class="bootSplash" src="shared/assets/ui/starting.png" alt="" loading="eager" fetchpriority="high" decoding="sync">
+      <div class="bootMeta">
+        <div id="bootProgress" class="bootProgress">
+          <div class="progressTrack"><div id="bootBar" class="progressFill"></div></div>
+        </div>
+        <div id="bootActions" class="bootActions" hidden>
+          <button id="bootFullscreenAction" class="bootAction" type="button" hidden>Open Full Screen</button>
+          <button id="bootContinueAction" class="bootAction bootAction--secondary" type="button" hidden>Continue Normally</button>
+        </div>
+        <p id="bootText" class="bootText">0%</p>
+      </div>
+    </div>
+  </div>
+
+  <main class="menuPage">
+    <header class="menuHeader">
+      <img class="menuTitle" src="shared/assets/ui/title.png" alt="Games" loading="eager" fetchpriority="high" decoding="sync">
+    </header>
+
+    <section id="menuGrid" class="menuGrid" aria-label="Game list">
+      <a class="menuCard" href="math/index.html" data-preload="shared/assets/ui/numbers.png">
+        <img class="menuCardImage" src="shared/assets/ui/numbers.png" alt="">
+      </a>
+      <a class="menuCard" href="multiply/index.html" data-preload="shared/assets/ui/multiply.png">
+        <img class="menuCardImage" src="shared/assets/ui/multiply.png" alt="">
+      </a>
+      <a class="menuCard" href="words/index.html" data-preload="shared/assets/ui/words.png">
+        <img class="menuCardImage" src="shared/assets/ui/words.png" alt="">
+      </a>
+      <a class="menuCard" href="shapes/index.html" data-preload="shared/assets/ui/shapes.png">
+        <img class="menuCardImage" src="shared/assets/ui/shapes.png" alt="">
+      </a>
+      <a class="menuCard" href="clocks/index.html" data-preload="shared/assets/ui/clocks.png">
+        <img class="menuCardImage" src="shared/assets/ui/clocks.png" alt="">
+      </a>
+      <a class="menuCard" href="equations/index.html" data-preload="shared/assets/ui/equation.png">
+        <img class="menuCardImage" src="shared/assets/ui/equation.png" alt="">
+      </a>
+    </section>
+  </main>
+
+  <section id="gameStage" class="gameStage" hidden aria-hidden="true">
+    <iframe id="gameFrame" class="gameFrame" title="Game" loading="eager" referrerpolicy="same-origin"></iframe>
+  </section>
+
+  <script src="shared/scripts/launcher.js?v=20260407embed6"></script>
+</body>
+</html>

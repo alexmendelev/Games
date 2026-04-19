@@ -1,0 +1,116 @@
+.answers[data-answer-type="DenseOptionGrid"] .ans {
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.78);
+}
+
+.answers[data-answer-type="DenseOptionGrid"] .ans svg {
+  width: min(100%, calc(60px * var(--ui, 1)));
+  height: min(100%, calc(60px * var(--ui, 1)));
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.25));
+  pointer-events: none;
+}
+
+.tile {
+  width: calc(300px * var(--ui, 1));
+  height: calc(124px * var(--ui, 1));
+  transform: translate(20px, -140px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(10px * var(--ui, 1));
+  align-items: center;
+  justify-items: center;
+  padding: calc(12px * var(--ui, 1)) calc(52px * var(--ui, 1));
+}
+
+.tileBadge {
+  width: calc(72px * var(--ui, 1));
+  height: calc(72px * var(--ui, 1));
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+#tileColor,
+#tileShape {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.tileLabel {
+  position: absolute;
+  left: 50%;
+  top: calc(100% - 4px);
+  transform: translateX(-50%);
+  font-size: calc(16px * var(--ui, 1));
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+.shapeSvg {
+  width: 78%;
+  height: 78%;
+  display: block;
+}
+
+.colorSprayImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.colorSprayBadge {
+  position: relative;
+  width: 98%;
+  height: 98%;
+  display: block;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.22));
+}
+
+.colorSprayBadge > * {
+  position: absolute;
+  inset: 0;
+}
+
+#tileShape .shapeSvg {
+  width: 68%;
+  height: 68%;
+}
+
+.tile--mystery {
+  padding: 0;
+  position: relative;
+}
+
+.tile--mystery #tileShape {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile--mystery .mystery-question {
+  font-size: calc(56px * var(--ui, 1));
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .answers[data-answer-type="DenseOptionGrid"] .ans svg {
+    width: min(100%, calc(42px * var(--ui, 1)));
+    height: min(100%, calc(42px * var(--ui, 1)));
+  }
+}

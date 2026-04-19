@@ -1,0 +1,60 @@
+:root {
+  --v2-bg: #06101f;
+  --v2-panel: rgba(10, 18, 40, 0.72);
+  --v2-panel-soft: rgba(10, 18, 40, 0.56);
+  --v2-border: rgba(255, 255, 255, 0.18);
+  --v2-border-strong: rgba(255, 255, 255, 0.28);
+  --v2-text: #ffffff;
+  --v2-muted: rgba(255, 255, 255, 0.78);
+  --v2-warm: #f59e0b;
+  --v2-accent: #fb7185;
+  --v2-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --v2-radius: 18px;
+  --v2-gap: clamp(12px, 2vw, 20px);
+  --v2-font-ui: Arial, "Noto Sans Hebrew", "Rubik", "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --v2-font-he: Arial, "Arial Hebrew", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 700px at 20% 0%, rgba(90, 120, 255, 0.18), transparent 55%),
+    radial-gradient(900px 600px at 80% 20%, rgba(255, 170, 60, 0.14), transparent 55%),
+    var(--v2-bg);
+  color: var(--v2-text);
+  font-family: var(--v2-font-ui);
+  overflow: hidden;
+}
+
+html[dir="rtl"] body,
+html[dir="rtl"] button,
+html[dir="rtl"] input,
+html[dir="rtl"] textarea,
+html[dir="rtl"] select,
+html[lang="he"] body,
+html[lang="he"] button,
+html[lang="he"] input,
+html[lang="he"] textarea,
+html[lang="he"] select {
+  font-family: var(--v2-font-he) !important;
+  letter-spacing: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}

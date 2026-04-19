@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Words - Games</title>
+  <link rel="preload" href="../shared/assets/ui/background.png" as="image">
+  <link rel="preload" href="../shared/assets/ui/rock.png" as="image">
+  <link rel="preload" href="../shared/assets/ui/tablet.png" as="image">
+  <link rel="preload" href="../shared/assets/ui/pause.png" as="image">
+  <link rel="preload" href="../shared/assets/ui/resume.png" as="image">
+  <link rel="preload" href="../shared/assets/ui/unmute.png" as="image">
+  <link rel="preload" href="../shared/assets/ui/mute.png" as="image">
+  <link rel="preload" href="../shared/assets/ui/exit.png" as="image">
+  <link rel="preload" href="../shared/assets/ui/coin.svg" as="image">
+  <link rel="preload" href="../shared/assets/ui/star.svg" as="image">
+  <link rel="preload" href="../shared/assets/mascot/kittydance.png" as="image">
+  <link rel="preload" href="../shared/assets/mascot/kittysad.png" as="image">
+  <link rel="preload" href="../shared/assets/audio/splash.mp3" as="audio" type="audio/mpeg">
+  <link rel="preload" href="../shared/assets/audio/coin_drop.mp3" as="audio" type="audio/mpeg">
+  <link rel="stylesheet" href="../shared/styles/tokens.css?v=20260331font1">
+  <link rel="stylesheet" href="../shared/styles/falling-game.css?v=20260417layout33">
+  <link rel="stylesheet" href="../shared/styles/answers.css?v=20260403layout1">
+  <link rel="stylesheet" href="../shared/styles/game-meta.css?v=20260418meta86">
+  <link rel="stylesheet" href="../shared/styles/falling-words.css?v=20260419dir3">
+</head>
+<body>
+  <div class="wrap">
+    <div id="game" class="game">
+      <div id="mascot" class="mascot" aria-hidden="true"></div>
+      <div id="tile" class="tile"><span class="tile-text">&#1495;&#1514;&#1493;&#1500;</span><img class="tile-image" alt="" aria-hidden="true"></div>
+
+      <div id="overlay" class="overlay">
+        <div class="card">
+          <h2>&#1489;&#1495;&#1512;&#1493; &#1512;&#1502;&#1492;</h2>
+          <div class="diffs" id="diffs">
+            <button class="diffbtn" type="button" data-diff="easy">&#1511;&#1500;</button>
+            <button class="diffbtn" type="button" data-diff="medium">&#1489;&#1497;&#1504;&#1493;&#1504;&#1497;</button>
+            <button class="diffbtn" type="button" data-diff="hard">&#1511;&#1513;&#1492;</button>
+            <button class="diffbtn" type="button" data-diff="super">&#1505;&#1493;&#1508;&#1512;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel hudPanel">
+        <div class="row topStats">
+          <div class="block coinsBlock">
+            <div class="statusCardHead">
+              <img id="coinIcon" src="../shared/assets/ui/coin.svg" alt="" class="icon">
+              <span class="hudLabel hudLabel--coins" aria-hidden="true"></span>
+            </div>
+            <div class="stat"><b id="coins">0</b></div>
+            <div class="difficultyInline">
+              <span id="difficultyLabel" class="difficultyLabel">&#1511;&#1493;&#1513;&#1497;</span>
+              <span id="difficultyValue" class="difficultyValue">...</span>
+            </div>
+          </div>
+          <div class="streakPanel">
+            <span class="hudLabel hudLabel--streak" aria-hidden="true"></span>
+            <div id="streakMeter" class="streakMeter" aria-hidden="true">
+              <div id="streakFill" class="streakFill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel answersPanel">
+        <div class="answers" id="answers"></div>
+      </div>
+
+      <div class="panel bottom controlsPanel">
+        <div class="row">
+          <div class="actions">
+            <button id="pauseBtn" class="ctrl iconBtn" type="button" aria-label="Pause"></button>
+            <button id="muteBtn" class="ctrl iconBtn" type="button" aria-label="Mute sound"></button>
+            <button id="exitBtn" class="ctrl iconBtn" type="button" aria-label="Exit"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/scripts/utils.js?v=20260314l"></script>
+  <script src="../shared/scripts/layout.js?v=20260405layout6"></script>
+  <script src="../shared/scripts/audio.js?v=20260320audio3"></script>
+  <script src="../shared/scripts/fx.js?v=20260404fx1"></script>
+  <script src="../shared/scripts/game-shell.js?v=20260404runner8"></script>
+  <script src="../shared/scripts/difficulty-manager.js?v=20260407adaptive1"></script>
+  <script src="../shared/scripts/game-meta-state.js?v=20260418meta1"></script>
+  <script src="../shared/scripts/game-meta-leaderboard.js?v=20260416meta1"></script>
+  <script src="../shared/scripts/game-meta-ui.js?v=20260419meta2"></script>
+  <script src="../shared/scripts/game-meta.js?v=20260419meta3"></script>
+  <script src="../shared/scripts/game-session.js?v=20260403level2"></script>
+  <script src="../shared/scripts/game-behaviors.js?v=20260417bh2"></script>
+  <script src="../shared/scripts/mystery-round.js?v=20260419m5"></script>
+  <script src="config.js?v=20260322mascot1"></script>
+  <script src="game.js?v=20260419dir6"></script>
+</body>
+</html>

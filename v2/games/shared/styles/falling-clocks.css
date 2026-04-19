@@ -1,0 +1,78 @@
+.clockTile {
+  width: calc(320px * var(--ui, 1));
+  height: calc(112px * var(--ui, 1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clockPrompt {
+  min-width: calc(176px * var(--ui, 1));
+  padding: calc(8px * var(--ui, 1)) calc(18px * var(--ui, 1));
+  font-size: calc(48px * var(--ui, 1));
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: calc(2px * var(--ui, 1));
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+  background: transparent;
+  box-shadow: none;
+}
+
+.clockAns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+}
+
+.clockOption {
+  height: calc(100% - (8px * var(--ui, 1)));
+  max-height: calc(100% - (8px * var(--ui, 1)));
+  aspect-ratio: 1 / 1;
+  width: auto;
+  max-width: calc(100% - (12px * var(--ui, 1)));
+  display: block;
+  position: relative;
+  margin: 0 auto;
+}
+
+.clockDialImg,
+.clockHands {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.clockDialImg {
+  display: block;
+  object-fit: contain;
+}
+
+.clockHands {
+  display: block;
+}
+
+.clockHands .clock-hand-hour {
+  stroke: #0f172a;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.clockHands .clock-hand-minute {
+  stroke: #2563eb;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.clockHands .clock-center {
+  fill: #0f172a;
+}
+
+@media (max-width: 640px) {
+  .clockPrompt {
+    min-width: calc(160px * var(--ui, 1));
+    font-size: calc(40px * var(--ui, 1));
+  }
+}
