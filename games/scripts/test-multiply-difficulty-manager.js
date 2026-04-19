@@ -78,7 +78,7 @@ function runMultiplyDifficultyChecks() {
   const gameSource = fs.readFileSync(path.join(__dirname, "..", "multiply", "game.js"), "utf8");
   assert(gameSource.includes("function currentDifficultyProfile()"), "Multiply game should resolve an explicit difficulty profile");
   assert(gameSource.includes("return Object.assign(buildMultiplyTask(),"), "Multiply game should create tasks from the explicit difficulty generator");
-  assert(gameSource.includes("const answers = buildDifficultyWrongs(task.answer);"), "Multiply game should build distractors from the explicit difficulty generator");
+  assert(gameSource.includes("buildDifficultyWrongs(task.answer)"), "Multiply game should build distractors from the explicit difficulty generator");
 }
 
 function runDifficultyManagerChecks() {

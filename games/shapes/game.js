@@ -9,6 +9,7 @@
   const sessionApi = window.GAMES_V2_SESSION;
   const gameBehaviors = window.GAMES_V2_BEHAVIORS;
   const cfg = window.GAME_V2_SHAPES_CONFIG;
+  const mysteryApi = window.GAMES_V2_MYSTERY;
 
   const gameEl = document.getElementById("game");
   const wrapEl = document.querySelector(".wrap");
@@ -131,6 +132,7 @@
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let task = null;
+  let questionCount = 0;
   let lockInputUntil = 0;
   const recentCorrectLimit = 8;
   const spawnYOffsetRatio = 0.35;
@@ -166,8 +168,12 @@
     onMiss: miss,
     onClear: () => {
       task = null;
-      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery");
       tileEl.removeAttribute("data-reward");
+      tileShapeEl.innerHTML = "";
+      tileColorEl.innerHTML = "";
+      tileEl.style.transform = "";
+      answersEl.classList.remove("mystery-mode");
       shell.hideWaterReflection();
     }
   });
@@ -456,6 +462,22 @@
   }
 
   function generateTask() {
+    questionCount += 1;
+    if (mysteryApi && meta.isMysteryEnabled() && mysteryApi.shouldTrigger(questionCount)) {
+      const mystery = mysteryApi.generate("shapes");
+      const rect = shell.rect();
+      const lane = shell.fallLane(cfg.gameplay.tileWidth, cfg.gameplay.tileMargin, rect);
+      return Object.assign(mystery, {
+        correct: null,
+        options: [],
+        x: utils.randInt(Math.round(lane.minX), Math.round(lane.maxX)),
+        y: -(cfg.gameplay.tileHeight * spawnYOffsetRatio),
+        spawnedAt: performance.now(),
+        tabletType: "simple",
+        rewardCoins: 0,
+        attemptsRemaining: gameplayRules.normalAttempts
+      });
+    }
     const profile = currentDifficultyProfile();
     const correct = nextCorrectPair();
     const options = [correct].concat(selectDistractors(correct, profile)).slice(0, profile.answerCount);
@@ -486,21 +508,40 @@
     }
     if (phase !== "frame") {
       session.noteQuestionPresented();
-      bh.clearAnswerMarks((btn, idx) => idx < activeAnswerCount);
-      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
-      if (task.rewardCoins > 0) {
-        tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
-        tileEl.setAttribute("data-reward", String(task.rewardCoins));
-      } else {
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery");
+      if (task.mystery) {
+        bh.clearAnswerMarks((btn, idx) => idx < 4);
+        tileEl.classList.add("tile--mystery");
         tileEl.removeAttribute("data-reward");
-      }
-      tileShapeEl.innerHTML = shapeSvg(task.correct.shapeId, "#f8fafc", "#1e293b");
-      tileColorEl.innerHTML = colorBadge(task.correct.colorId);
-      tileEl.dataset.correctId = task.correct.id;
-      for (let i = 0; i < activeAnswerCount; i += 1) {
-        const option = task.options[i];
-        ansBtns[i].dataset.value = option.id;
-        ansBtns[i].innerHTML = shapeSvg(option.shapeId, option.colorHex, "#1e293b");
+        tileShapeEl.innerHTML = `<span class="mystery-question">${task.text}</span>`;
+        tileColorEl.innerHTML = "";
+        tileEl.dataset.correctId = "";
+        answersEl.classList.add("mystery-mode");
+        for (let i = 0; i < 4; i += 1) {
+          ansBtns[i].dataset.value = String(task.mysteryAnswers[i]);
+          ansBtns[i].innerHTML = `<span class="mystery-label">${task.mysteryAnswers[i]}</span>`;
+        }
+        for (let i = 4; i < ansBtns.length; i += 1) {
+          ansBtns[i].innerHTML = "";
+          ansBtns[i].dataset.value = "";
+        }
+      } else {
+        bh.clearAnswerMarks((btn, idx) => idx < activeAnswerCount);
+        answersEl.classList.remove("mystery-mode");
+        if (task.rewardCoins > 0) {
+          tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
+          tileEl.setAttribute("data-reward", String(task.rewardCoins));
+        } else {
+          tileEl.removeAttribute("data-reward");
+        }
+        tileShapeEl.innerHTML = shapeSvg(task.correct.shapeId, "#f8fafc", "#1e293b");
+        tileColorEl.innerHTML = colorBadge(task.correct.colorId);
+        tileEl.dataset.correctId = task.correct.id;
+        for (let i = 0; i < activeAnswerCount; i += 1) {
+          const option = task.options[i];
+          ansBtns[i].dataset.value = option.id;
+          ansBtns[i].innerHTML = shapeSvg(option.shapeId, option.colorHex, "#1e293b");
+        }
       }
     }
     tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
@@ -533,13 +574,17 @@
 
   function handleAnswer(idx) {
     if (!running || paused || !task) return;
-    if (idx < 0 || idx >= activeAnswerCount) return;
+    const mysteryMode = task.mystery;
+    if (idx < 0 || idx >= (mysteryMode ? 4 : activeAnswerCount)) return;
     const now = performance.now();
     if (now < lockInputUntil) return;
     const btn = ansBtns[idx];
     if (!btn || btn.disabled) return;
     const value = String(btn.dataset.value || "");
-    if (value === task.correct.id) {
+    const isCorrect = mysteryMode
+      ? Number(value) === task.answer
+      : value === task.correct.id;
+    if (isCorrect) {
       const currentTask = task;
       session.handleCorrect();
       falling.clear("correct");
@@ -548,7 +593,9 @@
       const burstX = currentTask.x + cfg.gameplay.tileWidth / 2;
       const burstY = currentTask.y + cfg.gameplay.tileHeight / 2;
       audio.sfx.correct();
-      if (currentTask.rewardCoins > 0) {
+      if (currentTask.mystery) {
+        bh.awardTabletBonus(burstX, burstY, mysteryApi.COIN_MULTIPLIER);
+      } else if (currentTask.rewardCoins > 0) {
         bh.awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
       }
       fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
@@ -596,6 +643,7 @@
     deckPos = 0;
     recentCorrectIds = [];
     task = null;
+    questionCount = 0;
     lockInputUntil = 0;
     falling.stop("reset");
     bh.clearAnswerMarks((btn, idx) => idx < activeAnswerCount);

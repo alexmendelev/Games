@@ -204,6 +204,18 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     "</button>";
   }
 
+  function buildMysteryButton(state) {
+    const languageId = state.player.language;
+    const copy = getCopy(languageId);
+    const mysteryEnabled = state.settings.mysteryEnabled !== false;
+    const mysteryLabel = mysteryEnabled ? copy.mysteryOn : copy.mysteryOff;
+    const mysteryClass = mysteryEnabled ? " metaMysteryButton--on" : " metaMysteryButton--off";
+    return "<button class=\"metaChoiceButton metaMysteryButton is-selected" + mysteryClass + "\" type=\"button\" data-action=\"pick-mystery\">" +
+      "<span class=\"metaChoiceVisual\" aria-hidden=\"true\" style=\"font-size:1.5em\">" + (mysteryEnabled ? "🌈" : "🚫") + "</span>" +
+      "<span class=\"metaChoiceLabel\">" + escapeHtml(mysteryLabel) + "</span>" +
+    "</button>";
+  }
+
   function buildAvatarButtons(state, languageId, actionName, avatarOptions) {
     const nextAction = actionName || "pick-avatar";
     const source = Array.isArray(avatarOptions) && avatarOptions.length ? avatarOptions : AVATARS;
@@ -372,6 +384,9 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     const primaryLabel = isResults
       ? copy.continueLevel(snapshot.nextLevel, difficultyText)
       : copy.startLevel(snapshot.nextLevel, difficultyText);
+    const levelVariantHint = safeOptions.levelVariant
+      ? "<span class=\"levelVariantHint\">" + (safeOptions.levelVariant === "image-to-word" ? "\uD83D\uDDBC\uFE0F \u2192 \uD83D\uDD24" : "\uD83D\uDD24 \u2192 \uD83D\uDDBC\uFE0F") + "</span>"
+      : "";
     const leaderboardSource = resultContext && Array.isArray(resultContext.afterRanks) && resultContext.afterRanks.length
       ? resultContext.afterRanks
       : snapshot.participants;
@@ -410,7 +425,7 @@ window.GAMES_V2_META_UI = (function (utils, s) {
       "</div>" +
       "<div class=\"metaResultsActions metaDashboardActions\">" +
         "<button class=\"metaGhostButton metaResultsExitButton\" type=\"button\" data-action=\"exit-game\">" + escapeHtml(copy.exit) + "</button>" +
-        "<button class=\"metaPrimaryButton metaResultsContinueButton\" type=\"button\" data-action=\"" + primaryAction + "\">" + escapeHtml(primaryLabel) + "</button>" +
+        "<button class=\"metaPrimaryButton metaResultsContinueButton\" type=\"button\" data-action=\"" + primaryAction + "\">" + escapeHtml(primaryLabel) + levelVariantHint + "</button>" +
       "</div>" +
     "</div>";
   }
@@ -436,6 +451,10 @@ window.GAMES_V2_META_UI = (function (utils, s) {
           "<section class=\"metaSettingPanel metaSettingPanel--sound\">" +
             buildSettingsPanelHeader("🔊", copy.sound) +
             "<div class=\"metaChoiceGrid metaChoiceGrid--single\">" + buildSoundButtons(state) + "</div>" +
+          "</section>" +
+          "<section class=\"metaSettingPanel metaSettingPanel--mystery\">" +
+            buildSettingsPanelHeader("🌈", copy.mystery) +
+            "<div class=\"metaChoiceGrid metaChoiceGrid--single\">" + buildMysteryButton(state) + "</div>" +
           "</section>" +
         "</div>" +
         "<section class=\"metaSettingPanel metaSettingPanel--difficulty\">" +
@@ -489,7 +508,8 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     return buildDashboardMarkup(state, selectedDiff, {
       gameKey,
       expandedRows,
-      resultContext
+      resultContext,
+      levelVariant: (resultContext && resultContext.nextLevelVariant) || null
     });
   }
 

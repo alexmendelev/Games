@@ -9,6 +9,7 @@
   const sessionApi = window.GAMES_V2_SESSION;
   const gameBehaviors = window.GAMES_V2_BEHAVIORS;
   const cfg = window.GAME_V3_MULTIPLY_CONFIG;
+  const mysteryApi = window.GAMES_V2_MYSTERY;
   const LEGACY_DIFF_ALIASES = {
     upTo5: "easy",
     upTo10: "hard"
@@ -113,6 +114,7 @@
   let levelProgressTarget = 1;
   let prevCorrectIdx = -1;
   let task = null;
+  let questionCount = 0;
   const spawnYOffsetRatio = 0.35;
   let assetsReadyPromise = null;
   let levelPausePending = false;
@@ -176,8 +178,9 @@
     onMiss: miss,
     onClear: () => {
       task = null;
-      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery");
       tileEl.removeAttribute("data-reward");
+      tileEl.style.transform = "";
       shell.hideWaterReflection();
     }
   });
@@ -372,8 +375,23 @@
   }
 
   function createTask() {
+    questionCount += 1;
     const tileMetrics = currentTileMetrics();
     const tabletReward = rollSpecialTablet();
+    if (mysteryApi && meta.isMysteryEnabled() && mysteryApi.shouldTrigger(questionCount)) {
+      const mystery = mysteryApi.generate("multiply", meta.getLanguage());
+      return Object.assign(mystery, {
+        width: tileMetrics.width,
+        height: tileMetrics.height,
+        fontSize: tileMetrics.fontSize,
+        paddingX: tileMetrics.paddingX,
+        x: randomTileX(),
+        y: spawnStartY(),
+        tabletType: "simple",
+        rewardCoins: 0,
+        attemptsRemaining: gameplayRules.normalAttempts
+      });
+    }
     return Object.assign(buildMultiplyTask(), {
       width: tileMetrics.width,
       height: tileMetrics.height,
@@ -396,19 +414,27 @@
       session.noteQuestionPresented();
       tileEl.textContent = task.text;
       applyTileMetrics(task);
-      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
-      if (task.rewardCoins > 0) {
-        tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
-        tileEl.setAttribute("data-reward", String(task.rewardCoins));
-      } else {
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery");
+      if (task.mystery) {
+        tileEl.classList.add("tile--mystery");
         tileEl.removeAttribute("data-reward");
+        answersEl.classList.add("mystery-mode");
+      } else {
+        answersEl.classList.remove("mystery-mode");
+        if (task.rewardCoins > 0) {
+          tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
+          tileEl.setAttribute("data-reward", String(task.rewardCoins));
+        } else {
+          tileEl.removeAttribute("data-reward");
+        }
       }
       bh.clearAnswerMarks();
 
-      const answers = buildDifficultyWrongs(task.answer);
+      const answers = task.mystery ? task.mysteryAnswers : buildDifficultyWrongs(task.answer);
       for (let i = 0; i < ansBtns.length; i += 1) {
-        ansBtns[i].textContent = utils.formatSignedNumber(answers[i]);
+        ansBtns[i].textContent = task.mysteryType === "word" ? answers[i] : utils.formatSignedNumber(answers[i]);
         ansBtns[i].dataset.val = String(answers[i]);
+        ansBtns[i].classList.remove("ans--rtl");
       }
     }
 
@@ -458,17 +484,18 @@
 
   function correct(clickedBtn) {
     const currentTask = task;
+    const burstCenter = currentTileCenter();
+    const burstX = burstCenter.x;
+    const burstY = burstCenter.y;
     session.handleCorrect();
     falling.clear("correct");
     bh.setMascot("idle");
     bh.showAnswerMark(clickedBtn, true, cfg.answerFeedbackMs);
     audio.sfx.correct();
 
-    const burstCenter = currentTileCenter();
-    const burstX = burstCenter.x;
-    const burstY = burstCenter.y;
-
-    if (currentTask && currentTask.rewardCoins > 0) {
+    if (currentTask && currentTask.mystery) {
+      bh.awardTabletBonus(burstX, burstY, mysteryApi.COIN_MULTIPLIER);
+    } else if (currentTask && currentTask.rewardCoins > 0) {
       bh.awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
     }
 
@@ -524,6 +551,7 @@
     syncCheckpointState();
     session.beginLevel();
     prevCorrectIdx = -1;
+    questionCount = 0;
     bh.setMascot("idle");
     falling.stop("start-reset");
     running = true;
@@ -571,8 +599,10 @@
         return;
       }
       audio.ensureAudio();
-      const value = Number(btn.dataset.val);
-      if (value === task.answer) {
+      const isCorrect = task.mysteryType === "word"
+        ? btn.dataset.val === task.answer
+        : Number(btn.dataset.val) === task.answer;
+      if (isCorrect) {
         correct(btn);
       } else {
         wrong(btn);

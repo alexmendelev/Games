@@ -405,7 +405,8 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
         message: round.message,
         metrics: context && context.metrics ? Object.assign({}, deepClone(context.metrics), {
           coinsEarned: Math.max(0, Number(context.metrics.coinsEarned) || 0) + Math.max(0, Number(round.playerBonus) || 0)
-        }) : null
+        }) : null,
+        nextLevelVariant: (context && context.nextLevelVariant) || null
       };
       render();
       return new Promise((resolve) => {
@@ -526,6 +527,12 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
         render();
         return;
       }
+      if (action === "pick-mystery") {
+        state.settings.mysteryEnabled = state.settings.mysteryEnabled === false ? true : false;
+        persist();
+        render();
+        return;
+      }
       if (action === "start-level") {
         handleStartRequest();
         return;
@@ -597,6 +604,9 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
       },
       getLanguage() {
         return state.player.language || "he";
+      },
+      isMysteryEnabled() {
+        return state.settings.mysteryEnabled !== false;
       },
       getSelectedDiff() {
         return resolveSelectedDiff(currentStartOptions);

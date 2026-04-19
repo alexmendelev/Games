@@ -145,7 +145,7 @@
       maxButtonSize: 220,
       fontScale: 0.38,
       fontMin: 22,
-      fontMax: 38
+      fontMax: 52
     },
     DenseOptionGrid: {
       preferredCols: 4,

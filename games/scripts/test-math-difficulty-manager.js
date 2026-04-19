@@ -139,7 +139,7 @@ function runMathDifficultyChecks() {
   const gameSource = fs.readFileSync(path.join(__dirname, "..", "math", "game.js"), "utf8");
   assert(gameSource.includes("function currentDifficultyProfile()"), "Math game should resolve an explicit difficulty profile");
   assert(gameSource.includes("return Object.assign(buildDifficultyTask(),"), "Math game should create tasks from the explicit difficulty generator");
-  assert(gameSource.includes("const answers = buildDifficultyWrongs(task.answer);"), "Math game should build distractors from the explicit difficulty generator");
+  assert(gameSource.includes("buildDifficultyWrongs(task.answer)"), "Math game should build distractors from the explicit difficulty generator");
 }
 
 function runDifficultyManagerChecks() {
