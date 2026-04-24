@@ -62,7 +62,7 @@ function runMultiplyDifficultyChecks() {
   assert.deepStrictEqual(Object.keys(cfg.difficulties || {}), ["easy", "medium", "hard", "super"]);
   assert.strictEqual(cfg.diffs, undefined, "Multiply config should not define legacy diffs");
 
-  assert.deepStrictEqual(Array.from(cfg.difficulties.easy.factorRange), [1, 4]);
+  assert.deepStrictEqual(Array.from(cfg.difficulties.easy.factorRange), [1, 5]);
   assert.deepStrictEqual(Array.from(cfg.difficulties.medium.factorRange), [2, 7]);
   assert.deepStrictEqual(Array.from(cfg.difficulties.hard.factorRange), [2, 10]);
   assert.deepStrictEqual(Array.from(cfg.difficulties.super.factorRange), [2, 12]);

@@ -92,6 +92,7 @@
   let correctDeckLanguageId = "";
   let deckPos = 0;
   let recentCorrectIds = [];
+  let levelUsedIds = new Set();
   let emojiPoolsLanguageId = "";
   let selected = meta.getSelectedDiff();
   const session = sessionApi.createArcadeSession({
@@ -648,12 +649,18 @@
     while (tries < Math.max(1, correctDeck.length)) {
       if (deckPos >= correctDeck.length) refillCorrectDeck(diffKey);
       candidate = correctDeck[deckPos++];
-      if (!recentCorrectIds.includes(candidate.id)) break;
+      if (!recentCorrectIds.includes(candidate.id) && !levelUsedIds.has(candidate.id)) break;
+      candidate = null;
       tries += 1;
     }
-    if (!candidate) candidate = utils.choice(pool);
+    if (!candidate) {
+      // All pool items used this level — reset and pick freely
+      levelUsedIds.clear();
+      candidate = utils.choice(pool);
+    }
     recentCorrectIds.push(candidate.id);
     if (recentCorrectIds.length > recentCorrectLimit) recentCorrectIds.shift();
+    levelUsedIds.add(candidate.id);
     return candidate;
   }
 
@@ -697,6 +704,7 @@
     await meta.showResults(Object.assign(session.buildResultsPayload(), { nextLevelVariant: levelDirection }));
     syncCheckpointState();
     preparedTasks = [];
+    levelUsedIds = new Set();
     stopBackgroundEmojiWarmup();
     session.beginLevel();
     running = true;
@@ -1215,6 +1223,7 @@
     correctDeckLanguageId = "";
     deckPos = 0;
     recentCorrectIds = [];
+    levelUsedIds = new Set();
     preparedTasks = [];
     renderedTaskUi = null;
     stopBackgroundEmojiWarmup();

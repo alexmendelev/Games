@@ -105,6 +105,7 @@
   let prevCorrectIdx = -1;
   let task = null;
   let questionCount = 0;
+  let usedTaskKeys = new Set();
   const spawnYOffsetRatio = 0.35;
   let assetsReadyPromise = null;
   let levelPausePending = false;
@@ -242,6 +243,7 @@
     await meta.showResults(session.buildResultsPayload());
     syncCheckpointState();
     session.beginLevel();
+    usedTaskKeys = new Set();
     running = true;
     paused = false;
     levelPausePending = false;
@@ -305,12 +307,14 @@
       }
       return {
         answer,
-        text: `${a}+${b}`
+        text: `${a}+${b}`,
+        key: `+${Math.min(a, b)}_${Math.max(a, b)}`
       };
     }
     return {
       answer: 2,
-      text: "1+1"
+      text: "1+1",
+      key: "+1_1"
     };
   }
 
@@ -334,12 +338,14 @@
       }
       return {
         answer,
-        text: `${a}-${b}`
+        text: `${a}-${b}`,
+        key: `-${a}_${b}`
       };
     }
     return {
       answer: 1,
-      text: "2-1"
+      text: "2-1",
+      key: "-2_1"
     };
   }
 
@@ -374,22 +380,29 @@
     };
   }
 
+  function buildOneTask(profile) {
+    const op = utils.choice(profile.operations || ["+"]);
+    if (op === "+") return buildAdditionTask(profile);
+    if (op === "-") return buildSubtractionTask(profile);
+    if (op === "*" && profile.allowMultiplication) return buildMultiplicationTask(profile);
+    if (op === "/" && profile.allowDivision) return buildDivisionTask(profile);
+    return buildAdditionTask(profile);
+  }
+
   function buildDifficultyTask() {
     const profile = currentDifficultyProfile();
-    const op = utils.choice(profile.operations || ["+"]);
-    if (op === "+") {
-      return buildAdditionTask(profile);
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      const built = buildOneTask(profile);
+      if (!usedTaskKeys.has(built.key)) {
+        usedTaskKeys.add(built.key);
+        return built;
+      }
     }
-    if (op === "-") {
-      return buildSubtractionTask(profile);
-    }
-    if (op === "*" && profile.allowMultiplication) {
-      return buildMultiplicationTask(profile);
-    }
-    if (op === "/" && profile.allowDivision) {
-      return buildDivisionTask(profile);
-    }
-    return buildAdditionTask(profile);
+    // All reachable combinations used — reset and pick freely
+    usedTaskKeys.clear();
+    const built = buildOneTask(profile);
+    usedTaskKeys.add(built.key);
+    return built;
   }
 
   function buildDifficultyWrongs(correct) {
@@ -624,6 +637,7 @@
     session.beginLevel();
     prevCorrectIdx = -1;
     questionCount = 0;
+    usedTaskKeys = new Set();
     bh.setMascot("idle");
     falling.stop("start-reset");
     running = true;
