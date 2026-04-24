@@ -37,6 +37,7 @@ window.GAME_V2_WORDS_CONFIG = {
   difficulties: {
     easy: {
       label: "Easy",
+      maxFrequency: 1,
       maxWordLength: 3,
       minWordLength: 2,
       wordPool: {
@@ -75,6 +76,7 @@ window.GAME_V2_WORDS_CONFIG = {
     },
     medium: {
       label: "Medium",
+      maxFrequency: 2,
       maxWordLength: 5,
       minWordLength: 3,
       wordPool: {
@@ -237,6 +239,7 @@ window.GAME_V2_WORDS_CONFIG = {
     },
     hard: {
       label: "Hard",
+      maxFrequency: 3,
       maxWordLength: 7,
       minWordLength: 5,
       wordPool: {
@@ -253,6 +256,7 @@ window.GAME_V2_WORDS_CONFIG = {
     },
     super: {
       label: "Super",
+      maxFrequency: 4,
       maxWordLength: Infinity,
       minWordLength: 7,
       wordPool: {
