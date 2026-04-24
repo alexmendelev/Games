@@ -30,43 +30,41 @@ title: Math
 ### Easy
 
 - addition only
-- small numbers, mainly up to `5`
-- results up to `10`
-- no negatives
-- no multiplication or division
+- operands `[1–5] + [1–5]`, results up to `10`
+- no negatives, no multiplication or division
 - distractors are friendlier and more separated
 
 ### Medium
 
 - addition and subtraction
-- operands/results up to `10`
-- no negative results
-- no multiplication or division
+- addition: `[1–10] + [1–10]`, results up to `20`
+- subtraction: `[2–20] − [1–10]`, results up to `20`
+- no negative results, no multiplication or division
 - this is the first mixed-arithmetic level
-- distractors stay fairly friendly
 
 ### Hard
 
-- addition and subtraction
-- operands/results up to `20`
-- allows carry / borrow style cases
-- no negative results
-- no multiplication or division
-- distractors can sit closer to the right answer
+- addition and subtraction, two-digit arithmetic
+- addition: `[10–49] + [10–49]`, results up to `98`
+- subtraction: `[20–79] − [10–49]`
+- carrying and borrowing are common at this range
+- no negative results, no multiplication or division
+- distractors sit closer to the right answer
 
 ### Super
 
-- addition, subtraction, multiplication, and division
-- multiplication/division stay small and child-friendly
-- division uses clean integer results only
-- no negatives in V1
-- distractors are tighter than the lower levels
+- addition and subtraction only (multiplication and division are the Multiply game's domain)
+- addition: `[25–75] + [15–75]`, results up to `99`
+- subtraction: `[30–99] − [11–79]`
+- hardest two-digit combinations; carrying/borrowing almost always required
+- no negatives
+- tightest distractors
 
 ## Generation Notes
 
 - addition and subtraction avoid `+0` and `-0`
-- subtraction never produces a negative answer in V1
-- multiplication and division appear only on `super`
+- subtraction swaps operands if needed to prevent negative answers
+- no task repeats within a level — seen pairs are tracked per level and reset between levels; `a+b` and `b+a` count as the same task
 - wrong answers come from a per-difficulty distractor config instead of stage-based spread
 
 ## Adaptive Difficulty

@@ -704,7 +704,6 @@
     await meta.showResults(Object.assign(session.buildResultsPayload(), { nextLevelVariant: levelDirection }));
     syncCheckpointState();
     preparedTasks = [];
-    levelUsedIds = new Set();
     stopBackgroundEmojiWarmup();
     session.beginLevel();
     running = true;

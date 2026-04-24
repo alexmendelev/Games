@@ -1,0 +1,123 @@
+filename	category	english	hebrew	russian
+animal-mammoth.png	animal	mammoth	מאמות	мамонт
+animal-walrus.png	animal	walrus	ולרוס	морж
+animal-narwhal.png	animal	narwhal	נרוואל	нарвал
+animal-seal.png	animal	seal	כלב ים	тюлень
+animal-meerkat.png	animal	meerkat	סוריקטה	сурикат
+animal-mongoose.png	animal	mongoose	מנגוסטה	мангуст
+animal-armadillo.png	animal	armadillo	ארמדילו	броненосец
+animal-capybara.png	animal	capybara	קאפיבארה	капибара
+animal-pangolin.png	animal	pangolin	פנגולין	панголин
+bird-toucan.png	bird	toucan	טוקן	тукан
+bird-puffin.png	bird	puffin	פאפין	тупик
+bird-stork.png	bird	stork	חסידה	аист
+bird-albatross.png	bird	albatross	אלבטרוס	альбатрос
+bird-cardinal.png	bird	cardinal	קרדינל	кардинал
+bird-kookaburra.png	bird	kookaburra	קוקאבורה	кукабарра
+bird-pelican.png	bird	pelican	פליקן	пеликан
+bird-dodo.png	bird	dodo	דודו	додо
+reptile_amphibian_sea_insect-jellyfish.png	reptile_amphibian_sea_insect	jellyfish	מדוזה	медуза
+reptile_amphibian_sea_insect-dragonfly.png	reptile_amphibian_sea_insect	dragonfly	שפירית	стрекоза
+reptile_amphibian_sea_insect-iguana.png	reptile_amphibian_sea_insect	iguana	איגואנה	игуана
+reptile_amphibian_sea_insect-chameleon.png	reptile_amphibian_sea_insect	chameleon	זיקית	хамелеон
+reptile_amphibian_sea_insect-cobra.png	reptile_amphibian_sea_insect	cobra	קוברה	кобра
+reptile_amphibian_sea_insect-alligator.png	reptile_amphibian_sea_insect	alligator	אליגטור	аллигатор
+reptile_amphibian_sea_insect-salamander.png	reptile_amphibian_sea_insect	salamander	סלמנדרה	саламандра
+reptile_amphibian_sea_insect-piranha.png	reptile_amphibian_sea_insect	piranha	פירנייה	пиранья
+reptile_amphibian_sea_insect-tarantula.png	reptile_amphibian_sea_insect	tarantula	טרנטולה	тарантул
+reptile_amphibian_sea_insect-firefly.png	reptile_amphibian_sea_insect	firefly	גחלילית	светлячок
+reptile_amphibian_sea_insect-manta_ray.png	reptile_amphibian_sea_insect	manta ray	מנטה	манта
+reptile_amphibian_sea_insect-clownfish.png	reptile_amphibian_sea_insect	clownfish	דג ליצן	рыба-клоун
+food_plant_kitchen-blueberry.png	food_plant_kitchen	blueberry	אוכמניה	черника
+food_plant_kitchen-cherry.png	food_plant_kitchen	cherry	דובדבן	вишня
+food_plant_kitchen-mango.png	food_plant_kitchen	mango	מנגו	манго
+food_plant_kitchen-kiwi.png	food_plant_kitchen	kiwi	קיווי	киви
+food_plant_kitchen-fig.png	food_plant_kitchen	fig	תאנה	инжир
+food_plant_kitchen-pomegranate.png	food_plant_kitchen	pomegranate	רימון	гранат
+food_plant_kitchen-raspberry.png	food_plant_kitchen	raspberry	פטל	малина
+food_plant_kitchen-corn.png	food_plant_kitchen	corn	תירס	кукуруза
+food_plant_kitchen-eggplant.png	food_plant_kitchen	eggplant	חציל	баклажан
+food_plant_kitchen-pumpkin.png	food_plant_kitchen	pumpkin	דלעת	тыква
+food_plant_kitchen-peas.png	food_plant_kitchen	peas	אפונה	горох
+food_plant_kitchen-cabbage.png	food_plant_kitchen	cabbage	כרוב	капуста
+food_plant_kitchen-asparagus.png	food_plant_kitchen	asparagus	אספרגוס	спаржа
+food_plant_kitchen-pretzel.png	food_plant_kitchen	pretzel	פרצל	крендель
+food_plant_kitchen-cupcake.png	food_plant_kitchen	cupcake	קאפקייק	капкейк
+food_plant_kitchen-popcorn.png	food_plant_kitchen	popcorn	פופקורן	попкорн
+food_plant_kitchen-hot_dog.png	food_plant_kitchen	hot dog	נקניקייה	хот-дог
+food_plant_kitchen-lemonade.png	food_plant_kitchen	lemonade	לימונדה	лимонад
+food_plant_kitchen-ice_cream.png	food_plant_kitchen	ice cream	גלידה	мороженое
+food_plant_kitchen-chocolate.png	food_plant_kitchen	chocolate	שוקולד	шоколад
+food_plant_kitchen-steak.png	food_plant_kitchen	steak	סטייק	стейк
+food_plant_kitchen-noodles.png	food_plant_kitchen	noodles	אטריות	лапша
+food_plant_kitchen-omelet.png	food_plant_kitchen	omelet	חביתה	омлет
+food_plant_kitchen-bun.png	food_plant_kitchen	bun	לחמנייה	булочка
+music_instruments-guitar.png	music_instruments	guitar	גיטרה	гитара
+music_instruments-piano.png	music_instruments	piano	פסנתר	пианино
+music_instruments-violin.png	music_instruments	violin	כינור	скрипка
+music_instruments-drum.png	music_instruments	drum	תוף	барабан
+music_instruments-harp.png	music_instruments	harp	נבל	арфа
+music_instruments-flute.png	music_instruments	flute	חליל	флейта
+music_instruments-trumpet.png	music_instruments	trumpet	חצוצרה	труба
+music_instruments-clarinet.png	music_instruments	clarinet	קלרינט	кларнет
+music_instruments-trombone.png	music_instruments	trombone	טרומבון	тромбон
+music_instruments-saxophone.png	music_instruments	saxophone	סקסופון	саксофон
+music_instruments-accordion.png	music_instruments	accordion	אקורדיון	аккордеон
+music_instruments-xylophone.png	music_instruments	xylophone	קסילופון	ксилофон
+music_instruments-ukulele.png	music_instruments	ukulele	אוקולילה	укулеле
+music_instruments-banjo.png	music_instruments	banjo	בנג'ו	банджо
+music_instruments-tambourine.png	music_instruments	tambourine	תמבורין	тамбурин
+music_instruments-microphone.png	music_instruments	microphone	מיקרופון	микрофон
+music_instruments-headphones.png	music_instruments	headphones	אוזניות	наушники
+sports_games-skateboard.png	sports_games	skateboard	סקייטבורד	скейтборд
+sports_games-snowboard.png	sports_games	snowboard	סנובורד	сноуборд
+sports_games-badminton.png	sports_games	badminton	בדמינטון	бадминтон
+sports_games-basketball.png	sports_games	basketball	כדורסל	баскетбол
+sports_games-baseball.png	sports_games	baseball	בייסבול	бейсбол
+sports_games-volleyball.png	sports_games	volleyball	כדורעף	волейбол
+sports_games-bowling.png	sports_games	bowling	באולינג	боулинг
+sports_games-gymnastics.png	sports_games	gymnastics	התעמלות	гимнастика
+sports_games-wrestling.png	sports_games	wrestling	היאבקות	борьба
+sports_games-boxing.png	sports_games	boxing	אגרוף	бокс
+sports_games-archery.png	sports_games	archery	קשתות	стрельба из лука
+sports_games-chess.png	sports_games	chess	שחמט	шахматы
+sports_games-frisbee.png	sports_games	frisbee	פריסבי	фрисби
+sports_games-darts.png	sports_games	darts	דרטס	дартс
+sports_games-kayaking.png	sports_games	kayaking	קייקינג	каякинг
+sports_games-ping_pong.png	sports_games	ping pong	פינג פונג	пинг-понг
+science_space-telescope.png	science_space	telescope	טלסקופ	телескоп
+science_space-microscope.png	science_space	microscope	מיקרוסקופ	микроскоп
+science_space-robot.png	science_space	robot	רובוט	робот
+science_space-satellite.png	science_space	satellite	לוויין	спутник
+science_space-astronaut.png	science_space	astronaut	אסטרונאוט	космонавт
+science_space-asteroid.png	science_space	asteroid	אסטרואיד	астероид
+science_space-comet.png	science_space	comet	שביט	комета
+science_space-calculator.png	science_space	calculator	מחשבון	калькулятор
+science_space-abacus.png	science_space	abacus	חשבונייה	счёты
+transport-scooter.png	transport	scooter	קורקינט	самокат
+transport-bulldozer.png	transport	bulldozer	בולדוזר	бульдозер
+transport-submarine.png	transport	submarine	צוללת	подводная лодка
+transport-gondola.png	transport	gondola	גונדולה	гондола
+transport-snowmobile.png	transport	snowmobile	מוטוסלג	снегоход
+transport-fire_truck.png	transport	fire truck	כבאית	пожарная машина
+transport-cable_car.png	transport	cable car	רכבל	канатная дорога
+places_city_objects-aquarium.png	places_city_objects	aquarium	אקווריום	аквариум
+places_city_objects-museum.png	places_city_objects	museum	מוזיאון	музей
+places_city_objects-theater.png	places_city_objects	theater	תיאטרון	театр
+places_city_objects-stadium.png	places_city_objects	stadium	אצטדיון	стадион
+places_city_objects-pyramid.png	places_city_objects	pyramid	פירמידה	пирамида
+places_city_objects-lighthouse.png	places_city_objects	lighthouse	מגדלור	маяк
+places_city_objects-windmill.png	places_city_objects	windmill	טחנת רוח	ветряная мельница
+places_city_objects-igloo.png	places_city_objects	igloo	איגלו	иглу
+clothing-glasses.png	clothing	glasses	משקפיים	очки
+clothing-suitcase.png	clothing	suitcase	מזוודה	чемодан
+clothing-kimono.png	clothing	kimono	קימונו	кимоно
+clothing-necklace.png	clothing	necklace	שרשרת	ожерелье
+clothing-helmet.png	clothing	helmet	קסדה	шлем
+clothing-crown.png	clothing	crown	כתר	корона
+nature_weather-seashell.png	nature_weather	seashell	קונכייה	ракушка
+nature_weather-tornado.png	nature_weather	tornado	טורנדו	торнадо
+nature_weather-coral.png	nature_weather	coral	אלמוג	коралл
+nature_weather-volcano.png	nature_weather	volcano	וולקן	вулкан
+nature_weather-palm_tree.png	nature_weather	palm tree	דקל	пальма
+nature_weather-rainbow.png	nature_weather	rainbow	קשת	радуга

@@ -31,26 +31,29 @@ title: Multiply
 
 ### Easy
 
-- factor range `1..4`
+- factor range `1..5`
+- preferred factors `[1, 2, 5]` at 70% bias — builds on pattern tables (skip-counting by 1, 2, 5)
 - wide and friendlier distractors
 
 ### Medium
 
 - factor range `2..7`
+- preferred factors `[2, 3, 4, 5]` at 60% bias — solidifies the foundational tables
 - moderate distractors
 - no `1×n` or `n×1`
 
 ### Hard
 
 - factor range `2..10`
+- preferred factors `[6, 7, 8, 9]` at 70% bias — the tables children universally find hardest
 - tighter, more plausible distractors
 - no `1×n` or `n×1`
 
 ### Super
 
 - factor range `2..12`
+- preferred factors `[7, 8, 9, 12]` at 80% bias — hardest combinations plus the 12-times table
 - tight distractors
-- generation can bias toward harder factors such as `6`, `7`, `8`, `9`, and `12`
 - no `1×n` or `n×1`
 
 ## Level Goals
@@ -59,6 +62,11 @@ title: Multiply
 - `medium`: `10` correct in `75s`
 - `hard`: `12` correct in `90s`
 - `super`: `14` correct in `90s`
+
+## Generation Notes
+
+- the same factor pair is never repeated within a level — `a×b` and `b×a` count as the same task and are deduplicated
+- after 60 failed attempts to find a fresh pair (pool exhausted) the seen-set is cleared and generation continues freely
 
 ## Useful Dev Notes
 
