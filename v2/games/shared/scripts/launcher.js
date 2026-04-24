@@ -225,6 +225,7 @@
       if (audio.readyState >= 2) {
         resolve();
       }
+      setTimeout(resolve, 8000);
     });
   }
 
