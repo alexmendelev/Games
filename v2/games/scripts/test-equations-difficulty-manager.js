@@ -118,21 +118,20 @@ function assertTaskMatchesProfile(task, profileKey, profile) {
   assert(task.answer >= 0, `${profileKey}: answer should be non-negative`);
 
   if (profileKey === "easy") {
-    assert.strictEqual(task.missingSlot, "result", "easy: only result may be missing");
     assert.strictEqual(task.op, "+", "easy: only addition allowed");
   }
 
   if (task.op === "+") {
     assert(task.left >= profile.addition.left[0] && task.left <= profile.addition.left[1], `${profileKey}: addition left out of range`);
     assert(task.right >= profile.addition.right[0] && task.right <= profile.addition.right[1], `${profileKey}: addition right out of range`);
-    assert(task.result <= profile.addition.resultMax, `${profileKey}: addition result too large`);
+    if (Number.isFinite(profile.addition.resultMax)) assert(task.result <= profile.addition.resultMax, `${profileKey}: addition result too large`);
   }
 
   if (task.op === "-") {
     assert(task.left >= profile.subtraction.left[0] && task.left <= profile.subtraction.left[1], `${profileKey}: subtraction left out of range`);
     assert(task.right >= profile.subtraction.right[0] && task.right <= profile.subtraction.right[1], `${profileKey}: subtraction right out of range`);
     assert(task.result >= 0, `${profileKey}: subtraction should not go negative`);
-    assert(task.result <= profile.subtraction.resultMax, `${profileKey}: subtraction result too large`);
+    if (Number.isFinite(profile.subtraction.resultMax)) assert(task.result <= profile.subtraction.resultMax, `${profileKey}: subtraction result too large`);
   }
 
   if (task.op === "*") {

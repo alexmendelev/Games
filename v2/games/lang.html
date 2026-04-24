@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Language Debug</title></head>
+<body>
+<pre id="out"></pre>
+<script>
+var out = document.getElementById("out");
+out.textContent =
+  "navigator.language:  " + navigator.language + "\n" +
+  "navigator.languages: " + JSON.stringify(Array.from(navigator.languages || [])) + "\n\n" +
+  "localStorage games_v3_meta_state_v1:\n" +
+  (localStorage.getItem("games_v3_meta_state_v1") || "(empty)");
+</script>
+</body>
+</html>

@@ -384,8 +384,11 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     const primaryLabel = isResults
       ? copy.continueLevel(snapshot.nextLevel, difficultyText)
       : copy.startLevel(snapshot.nextLevel, difficultyText);
+    var _lvhImgIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 24'%3E%3Crect width='28' height='24' rx='3' fill='%234895ef'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23FFE566'/%3E%3Cpath d='M0 18 L8 11 L14 16 L20 10 L28 17 L28 24 L0 24Z' fill='%23fff' opacity='.88'/%3E%3C/svg%3E";
+    var _lvhAbcIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 24'%3E%3Crect width='28' height='24' rx='3' fill='%23e8edf8'/%3E%3Ctext x='14' y='18' font-family='Georgia%2Cserif' font-size='14' font-weight='bold' text-anchor='middle' fill='%231a2a5e'%3EAa%3C/text%3E%3C/svg%3E";
+    var _lvhIcon = safeOptions.levelVariant === "image-to-word" ? _lvhImgIcon : _lvhAbcIcon;
     const levelVariantHint = safeOptions.levelVariant
-      ? "<span class=\"levelVariantHint\">" + (safeOptions.levelVariant === "image-to-word" ? "\uD83D\uDDBC\uFE0F \u2192 \uD83D\uDD24" : "\uD83D\uDD24 \u2192 \uD83D\uDDBC\uFE0F") + "</span>"
+      ? " <img class=\"levelVariantHint\" src=\"" + _lvhIcon + "\" alt=\"\" aria-hidden=\"true\">"
       : "";
     const leaderboardSource = resultContext && Array.isArray(resultContext.afterRanks) && resultContext.afterRanks.length
       ? resultContext.afterRanks

@@ -115,6 +115,7 @@
   let prevCorrectIdx = -1;
   let task = null;
   let questionCount = 0;
+  let usedTaskKeys = new Set();
   const spawnYOffsetRatio = 0.35;
   let assetsReadyPromise = null;
   let levelPausePending = false;
@@ -243,6 +244,7 @@
     await meta.showResults(session.buildResultsPayload());
     syncCheckpointState();
     session.beginLevel();
+    usedTaskKeys = new Set();
     running = true;
     paused = false;
     levelPausePending = false;
@@ -311,17 +313,31 @@
 
   function buildMultiplyTask() {
     const profile = currentDifficultyProfile();
+    const blockEasyFactors = selected !== "easy";
+
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      let a = pickFactor(profile);
+      let b = pickFactor(profile);
+      if (blockEasyFactors) {
+        a = Math.max(2, a);
+        b = Math.max(2, b);
+      }
+      const key = `${Math.min(a, b)}_${Math.max(a, b)}`;
+      if (!usedTaskKeys.has(key)) {
+        usedTaskKeys.add(key);
+        return { answer: a * b, text: `${a}\u00d7${b}` };
+      }
+    }
+    // All reachable combinations used \u2014 reset and pick freely
+    usedTaskKeys.clear();
     let a = pickFactor(profile);
     let b = pickFactor(profile);
-    const blockEasyFactors = selected !== "easy";
     if (blockEasyFactors) {
       a = Math.max(2, a);
       b = Math.max(2, b);
     }
-    return {
-      answer: a * b,
-      text: `${a}\u00d7${b}`
-    };
+    usedTaskKeys.add(`${Math.min(a, b)}_${Math.max(a, b)}`);
+    return { answer: a * b, text: `${a}\u00d7${b}` };
   }
 
   function buildDifficultyWrongs(correct) {
@@ -438,7 +454,7 @@
       }
     }
 
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    tileEl.style.transform = `translate3d(${Math.round(task.x)}px, ${Math.round(task.y)}px, 0)`;
     syncWaterReflection(task, rectArg);
   }
 
@@ -552,6 +568,7 @@
     session.beginLevel();
     prevCorrectIdx = -1;
     questionCount = 0;
+    usedTaskKeys = new Set();
     bh.setMascot("idle");
     falling.stop("start-reset");
     running = true;

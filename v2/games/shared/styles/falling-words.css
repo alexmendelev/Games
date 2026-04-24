@@ -34,7 +34,6 @@
   opacity: 0;
   transition: opacity 0.12s ease;
   pointer-events: none;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
 }
 
 .tile-image.is-ready {
@@ -56,7 +55,7 @@
   width: 100%;
   height: 100%;
   overflow-wrap: break-word;
-  word-break: break-word;
+  word-break: normal;
   text-align: center;
   line-height: 1.15;
   padding: 4px 6px;
@@ -64,8 +63,19 @@
 }
 
 .answers.image-word-mode .ans {
-  font-size: max(calc(var(--g2-answer-font-size, calc(22px * var(--ui, 1))) * 0.52), calc(14px * var(--ui, 1)));
+  width: 100% !important;
+  height: 100% !important;
+  font-size: calc(42px * var(--ui, 1));
   font-weight: 700;
+}
+
+html[data-layout-orientation="landscape"] .answers.image-word-mode {
+  --g2-answer-cols: 1 !important;
+  --g2-answer-rows: 4 !important;
+}
+
+html[data-layout-orientation="landscape"] .answers.image-word-mode .ans {
+  font-size: calc(32px * var(--ui, 1));
 }
 
 .answers[data-answer-type="FourLargeCards"] .ans {

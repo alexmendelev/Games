@@ -122,12 +122,12 @@
     return shell.responsiveTabletMetrics({
       baseWidth: cfg.gameplay.tileWBase,
       baseHeight: cfg.gameplay.tileHBase,
-      widthRatio: 0.58,
-      minWidth: 210 * ui,
+      widthRatio: 0.72,
+      minWidth: 280 * ui,
       maxWidth: cfg.gameplay.tileWBase * ui,
-      fontScale: 0.16,
-      fontMin: 34 * ui,
-      fontMax: 56 * ui,
+      fontScale: 0.14,
+      fontMin: 28 * ui,
+      fontMax: 46 * ui,
       paddingScale: 0.06,
       paddingMin: 12 * ui,
       paddingMax: 24 * ui
@@ -528,7 +528,7 @@
       }
     }
 
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    tileEl.style.transform = `translate3d(${Math.round(task.x)}px, ${Math.round(task.y)}px, 0)`;
     syncWaterReflection(task, rectArg);
   }
 

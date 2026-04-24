@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Language Debug</title></head>
+<body>
+<pre id="out"></pre>
+<script>
+function detectBrowserLanguage() {
+  try {
+    var langs = (navigator.languages && navigator.languages.length)
+      ? Array.from(navigator.languages)
+      : [navigator.language || ""];
+    for (var i = 0; i < langs.length; i++) {
+      var prefix = langs[i].split("-")[0].toLowerCase();
+      if (prefix === "he") return "he";
+      if (prefix === "en") return "en";
+      if (prefix === "ru") return "ru";
+    }
+  } catch (e) { return "error: " + e; }
+  return "he (fallback)";
+}
+
+var stored = localStorage.getItem("games_v3_meta_state_v1");
+var storedLang = "(no stored state)";
+if (stored) {
+  try { storedLang = JSON.parse(stored).player.language; } catch(e) { storedLang = "parse error"; }
+}
+
+document.getElementById("out").textContent =
+  "navigator.language:       " + navigator.language + "\n" +
+  "navigator.languages:      " + JSON.stringify(Array.from(navigator.languages || [])) + "\n" +
+  "detectBrowserLanguage():  " + detectBrowserLanguage() + "\n\n" +
+  "stored state:             " + (stored || "(empty)") + "\n\n" +
+  "stored language:          " + storedLang;
+</script>
+</body>
+</html>

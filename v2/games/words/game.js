@@ -92,6 +92,7 @@
   let correctDeckLanguageId = "";
   let deckPos = 0;
   let recentCorrectIds = [];
+  let levelUsedIds = new Set();
   let emojiPoolsLanguageId = "";
   let selected = meta.getSelectedDiff();
   const session = sessionApi.createArcadeSession({
@@ -108,7 +109,8 @@
   let levelProgressTarget = 1;
   let task = null;
   let questionCount = 0;
-  let levelDirection = "word-to-image";
+  let levelDirection = "image-to-word";
+  meta.showStart({ levelVariant: levelDirection });
   let preparedTasks = [];
   let backgroundEmojiQueue = [];
   let backgroundEmojiTimer = 0;
@@ -170,8 +172,6 @@
       tileEl.removeAttribute("data-reward");
       tileEl.style.width = "";
       tileEl.style.height = "";
-      clearMysteryMode();
-      clearImageWordMode();
       tileEl.style.transform = "";
       shell.hideWaterReflection();
     }
@@ -308,10 +308,10 @@
     tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery", "tile--image-mode");
     tileEl.style.width = "";
     tileEl.style.height = "";
-    clearMysteryMode();
-    clearImageWordMode();
 
     if (nextTask.mystery) {
+      clearMysteryMode();
+      clearImageWordMode();
       tileTextEl.textContent = nextTask.word;
       tileEl.setAttribute("lang", nextTask.wordLang || "he");
       tileEl.setAttribute("dir", nextTask.wordDir || "ltr");
@@ -335,6 +335,7 @@
     }
 
     if (nextTask.direction === "image-to-word") {
+      clearMysteryMode();
       tileTextEl.textContent = "";
       tileEl.removeAttribute("lang");
       tileEl.removeAttribute("dir");
@@ -368,6 +369,8 @@
     }
 
     // word-to-image (default)
+    clearMysteryMode();
+    clearImageWordMode();
     tileTextEl.textContent = nextTask.word;
     tileEl.setAttribute("lang", nextTask.wordLang || "he");
     tileEl.setAttribute("dir", nextTask.wordDir || "rtl");
@@ -646,12 +649,18 @@
     while (tries < Math.max(1, correctDeck.length)) {
       if (deckPos >= correctDeck.length) refillCorrectDeck(diffKey);
       candidate = correctDeck[deckPos++];
-      if (!recentCorrectIds.includes(candidate.id)) break;
+      if (!recentCorrectIds.includes(candidate.id) && !levelUsedIds.has(candidate.id)) break;
+      candidate = null;
       tries += 1;
     }
-    if (!candidate) candidate = utils.choice(pool);
+    if (!candidate) {
+      // All pool items used this level — reset and pick freely
+      levelUsedIds.clear();
+      candidate = utils.choice(pool);
+    }
     recentCorrectIds.push(candidate.id);
     if (recentCorrectIds.length > recentCorrectLimit) recentCorrectIds.shift();
+    levelUsedIds.add(candidate.id);
     return candidate;
   }
 
@@ -691,10 +700,11 @@
     paused = false;
     pauseBtn.classList.remove("paused");
     session.finishLevel();
-    levelDirection = Math.random() < 0.5 ? "word-to-image" : "image-to-word";
+    levelDirection = levelDirection === "word-to-image" ? "image-to-word" : "word-to-image";
     await meta.showResults(Object.assign(session.buildResultsPayload(), { nextLevelVariant: levelDirection }));
     syncCheckpointState();
     preparedTasks = [];
+    levelUsedIds = new Set();
     stopBackgroundEmojiWarmup();
     session.beginLevel();
     running = true;
@@ -1081,8 +1091,25 @@
         applyTaskUi(task);
       }
     }
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    tileEl.style.transform = `translate3d(${Math.round(task.x)}px, ${Math.round(task.y)}px, 0)`;
     syncWaterReflection(task, rectArg);
+  }
+
+  function trySetItem(prepared, token) {
+    if (token !== spawnRequestToken || !running || falling.getItem()) {
+      return null;
+    }
+    task = falling.setItem(prepared.task, "spawn");
+    refreshBackgroundEmojiWarmup();
+    return task;
+  }
+
+  function recoverSpawn(token) {
+    if (token !== spawnRequestToken || !running || falling.getItem()) {
+      return;
+    }
+    task = falling.spawn();
+    refreshBackgroundEmojiWarmup();
   }
 
   function spawnPreparedTask(prepared, token) {
@@ -1093,26 +1120,16 @@
     }
     if (prepared.ready) {
       return applyTaskUi(prepared.task).then(() => {
-        if (token !== spawnRequestToken || !running || falling.getItem()) {
-          return null;
-        }
-        task = falling.setItem(prepared.task, "spawn");
-        refreshBackgroundEmojiWarmup();
-        return task;
-      });
+        return trySetItem(prepared, token);
+      }).catch(() => recoverSpawn(token));
     }
     task = null;
     refreshBackgroundEmojiWarmup();
     return prepared.readyPromise.then(() => {
       return applyTaskUi(prepared.task);
     }).then(() => {
-      if (token !== spawnRequestToken || !running || falling.getItem()) {
-        return null;
-      }
-      task = falling.setItem(prepared.task, "spawn");
-      refreshBackgroundEmojiWarmup();
-      return task;
-    });
+      return trySetItem(prepared, token);
+    }).catch(() => recoverSpawn(token));
   }
 
   function spawnTask() {
@@ -1131,7 +1148,7 @@
     if (!currentTask) return;
     const drownX = currentTask.x + currentTask.width / 2;
     const missOutcome = session.handleMiss();
-    playMascotShame();
+    bh.playMascotShame();
     audio.sfx.splash();
     playSplash(drownX);
     if (missOutcome.levelComplete) {
@@ -1206,6 +1223,7 @@
     correctDeckLanguageId = "";
     deckPos = 0;
     recentCorrectIds = [];
+    levelUsedIds = new Set();
     preparedTasks = [];
     renderedTaskUi = null;
     stopBackgroundEmojiWarmup();
@@ -1217,7 +1235,10 @@
   async function startGame() {
     resetState();
     let firstPrepared = takeStartupPreparedTask();
-    if (firstPrepared && firstPrepared.task && firstPrepared.task.mystery) {
+    if (firstPrepared && firstPrepared.task && (
+      firstPrepared.task.mystery ||
+      firstPrepared.task.direction !== levelDirection
+    )) {
       firstPrepared = null;
     }
     if (!firstPrepared) {
