@@ -60,9 +60,9 @@ Word lengths are counted in the active display language (e.g., Hebrew letter cou
 
 ## Generation Notes
 
-- the same word is never shown twice in the same level — a `levelUsedIds` set is cleared at the start of each level
-- after 10 failed attempts to find an unused, non-recent word the used-set is cleared and selection continues freely
-- the `recentCorrectIds` sliding window (last 8) prevents the same word from repeating in consecutive questions even across the no-repeat reset
+- the same word is never shown twice in the same session until the whole pool is exhausted — `levelUsedIds` accumulates across levels and only resets when the pool runs out
+- when the pool is exhausted the used-set is cleared and the cycle starts fresh
+- the `recentCorrectIds` sliding window (last 8) additionally prevents the same word from appearing in back-to-back questions across the exhaustion reset
 
 ## Useful Dev Notes
 
