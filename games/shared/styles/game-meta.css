@@ -956,6 +956,16 @@
   opacity: 0.78;
 }
 
+img.levelVariantHint {
+  display: inline;
+  vertical-align: middle;
+  width: 1.6em;
+  height: auto;
+  border-radius: 3px;
+  margin-inline-start: 0.35em;
+  opacity: 0.92;
+}
+
 .metaSettingsStack {
   display: grid;
   gap: calc(18px * var(--ui, 1));
@@ -970,13 +980,23 @@
   overflow: auto;
   padding-inline-end: calc(4px * var(--ui, 1));
   gap: calc(20px * var(--ui, 1));
+  container-type: inline-size;
 }
 
 .metaSettingsTop {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-areas: "language sound";
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "language sound mystery";
   gap: calc(18px * var(--ui, 1));
+}
+
+@container (max-width: 500px) {
+  .metaSettingsTop {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "language language"
+      "sound mystery";
+  }
 }
 
 .metaSettingPanel--language {
@@ -985,6 +1005,10 @@
 
 .metaSettingPanel--sound {
   grid-area: sound;
+}
+
+.metaSettingPanel--mystery {
+  grid-area: mystery;
 }
 
 .metaSettingsTop .metaSettingPanel {
@@ -1871,7 +1895,13 @@ html[dir="rtl"] .metaLeaderboardCoinIcon,
     row-gap: calc(12px * var(--ui, 1));
   }
 
-  .metaSettingsTop,
+  .metaSettingsTop {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "language language"
+      "sound mystery";
+  }
+
   .metaDifficultyColumns {
     grid-template-columns: 1fr;
   }
@@ -4849,7 +4879,13 @@ html[data-dashboard-aspect-band="portrait-narrow"] .metaCard--dashboard-results 
     row-gap: calc(10px * var(--ui, 1));
   }
 
-  .metaSettingsTop,
+  .metaSettingsTop {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "language language"
+      "sound mystery";
+  }
+
   .metaDifficultyColumns {
     grid-template-columns: 1fr;
   }

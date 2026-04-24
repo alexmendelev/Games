@@ -156,6 +156,7 @@ function buildPinnedMetaState(options) {
         words: currentDifficulty
       },
       soundEnabled: false,
+      mysteryEnabled: false,
       diffBoundsByGame: {
         words: {
           min: minDifficulty,

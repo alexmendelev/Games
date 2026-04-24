@@ -85,6 +85,29 @@
   height: 68%;
 }
 
+.tile--mystery {
+  padding: 0;
+  position: relative;
+}
+
+.tile--mystery #tileShape {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile--mystery .mystery-question {
+  font-size: calc(56px * var(--ui, 1));
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
 @media (max-width: 640px) {
   .answers[data-answer-type="DenseOptionGrid"] .ans svg {
     width: min(100%, calc(42px * var(--ui, 1)));

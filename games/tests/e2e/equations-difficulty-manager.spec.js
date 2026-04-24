@@ -107,6 +107,7 @@ function buildPinnedMetaState(options) {
         equations: currentDifficulty
       },
       soundEnabled: false,
+      mysteryEnabled: false,
       diffBoundsByGame: {
         equations: {
           min: minDifficulty,

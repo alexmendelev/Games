@@ -96,13 +96,13 @@ function assertTaskMatchesProfile(task, profileKey, profile) {
   if (task.op === "+") {
     assert(task.left >= profile.addition.left[0] && task.left <= profile.addition.left[1], `${profileKey}: addition left out of range`);
     assert(task.right >= profile.addition.right[0] && task.right <= profile.addition.right[1], `${profileKey}: addition right out of range`);
-    assert(task.answer <= profile.addition.resultMax, `${profileKey}: addition result too large`);
+    if (Number.isFinite(profile.addition.resultMax)) assert(task.answer <= profile.addition.resultMax, `${profileKey}: addition result too large`);
   }
 
   if (task.op === "-") {
     assert(task.left >= profile.subtraction.left[0] && task.left <= profile.subtraction.left[1], `${profileKey}: subtraction left out of range`);
     assert(task.right >= profile.subtraction.right[0] && task.right <= profile.subtraction.right[1], `${profileKey}: subtraction right out of range`);
-    assert(task.answer <= profile.subtraction.resultMax, `${profileKey}: subtraction result too large`);
+    if (Number.isFinite(profile.subtraction.resultMax)) assert(task.answer <= profile.subtraction.resultMax, `${profileKey}: subtraction result too large`);
   }
 
   if (task.op === "*") {
@@ -139,7 +139,7 @@ function runMathDifficultyChecks() {
   const gameSource = fs.readFileSync(path.join(__dirname, "..", "math", "game.js"), "utf8");
   assert(gameSource.includes("function currentDifficultyProfile()"), "Math game should resolve an explicit difficulty profile");
   assert(gameSource.includes("return Object.assign(buildDifficultyTask(),"), "Math game should create tasks from the explicit difficulty generator");
-  assert(gameSource.includes("const answers = buildDifficultyWrongs(task.answer);"), "Math game should build distractors from the explicit difficulty generator");
+  assert(gameSource.includes("buildDifficultyWrongs(task.answer)"), "Math game should build distractors from the explicit difficulty generator");
 }
 
 function runDifficultyManagerChecks() {

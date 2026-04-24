@@ -204,6 +204,18 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     "</button>";
   }
 
+  function buildMysteryButton(state) {
+    const languageId = state.player.language;
+    const copy = getCopy(languageId);
+    const mysteryEnabled = state.settings.mysteryEnabled !== false;
+    const mysteryLabel = mysteryEnabled ? copy.mysteryOn : copy.mysteryOff;
+    const mysteryClass = mysteryEnabled ? " metaMysteryButton--on" : " metaMysteryButton--off";
+    return "<button class=\"metaChoiceButton metaMysteryButton is-selected" + mysteryClass + "\" type=\"button\" data-action=\"pick-mystery\">" +
+      "<span class=\"metaChoiceVisual\" aria-hidden=\"true\" style=\"font-size:1.5em\">" + (mysteryEnabled ? "🌈" : "🚫") + "</span>" +
+      "<span class=\"metaChoiceLabel\">" + escapeHtml(mysteryLabel) + "</span>" +
+    "</button>";
+  }
+
   function buildAvatarButtons(state, languageId, actionName, avatarOptions) {
     const nextAction = actionName || "pick-avatar";
     const source = Array.isArray(avatarOptions) && avatarOptions.length ? avatarOptions : AVATARS;
@@ -372,6 +384,12 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     const primaryLabel = isResults
       ? copy.continueLevel(snapshot.nextLevel, difficultyText)
       : copy.startLevel(snapshot.nextLevel, difficultyText);
+    var _lvhImgIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 24'%3E%3Crect width='28' height='24' rx='3' fill='%234895ef'/%3E%3Ccircle cx='8' cy='8' r='3' fill='%23FFE566'/%3E%3Cpath d='M0 18 L8 11 L14 16 L20 10 L28 17 L28 24 L0 24Z' fill='%23fff' opacity='.88'/%3E%3C/svg%3E";
+    var _lvhAbcIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 24'%3E%3Crect width='28' height='24' rx='3' fill='%23e8edf8'/%3E%3Ctext x='14' y='18' font-family='Georgia%2Cserif' font-size='14' font-weight='bold' text-anchor='middle' fill='%231a2a5e'%3EAa%3C/text%3E%3C/svg%3E";
+    var _lvhIcon = safeOptions.levelVariant === "image-to-word" ? _lvhImgIcon : _lvhAbcIcon;
+    const levelVariantHint = safeOptions.levelVariant
+      ? " <img class=\"levelVariantHint\" src=\"" + _lvhIcon + "\" alt=\"\" aria-hidden=\"true\">"
+      : "";
     const leaderboardSource = resultContext && Array.isArray(resultContext.afterRanks) && resultContext.afterRanks.length
       ? resultContext.afterRanks
       : snapshot.participants;
@@ -410,7 +428,7 @@ window.GAMES_V2_META_UI = (function (utils, s) {
       "</div>" +
       "<div class=\"metaResultsActions metaDashboardActions\">" +
         "<button class=\"metaGhostButton metaResultsExitButton\" type=\"button\" data-action=\"exit-game\">" + escapeHtml(copy.exit) + "</button>" +
-        "<button class=\"metaPrimaryButton metaResultsContinueButton\" type=\"button\" data-action=\"" + primaryAction + "\">" + escapeHtml(primaryLabel) + "</button>" +
+        "<button class=\"metaPrimaryButton metaResultsContinueButton\" type=\"button\" data-action=\"" + primaryAction + "\">" + escapeHtml(primaryLabel) + levelVariantHint + "</button>" +
       "</div>" +
     "</div>";
   }
@@ -436,6 +454,10 @@ window.GAMES_V2_META_UI = (function (utils, s) {
           "<section class=\"metaSettingPanel metaSettingPanel--sound\">" +
             buildSettingsPanelHeader("🔊", copy.sound) +
             "<div class=\"metaChoiceGrid metaChoiceGrid--single\">" + buildSoundButtons(state) + "</div>" +
+          "</section>" +
+          "<section class=\"metaSettingPanel metaSettingPanel--mystery\">" +
+            buildSettingsPanelHeader("🌈", copy.mystery) +
+            "<div class=\"metaChoiceGrid metaChoiceGrid--single\">" + buildMysteryButton(state) + "</div>" +
           "</section>" +
         "</div>" +
         "<section class=\"metaSettingPanel metaSettingPanel--difficulty\">" +
@@ -489,7 +511,8 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     return buildDashboardMarkup(state, selectedDiff, {
       gameKey,
       expandedRows,
-      resultContext
+      resultContext,
+      levelVariant: (resultContext && resultContext.nextLevelVariant) || null
     });
   }
 

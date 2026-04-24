@@ -62,7 +62,7 @@ function runMultiplyDifficultyChecks() {
   assert.deepStrictEqual(Object.keys(cfg.difficulties || {}), ["easy", "medium", "hard", "super"]);
   assert.strictEqual(cfg.diffs, undefined, "Multiply config should not define legacy diffs");
 
-  assert.deepStrictEqual(Array.from(cfg.difficulties.easy.factorRange), [1, 4]);
+  assert.deepStrictEqual(Array.from(cfg.difficulties.easy.factorRange), [1, 5]);
   assert.deepStrictEqual(Array.from(cfg.difficulties.medium.factorRange), [2, 7]);
   assert.deepStrictEqual(Array.from(cfg.difficulties.hard.factorRange), [2, 10]);
   assert.deepStrictEqual(Array.from(cfg.difficulties.super.factorRange), [2, 12]);
@@ -78,7 +78,7 @@ function runMultiplyDifficultyChecks() {
   const gameSource = fs.readFileSync(path.join(__dirname, "..", "multiply", "game.js"), "utf8");
   assert(gameSource.includes("function currentDifficultyProfile()"), "Multiply game should resolve an explicit difficulty profile");
   assert(gameSource.includes("return Object.assign(buildMultiplyTask(),"), "Multiply game should create tasks from the explicit difficulty generator");
-  assert(gameSource.includes("const answers = buildDifficultyWrongs(task.answer);"), "Multiply game should build distractors from the explicit difficulty generator");
+  assert(gameSource.includes("buildDifficultyWrongs(task.answer)"), "Multiply game should build distractors from the explicit difficulty generator");
 }
 
 function runDifficultyManagerChecks() {

@@ -44,7 +44,9 @@ window.GAME_V3_MULTIPLY_CONFIG = {
   difficulties: {
     easy: {
       label: "Easy",
-      factorRange: [1, 4],
+      factorRange: [1, 5],
+      preferredFactors: [1, 2, 5],
+      preferredFactorBias: 0.70,
       distractors: {
         minOffset: 2,
         near: 6,
@@ -55,33 +57,37 @@ window.GAME_V3_MULTIPLY_CONFIG = {
     medium: {
       label: "Medium",
       factorRange: [2, 7],
+      preferredFactors: [2, 3, 4, 5],
+      preferredFactorBias: 0.60,
       distractors: {
         minOffset: 2,
         near: 5,
         far: 10,
-        farChance: 0.28
+        farChance: 0.25
       }
     },
     hard: {
       label: "Hard",
       factorRange: [2, 10],
+      preferredFactors: [6, 7, 8, 9],
+      preferredFactorBias: 0.70,
       distractors: {
         minOffset: 1,
         near: 4,
         far: 8,
-        farChance: 0.22
+        farChance: 0.20
       }
     },
     super: {
       label: "Super",
       factorRange: [2, 12],
-      preferredFactors: [6, 7, 8, 9, 12],
-      preferredFactorBias: 0.55,
+      preferredFactors: [7, 8, 9, 12],
+      preferredFactorBias: 0.80,
       distractors: {
         minOffset: 1,
         near: 3,
         far: 6,
-        farChance: 0.18
+        farChance: 0.15
       }
     }
   },

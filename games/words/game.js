@@ -9,6 +9,7 @@
   const sessionApi = window.GAMES_V2_SESSION;
   const gameBehaviors = window.GAMES_V2_BEHAVIORS;
   const cfg = window.GAME_V2_WORDS_CONFIG;
+  const mysteryApi = window.GAMES_V2_MYSTERY;
 
   const gameEl = document.getElementById("game");
   const wrapEl = document.querySelector(".wrap");
@@ -17,6 +18,8 @@
   const answersPanelEl = document.querySelector(".answersPanel");
   const controlsEl = document.querySelector(".controlsPanel");
   const tileEl = document.getElementById("tile");
+  const tileTextEl = tileEl.querySelector(".tile-text");
+  const tileImg = tileEl.querySelector(".tile-image");
   const overlayEl = document.getElementById("overlay");
   const diffsEl = document.getElementById("diffs");
   const pauseBtn = document.getElementById("pauseBtn");
@@ -89,6 +92,7 @@
   let correctDeckLanguageId = "";
   let deckPos = 0;
   let recentCorrectIds = [];
+  let levelUsedIds = new Set();
   let emojiPoolsLanguageId = "";
   let selected = meta.getSelectedDiff();
   const session = sessionApi.createArcadeSession({
@@ -104,6 +108,9 @@
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let task = null;
+  let questionCount = 0;
+  let levelDirection = "image-to-word";
+  meta.showStart({ levelVariant: levelDirection });
   let preparedTasks = [];
   let backgroundEmojiQueue = [];
   let backgroundEmojiTimer = 0;
@@ -161,8 +168,11 @@
     onClear: () => {
       task = null;
       renderedTaskUi = null;
-      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery", "tile--image-mode");
       tileEl.removeAttribute("data-reward");
+      tileEl.style.width = "";
+      tileEl.style.height = "";
+      tileEl.style.transform = "";
       shell.hideWaterReflection();
     }
   });
@@ -175,6 +185,13 @@
       height: rect.height || cfg.gameplay.tileHeight,
       margin: Math.max(6, Math.round(cfg.gameplay.tileMargin * ui))
     };
+  }
+
+  function imageTileSize() {
+    const ui = shell.getUi();
+    const size = Math.round(240 * ui);
+    const margin = Math.max(6, Math.round(cfg.gameplay.tileMargin * ui));
+    return { width: size, height: size, margin };
   }
 
   function currentTileCenter() {
@@ -195,7 +212,11 @@
   }
 
   function taskOptionUrls(nextTask) {
-    if (!nextTask || !Array.isArray(nextTask.options)) {
+    if (!nextTask) return [];
+    if (nextTask.direction === "image-to-word") {
+      return nextTask.tileImageSrc ? [nextTask.tileImageSrc] : [];
+    }
+    if (!Array.isArray(nextTask.options)) {
       return [];
     }
     return nextTask.options.map((item) => item && item.src).filter(Boolean);
@@ -260,6 +281,23 @@
     });
   }
 
+  function clearMysteryMode() {
+    answersEl.classList.remove("mystery-mode");
+    for (let i = 0; i < ansBtns.length; i += 1) {
+      const label = ansBtns[i].querySelector(".mystery-label");
+      if (label) label.remove();
+    }
+  }
+
+  function clearImageWordMode() {
+    answersEl.classList.remove("image-word-mode");
+    for (let i = 0; i < ansBtns.length; i += 1) {
+      const label = ansBtns[i].querySelector(".word-label");
+      if (label) label.remove();
+      ansBtns[i].classList.remove("ans--rtl");
+    }
+  }
+
   function applyTaskUi(nextTask) {
     if (!nextTask) {
       return Promise.resolve();
@@ -267,11 +305,76 @@
     task = nextTask;
     renderedTaskUi = nextTask;
     bh.clearAnswerMarks();
-    tileEl.textContent = nextTask.word;
+    tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery", "tile--image-mode");
+    tileEl.style.width = "";
+    tileEl.style.height = "";
+
+    if (nextTask.mystery) {
+      clearMysteryMode();
+      clearImageWordMode();
+      tileTextEl.textContent = nextTask.word;
+      tileEl.setAttribute("lang", nextTask.wordLang || "he");
+      tileEl.setAttribute("dir", nextTask.wordDir || "ltr");
+      tileEl.setAttribute("data-word-dir", nextTask.wordDir || "ltr");
+      tileEl.classList.add("tile--mystery");
+      tileEl.removeAttribute("data-reward");
+      answersEl.classList.add("mystery-mode");
+      for (let i = 0; i < ansBtns.length; i += 1) {
+        const img = ansImgs[i];
+        if (img) img.style.display = "none";
+        let label = ansBtns[i].querySelector(".mystery-label");
+        if (!label) {
+          label = document.createElement("span");
+          label.className = "mystery-label";
+          ansBtns[i].appendChild(label);
+        }
+        label.textContent = String(nextTask.mysteryAnswers[i]);
+        ansBtns[i].dataset.value = String(nextTask.mysteryAnswers[i]);
+      }
+      return Promise.resolve();
+    }
+
+    if (nextTask.direction === "image-to-word") {
+      clearMysteryMode();
+      tileTextEl.textContent = "";
+      tileEl.removeAttribute("lang");
+      tileEl.removeAttribute("dir");
+      tileEl.removeAttribute("data-word-dir");
+      tileEl.classList.add("tile--image-mode");
+      tileEl.style.width = nextTask.width + "px";
+      tileEl.style.height = nextTask.height + "px";
+      tileEl.style.transform = `translate(${nextTask.x}px, ${nextTask.y}px)`;
+      answersEl.classList.add("image-word-mode");
+      if (nextTask.rewardCoins > 0) {
+        tileEl.classList.add("tile--special", `tile--${nextTask.tabletType}`);
+        tileEl.setAttribute("data-reward", String(nextTask.rewardCoins));
+      } else {
+        tileEl.removeAttribute("data-reward");
+      }
+      const isRtl = nextTask.wordDir === "rtl";
+      for (let i = 0; i < ansBtns.length; i += 1) {
+        const img = ansImgs[i];
+        if (img) img.style.display = "none";
+        let label = ansBtns[i].querySelector(".word-label");
+        if (!label) {
+          label = document.createElement("span");
+          label.className = "word-label";
+          ansBtns[i].appendChild(label);
+        }
+        label.textContent = nextTask.answerWords[i];
+        ansBtns[i].dataset.value = nextTask.answerWords[i];
+        ansBtns[i].classList.toggle("ans--rtl", isRtl);
+      }
+      return bindAnswerImage(tileImg, nextTask.tileImageSrc);
+    }
+
+    // word-to-image (default)
+    clearMysteryMode();
+    clearImageWordMode();
+    tileTextEl.textContent = nextTask.word;
     tileEl.setAttribute("lang", nextTask.wordLang || "he");
     tileEl.setAttribute("dir", nextTask.wordDir || "rtl");
     tileEl.setAttribute("data-word-dir", nextTask.wordDir || "rtl");
-    tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
     if (nextTask.rewardCoins > 0) {
       tileEl.classList.add("tile--special", `tile--${nextTask.tabletType}`);
       tileEl.setAttribute("data-reward", String(nextTask.rewardCoins));
@@ -282,6 +385,7 @@
     for (let i = 0; i < ansImgs.length; i += 1) {
       const emoji = nextTask.options[i];
       const img = ansImgs[i];
+      if (img) img.style.display = "";
       ansBtns[i].dataset.value = emoji.id;
       imagePromises.push(bindAnswerImage(img, emoji.src));
       warm(emoji.src);
@@ -545,12 +649,18 @@
     while (tries < Math.max(1, correctDeck.length)) {
       if (deckPos >= correctDeck.length) refillCorrectDeck(diffKey);
       candidate = correctDeck[deckPos++];
-      if (!recentCorrectIds.includes(candidate.id)) break;
+      if (!recentCorrectIds.includes(candidate.id) && !levelUsedIds.has(candidate.id)) break;
+      candidate = null;
       tries += 1;
     }
-    if (!candidate) candidate = utils.choice(pool);
+    if (!candidate) {
+      // All pool items used this level — reset and pick freely
+      levelUsedIds.clear();
+      candidate = utils.choice(pool);
+    }
     recentCorrectIds.push(candidate.id);
     if (recentCorrectIds.length > recentCorrectLimit) recentCorrectIds.shift();
+    levelUsedIds.add(candidate.id);
     return candidate;
   }
 
@@ -590,9 +700,11 @@
     paused = false;
     pauseBtn.classList.remove("paused");
     session.finishLevel();
-    await meta.showResults(session.buildResultsPayload());
+    levelDirection = levelDirection === "word-to-image" ? "image-to-word" : "word-to-image";
+    await meta.showResults(Object.assign(session.buildResultsPayload(), { nextLevelVariant: levelDirection }));
     syncCheckpointState();
     preparedTasks = [];
+    levelUsedIds = new Set();
     stopBackgroundEmojiWarmup();
     session.beginLevel();
     running = true;
@@ -738,6 +850,28 @@
   }
 
   function generateTask() {
+    questionCount += 1;
+    if (mysteryApi && meta.isMysteryEnabled() && mysteryApi.shouldTrigger(questionCount)) {
+      const mystery = mysteryApi.generate("words");
+      const tileMetrics = currentTileMetrics();
+      const rect = shell.rect();
+      const lane = shell.fallLane(tileMetrics.width, tileMetrics.margin, rect);
+      return Object.assign(mystery, {
+        word: mystery.text,
+        wordLang: "en",
+        wordDir: "ltr",
+        correctId: "__mystery__",
+        options: [],
+        width: tileMetrics.width,
+        height: tileMetrics.height,
+        x: utils.randInt(Math.round(lane.minX), Math.round(lane.maxX)),
+        y: -(tileMetrics.height * spawnYOffsetRatio),
+        spawnedAt: performance.now(),
+        tabletType: "simple",
+        rewardCoins: 0,
+        attemptsRemaining: gameplayRules.normalAttempts
+      });
+    }
     const correct = nextCorrectEmoji();
     if (!correct) return null;
     const languageId = currentLanguageId();
@@ -751,11 +885,10 @@
     const rect = shell.rect();
     const lane = shell.fallLane(tileMetrics.width, tileMetrics.margin, rect);
     const tabletReward = rollSpecialTablet();
-    return {
-      word: emojiWord(correct, languageId),
+    const wordDir = languageDirection(languageId);
+    const base = {
       wordLang: languageId,
-      wordDir: languageDirection(languageId),
-      correctId: correct.id,
+      wordDir,
       options,
       width: tileMetrics.width,
       height: tileMetrics.height,
@@ -766,11 +899,36 @@
       rewardCoins: tabletReward.rewardCoins,
       attemptsRemaining: tabletReward.rewardCoins > 0 ? gameplayRules.specialAttempts : gameplayRules.normalAttempts
     };
+
+    if (levelDirection === "image-to-word") {
+      const correctWord = emojiWord(correct, languageId);
+      const imgSize = imageTileSize();
+      const imgRect = shell.rect();
+      const imgLane = shell.fallLane(imgSize.width, imgSize.margin, imgRect);
+      return Object.assign(base, {
+        direction: "image-to-word",
+        word: "",
+        tileImageSrc: correct.src,
+        correctId: correctWord,
+        answerWords: options.map((e) => emojiWord(e, languageId)),
+        options: [],
+        width: imgSize.width,
+        height: imgSize.height,
+        x: utils.randInt(Math.round(imgLane.minX), Math.round(imgLane.maxX)),
+        y: -(imgSize.height * spawnYOffsetRatio)
+      });
+    }
+
+    return Object.assign(base, {
+      direction: "word-to-image",
+      word: emojiWord(correct, languageId),
+      correctId: correct.id
+    });
   }
 
   function placeTaskForCurrentLayout(nextTask) {
     if (!nextTask) return null;
-    const tileMetrics = currentTileMetrics();
+    const tileMetrics = nextTask.direction === "image-to-word" ? imageTileSize() : currentTileMetrics();
     const rect = gameEl.getBoundingClientRect();
     const lane = shell.fallLane(tileMetrics.width, tileMetrics.margin, rect);
     nextTask.width = tileMetrics.width;
@@ -933,8 +1091,25 @@
         applyTaskUi(task);
       }
     }
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    tileEl.style.transform = `translate3d(${Math.round(task.x)}px, ${Math.round(task.y)}px, 0)`;
     syncWaterReflection(task, rectArg);
+  }
+
+  function trySetItem(prepared, token) {
+    if (token !== spawnRequestToken || !running || falling.getItem()) {
+      return null;
+    }
+    task = falling.setItem(prepared.task, "spawn");
+    refreshBackgroundEmojiWarmup();
+    return task;
+  }
+
+  function recoverSpawn(token) {
+    if (token !== spawnRequestToken || !running || falling.getItem()) {
+      return;
+    }
+    task = falling.spawn();
+    refreshBackgroundEmojiWarmup();
   }
 
   function spawnPreparedTask(prepared, token) {
@@ -945,26 +1120,16 @@
     }
     if (prepared.ready) {
       return applyTaskUi(prepared.task).then(() => {
-        if (token !== spawnRequestToken || !running || falling.getItem()) {
-          return null;
-        }
-        task = falling.setItem(prepared.task, "spawn");
-        refreshBackgroundEmojiWarmup();
-        return task;
-      });
+        return trySetItem(prepared, token);
+      }).catch(() => recoverSpawn(token));
     }
     task = null;
     refreshBackgroundEmojiWarmup();
     return prepared.readyPromise.then(() => {
       return applyTaskUi(prepared.task);
     }).then(() => {
-      if (token !== spawnRequestToken || !running || falling.getItem()) {
-        return null;
-      }
-      task = falling.setItem(prepared.task, "spawn");
-      refreshBackgroundEmojiWarmup();
-      return task;
-    });
+      return trySetItem(prepared, token);
+    }).catch(() => recoverSpawn(token));
   }
 
   function spawnTask() {
@@ -983,7 +1148,7 @@
     if (!currentTask) return;
     const drownX = currentTask.x + currentTask.width / 2;
     const missOutcome = session.handleMiss();
-    playMascotShame();
+    bh.playMascotShame();
     audio.sfx.splash();
     playSplash(drownX);
     if (missOutcome.levelComplete) {
@@ -995,15 +1160,17 @@
 
   function correct(btn) {
     const currentTask = task;
-    falling.clear("correct");
-    bh.setMascot("idle");
-    bh.showAnswerMark(btn, true, cfg.answerLockMs + 80);
     const burstCenter = currentTileCenter();
     const burstX = burstCenter.x;
     const burstY = burstCenter.y;
+    falling.clear("correct");
+    bh.setMascot("idle");
+    bh.showAnswerMark(btn, true, cfg.answerLockMs + 80);
     session.handleCorrect();
     audio.sfx.correct();
-    if (currentTask.rewardCoins > 0) {
+    if (currentTask && currentTask.mystery) {
+      bh.awardTabletBonus(burstX, burstY, mysteryApi.COIN_MULTIPLIER);
+    } else if (currentTask.rewardCoins > 0) {
       bh.awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
     }
     fx.playEnhancedBurst(cfg.assets.burstSheet, burstX, burstY);
@@ -1050,11 +1217,13 @@
     paused = false;
     levelPausePending = false;
     pauseBtn.classList.remove("paused");
+    questionCount = 0;
     correctDeck = [];
     correctDeckDiffKey = "";
     correctDeckLanguageId = "";
     deckPos = 0;
     recentCorrectIds = [];
+    levelUsedIds = new Set();
     preparedTasks = [];
     renderedTaskUi = null;
     stopBackgroundEmojiWarmup();
@@ -1066,6 +1235,12 @@
   async function startGame() {
     resetState();
     let firstPrepared = takeStartupPreparedTask();
+    if (firstPrepared && firstPrepared.task && (
+      firstPrepared.task.mystery ||
+      firstPrepared.task.direction !== levelDirection
+    )) {
+      firstPrepared = null;
+    }
     if (!firstPrepared) {
       shell.refreshLayout();
       await new Promise((resolve) => {
@@ -1131,7 +1306,7 @@
     }
     const silent = !!(options && options.silent);
     if (!silent) {
-      tileEl.textContent = "\u05d8\u05d5\u05e2\u05df...";
+      tileTextEl.textContent = "\u05d8\u05d5\u05e2\u05df...";
     }
     emojiLoadPromise = (async () => {
       try {
@@ -1144,7 +1319,7 @@
       }
       if (emojis.length < 8) {
         if (!silent) {
-          tileEl.textContent = "\u05d0\u05d9\u05df \u05de\u05e1\u05e4\u05d9\u05e7 \u05d0\u05d9\u05de\u05d5\u05d2'\u05d9\u05dd";
+          tileTextEl.textContent = "\u05d0\u05d9\u05df \u05de\u05e1\u05e4\u05d9\u05e7 \u05d0\u05d9\u05de\u05d5\u05d2'\u05d9\u05dd";
           overlayEl.style.display = "grid";
         }
         return false;
@@ -1180,7 +1355,14 @@
     if (!btn || !running || paused || !task || btn.disabled) return;
     audio.ensureAudio();
     if (performance.now() < lockInputUntil) return;
-    if (String(btn.dataset.value || "") === task.correctId) {
+    if (task.mystery) {
+      if (Number(btn.dataset.value) === task.answer) {
+        lockInputUntil = performance.now() + cfg.answerLockMs;
+        correct(btn);
+      } else {
+        wrong(btn);
+      }
+    } else if (String(btn.dataset.value || "") === task.correctId) {
       lockInputUntil = performance.now() + cfg.answerLockMs;
       correct(btn);
     } else {
@@ -1195,7 +1377,10 @@
       const idx = Number(event.key) - 1;
       const btn = ansBtns[idx];
       if (!btn || btn.disabled) return;
-      if (String(btn.dataset.value || "") === task.correctId) {
+      const isCorrect = task.mystery
+        ? Number(btn.dataset.value) === task.answer
+        : String(btn.dataset.value || "") === task.correctId;
+      if (isCorrect) {
         lockInputUntil = performance.now() + cfg.answerLockMs;
         correct(btn);
       } else {

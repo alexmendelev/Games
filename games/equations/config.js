@@ -45,7 +45,7 @@ window.GAME_V3_EQUATIONS_CONFIG = {
     easy: {
       label: "Easy",
       operations: ["+"],
-      missingSlots: ["result"],
+      missingSlots: ["left", "right", "result"],
       allowNegativeResults: false,
       allowMultiplication: false,
       allowDivision: false,
@@ -72,12 +72,12 @@ window.GAME_V3_EQUATIONS_CONFIG = {
       addition: {
         left: [1, 10],
         right: [1, 10],
-        resultMax: 10
+        resultMax: 20
       },
       subtraction: {
-        left: [1, 10],
+        left: [2, 20],
         right: [1, 10],
-        resultMax: 10
+        resultMax: 20
       },
       distractors: {
         minOffset: 1,
@@ -90,44 +90,42 @@ window.GAME_V3_EQUATIONS_CONFIG = {
     hard: {
       label: "Hard",
       operations: ["+", "-"],
-      missingSlots: ["left", "right", "result"],
+      missingSlots: ["left", "right", "left", "right", "result"],
       allowNegativeResults: false,
       allowMultiplication: false,
       allowDivision: false,
       addition: {
-        left: [1, 20],
-        right: [1, 20],
-        resultMax: 20
+        left: [10, 49],
+        right: [10, 49],
+        resultMax: 98
       },
       subtraction: {
-        left: [1, 20],
-        right: [1, 20],
-        resultMax: 20
+        left: [20, 79],
+        right: [10, 49]
       },
       distractors: {
         minOffset: 1,
-        near: 3,
-        far: 6,
-        farChance: 0.22,
+        near: 5,
+        far: 10,
+        farChance: 0.20,
         allowNegativeOptions: false
       }
     },
     super: {
       label: "Super",
       operations: ["+", "-", "*", "/"],
-      missingSlots: ["left", "right", "result"],
+      missingSlots: ["left", "right"],
       allowNegativeResults: false,
       allowMultiplication: true,
       allowDivision: true,
       addition: {
-        left: [1, 20],
-        right: [1, 20],
-        resultMax: 20
+        left: [25, 75],
+        right: [15, 75],
+        resultMax: 99
       },
       subtraction: {
-        left: [1, 20],
-        right: [1, 20],
-        resultMax: 20
+        left: [30, 99],
+        right: [11, 79]
       },
       multiplication: {
         left: [2, 9],
@@ -141,9 +139,9 @@ window.GAME_V3_EQUATIONS_CONFIG = {
       },
       distractors: {
         minOffset: 1,
-        near: 2,
-        far: 5,
-        farChance: 0.28,
+        near: 3,
+        far: 7,
+        farChance: 0.25,
         allowNegativeOptions: false
       }
     }
@@ -166,7 +164,7 @@ window.GAME_V3_EQUATIONS_CONFIG = {
       hard: { correctTarget: 12, timeLimitMs: 90000 },
       super: { correctTarget: 14, timeLimitMs: 90000 }
     },
-    tileWBase: 330,
+    tileWBase: 430,
     tileHBase: 98,
     marginBase: 10,
     sfxGain: 0.1

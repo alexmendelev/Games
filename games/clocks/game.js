@@ -9,6 +9,7 @@
   const sessionApi = window.GAMES_V2_SESSION;
   const gameBehaviors = window.GAMES_V2_BEHAVIORS;
   const cfg = window.GAME_V3_CLOCKS_CONFIG;
+  const mysteryApi = window.GAMES_V2_MYSTERY;
 
   const gameEl = document.getElementById("game");
   const wrapEl = document.querySelector(".wrap");
@@ -93,6 +94,7 @@
   let levelProgressCurrent = 0;
   let levelProgressTarget = 1;
   let task = null;
+  let questionCount = 0;
   let lockInputUntil = 0;
   let assetsReadyPromise = null;
   let levelPausePending = false;
@@ -133,8 +135,10 @@
     onMiss: miss,
     onClear: () => {
       task = null;
-      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery");
       tileEl.removeAttribute("data-reward");
+      answersEl.classList.remove("mystery-mode");
+      tileEl.style.transform = "";
       shell.hideWaterShadow();
       shell.hideWaterReflection();
     }
@@ -384,6 +388,23 @@
   }
 
   function generateTask() {
+    questionCount += 1;
+    if (mysteryApi && meta.isMysteryEnabled() && mysteryApi.shouldTrigger(questionCount)) {
+      const mystery = mysteryApi.generate("clocks");
+      const tileMetrics = currentTileMetrics();
+      return Object.assign(mystery, {
+        correct: null,
+        options: [],
+        width: tileMetrics.width,
+        height: tileMetrics.height,
+        x: randomTileX(tileMetrics),
+        y: -(tileMetrics.height * spawnYOffsetRatio),
+        spawnedAt: performance.now(),
+        tabletType: "simple",
+        rewardCoins: 0,
+        attemptsRemaining: gameplayRules.normalAttempts
+      });
+    }
     const correct = randomTime();
     const options = buildDistractors(correct);
     const tileMetrics = currentTileMetrics();
@@ -409,23 +430,37 @@
     }
     if (phase !== "frame") {
       session.noteQuestionPresented();
-      tileLabelEl.textContent = timeLabel(task.correct.hour, task.correct.minute);
-      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond");
-      if (task.rewardCoins > 0) {
-        tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
-        tileEl.setAttribute("data-reward", String(task.rewardCoins));
-      } else {
+      tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery");
+      if (task.mystery) {
+        tileLabelEl.textContent = task.text;
+        tileEl.classList.add("tile--mystery");
         tileEl.removeAttribute("data-reward");
-      }
-      for (let i = 0; i < ansBtns.length; i += 1) {
-        const option = task.options[i];
-        ansBtns[i].dataset.value = timeKey(option);
-        ansBtns[i].innerHTML = clockSvg(option.hour, option.minute);
-        ansBtns[i].disabled = false;
-        ansBtns[i].classList.remove("mark-correct", "mark-wrong", "is-pressed");
+        answersEl.classList.add("mystery-mode");
+        for (let i = 0; i < ansBtns.length; i += 1) {
+          ansBtns[i].dataset.value = String(task.mysteryAnswers[i]);
+          ansBtns[i].innerHTML = `<span class="mystery-label">${task.mysteryAnswers[i]}</span>`;
+          ansBtns[i].disabled = false;
+          ansBtns[i].classList.remove("mark-correct", "mark-wrong", "is-pressed");
+        }
+      } else {
+        answersEl.classList.remove("mystery-mode");
+        tileLabelEl.textContent = timeLabel(task.correct.hour, task.correct.minute);
+        if (task.rewardCoins > 0) {
+          tileEl.classList.add("tile--special", `tile--${task.tabletType}`);
+          tileEl.setAttribute("data-reward", String(task.rewardCoins));
+        } else {
+          tileEl.removeAttribute("data-reward");
+        }
+        for (let i = 0; i < ansBtns.length; i += 1) {
+          const option = task.options[i];
+          ansBtns[i].dataset.value = timeKey(option);
+          ansBtns[i].innerHTML = clockSvg(option.hour, option.minute);
+          ansBtns[i].disabled = false;
+          ansBtns[i].classList.remove("mark-correct", "mark-wrong", "is-pressed");
+        }
       }
     }
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    tileEl.style.transform = `translate3d(${Math.round(task.x)}px, ${Math.round(task.y)}px, 0)`;
     syncWaterEffects(task, rectArg);
   }
 
@@ -467,16 +502,18 @@
 
   function handleCorrect(btn) {
     const currentTask = task;
-    falling.clear("correct");
-    bh.setMascot("idle");
     const burstCenter = currentTileCenter();
     const burstX = burstCenter.x;
     const burstY = burstCenter.y;
+    falling.clear("correct");
+    bh.setMascot("idle");
     markAnswer(btn, true, cfg.answerLockMs + 80);
     session.handleCorrect();
     audio.sfx.correct();
 
-    if (currentTask.rewardCoins > 0) {
+    if (currentTask && currentTask.mystery) {
+      bh.awardTabletBonus(burstX, burstY, mysteryApi.COIN_MULTIPLIER);
+    } else if (currentTask.rewardCoins > 0) {
       bh.awardTabletBonus(burstX, burstY, currentTask.rewardCoins);
     }
 
@@ -519,6 +556,7 @@
     levelPausePending = false;
     pauseBtn.classList.remove("paused");
     task = null;
+    questionCount = 0;
     lockInputUntil = 0;
     falling.stop("reset");
   }
@@ -585,7 +623,10 @@
     const now = performance.now();
     if (now < lockInputUntil) return;
     audio.ensureAudio();
-    if (String(btn.dataset.value || "") === timeKey(task.correct)) {
+    const isCorrect = task.mystery
+      ? Number(btn.dataset.value) === task.answer
+      : String(btn.dataset.value || "") === timeKey(task.correct);
+    if (isCorrect) {
       handleCorrect(btn);
     } else {
       handleWrong(btn);
@@ -599,7 +640,10 @@
       const btn = ansBtns[Number(event.key) - 1];
       if (!btn || btn.disabled) return;
       audio.ensureAudio();
-      if (String(btn.dataset.value || "") === timeKey(task.correct)) {
+      const isCorrect = task.mystery
+        ? Number(btn.dataset.value) === task.answer
+        : String(btn.dataset.value || "") === timeKey(task.correct);
+      if (isCorrect) {
         handleCorrect(btn);
       } else {
         handleWrong(btn);
