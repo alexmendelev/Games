@@ -549,6 +549,7 @@
     const poolRules = profile.wordPool || {};
     const distractorRules = profile.distractors || {};
     const languageId = currentLanguageId();
+    const maxFrequency = Number.isFinite(profile.maxFrequency) ? profile.maxFrequency : Infinity;
     const excludedCategories = new Set((poolRules.excludedCategories || []).map((value) => String(value || "")));
     const allowedCategories = Array.isArray(poolRules.allowedCategories) && poolRules.allowedCategories.length
       ? new Set(poolRules.allowedCategories.map((value) => String(value || "")))
@@ -570,6 +571,11 @@
       }
       if (allowedCategories && !allowedCategories.has(String(item.category || ""))) {
         return false;
+      }
+      // Frequency filter: only rated items (frequency > 0) are restricted; unrated legacy items always pass
+      if (maxFrequency < Infinity) {
+        const itemFrequency = Number(item.labels && item.labels.frequency);
+        if (itemFrequency > 0 && itemFrequency > maxFrequency) return false;
       }
       return true;
     });
