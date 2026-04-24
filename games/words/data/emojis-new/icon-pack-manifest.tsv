@@ -1,368 +1,368 @@
-filename	category	english	hebrew	russian
-animal-monkey.png	animal	monkey	קוף	обезьяна
-animal-gorilla.png	animal	gorilla	גורילה	горилла
-animal-orangutan.png	animal	orangutan	אורנגאוטן	орангутан
-animal-dog.png	animal	dog	כלב	собака
-animal-poodle.png	animal	poodle	פודל	пудель
-animal-wolf.png	animal	wolf	זאב	волк
-animal-fox.png	animal	fox	שועל	лиса
-animal-cat.png	animal	cat	חתול	кот
-animal-lion.png	animal	lion	אריה	лев
-animal-tiger.png	animal	tiger	טיגריס	тигр
-animal-leopard.png	animal	leopard	נמר	леопард
-animal-moose.png	animal	moose	אייל קורא	лось
-animal-horse.png	animal	horse	סוס	лошадь
-animal-unicorn.png	animal	unicorn	חד-קרן	единорог
-animal-zebra.png	animal	zebra	זברה	зебра
-animal-deer.png	animal	deer	אייל	олень
-animal-bison.png	animal	bison	ביזון	бизон
-animal-ox.png	animal	ox	שור	бык
-animal-cow.png	animal	cow	פרה	корова
-animal-pig.png	animal	pig	חזיר	свинья
-animal-boar.png	animal	boar	חזיר בר	кабан
-animal-ram.png	animal	ram	איל	баран
-animal-goat.png	animal	goat	עז	коза
-animal-camel.png	animal	camel	גמל	верблюд
-animal-llama.png	animal	llama	למה	лама
-animal-giraffe.png	animal	giraffe	ג'ירפה	жираф
-animal-elephant.png	animal	elephant	פיל	слон
-animal-rhinoceros.png	animal	rhinoceros	קרנף	носорог
-animal-hippopotamus.png	animal	hippopotamus	היפופוטם	бегемот
-animal-mouse.png	animal	mouse	עכבר	мышь
-animal-rat.png	animal	rat	חולדה	крыса
-animal-hamster.png	animal	hamster	אוגר	хомяк
-animal-rabbit.png	animal	rabbit	ארנב	кролик
-animal-chipmunk.png	animal	chipmunk	סנאי מפוספס	бурундук
-animal-beaver.png	animal	beaver	בונה	бобёр
-animal-hedgehog.png	animal	hedgehog	קיפוד	ёж
-animal-bat.png	animal	bat	עטלף	летучая мышь
-animal-bear.png	animal	bear	דוב	медведь
-animal-koala.png	animal	koala	קואלה	коала
-animal-panda.png	animal	panda	פנדה	панда
-animal-sloth.png	animal	sloth	עצלן	ленивец
-animal-otter.png	animal	otter	לוטרה	выдра
-animal-skunk.png	animal	skunk	בואש	скунс
-animal-kangaroo.png	animal	kangaroo	קנגרו	кенгуру
-animal-badger.png	animal	badger	גירית	барсук
-bird-turkey.png	bird	turkey	תרנגול הודו	индейка
-bird-chicken.png	bird	chicken	תרנגולת	курица
-bird-rooster.png	bird	rooster	תרנגול	петух
-bird-bird.png	bird	bird	ציפור	птица
-bird-penguin.png	bird	penguin	פינגווין	пингвин
-bird-dove.png	bird	dove	יונה	голубь
-bird-eagle.png	bird	eagle	עיט	орёл
-bird-duck.png	bird	duck	ברווז	утка
-bird-swan.png	bird	swan	ברבור	лебедь
-bird-owl.png	bird	owl	ינשוף	сова
-bird-flamingo.png	bird	flamingo	פלמינגו	фламинго
-bird-peacock.png	bird	peacock	טווס	павлин
-bird-parrot.png	bird	parrot	תוכי	попугай
-bird-goose.png	bird	goose	אווז	гусь
-reptile_amphibian_sea_insect-frog.png	reptile_amphibian_sea_insect	frog	צפרדע	лягушка
-reptile_amphibian_sea_insect-crocodile.png	reptile_amphibian_sea_insect	crocodile	תנין	крокодил
-reptile_amphibian_sea_insect-turtle.png	reptile_amphibian_sea_insect	turtle	צב	черепаха
-reptile_amphibian_sea_insect-lizard.png	reptile_amphibian_sea_insect	lizard	לטאה	ящерица
-reptile_amphibian_sea_insect-snake.png	reptile_amphibian_sea_insect	snake	נחש	змея
-reptile_amphibian_sea_insect-dragon.png	reptile_amphibian_sea_insect	dragon	דרקון	дракон
-reptile_amphibian_sea_insect-whale.png	reptile_amphibian_sea_insect	whale	לווייתן	кит
-reptile_amphibian_sea_insect-dolphin.png	reptile_amphibian_sea_insect	dolphin	דולפין	дельфин
-reptile_amphibian_sea_insect-seal.png	reptile_amphibian_sea_insect	seal	כלב ים	тюлень
-reptile_amphibian_sea_insect-fish.png	reptile_amphibian_sea_insect	fish	דג	рыба
-reptile_amphibian_sea_insect-blowfish.png	reptile_amphibian_sea_insect	blowfish	נפוחית	рыба-шар
-reptile_amphibian_sea_insect-shark.png	reptile_amphibian_sea_insect	shark	כריש	акула
-reptile_amphibian_sea_insect-octopus.png	reptile_amphibian_sea_insect	octopus	תמנון	осьминог
-reptile_amphibian_sea_insect-crab.png	reptile_amphibian_sea_insect	crab	סרטן	краб
-reptile_amphibian_sea_insect-lobster.png	reptile_amphibian_sea_insect	lobster	לובסטר	омар
-reptile_amphibian_sea_insect-shrimp.png	reptile_amphibian_sea_insect	shrimp	שרימפ	креветка
-reptile_amphibian_sea_insect-squid.png	reptile_amphibian_sea_insect	squid	דיונון	кальмар
-reptile_amphibian_sea_insect-snail.png	reptile_amphibian_sea_insect	snail	חילזון	улитка
-reptile_amphibian_sea_insect-butterfly.png	reptile_amphibian_sea_insect	butterfly	פרפר	бабочка
-reptile_amphibian_sea_insect-bug.png	reptile_amphibian_sea_insect	bug	חרק	жук
-reptile_amphibian_sea_insect-ant.png	reptile_amphibian_sea_insect	ant	נמלה	муравей
-reptile_amphibian_sea_insect-honeybee.png	reptile_amphibian_sea_insect	honeybee	דבורת דבש	пчела
-reptile_amphibian_sea_insect-beetle.png	reptile_amphibian_sea_insect	beetle	חיפושית	жук
-reptile_amphibian_sea_insect-spider.png	reptile_amphibian_sea_insect	spider	עכביש	паук
-reptile_amphibian_sea_insect-scorpion.png	reptile_amphibian_sea_insect	scorpion	עקרב	скорпион
-reptile_amphibian_sea_insect-mosquito.png	reptile_amphibian_sea_insect	mosquito	יתוש	комар
-reptile_amphibian_sea_insect-worm.png	reptile_amphibian_sea_insect	worm	תולעת	червяк
-food_plant_kitchen-mushroom.png	food_plant_kitchen	mushroom	פטרייה	гриб
-food_plant_kitchen-grapes.png	food_plant_kitchen	grapes	ענבים	виноград
-food_plant_kitchen-melon.png	food_plant_kitchen	melon	מלון	дыня
-food_plant_kitchen-watermelon.png	food_plant_kitchen	watermelon	אבטיח	арбуз
-food_plant_kitchen-lemon.png	food_plant_kitchen	lemon	לימון	лимон
-food_plant_kitchen-banana.png	food_plant_kitchen	banana	בננה	банан
-food_plant_kitchen-pineapple.png	food_plant_kitchen	pineapple	אננס	ананас
-food_plant_kitchen-pear.png	food_plant_kitchen	pear	אגס	груша
-food_plant_kitchen-peach.png	food_plant_kitchen	peach	אפרסק	персик
-food_plant_kitchen-strawberry.png	food_plant_kitchen	strawberry	תות	клубника
-food_plant_kitchen-tomato.png	food_plant_kitchen	tomato	עגבנייה	помидор
-food_plant_kitchen-coconut.png	food_plant_kitchen	coconut	קוקוס	кокос
-food_plant_kitchen-avocado.png	food_plant_kitchen	avocado	אבוקדו	авокадо
-food_plant_kitchen-potato.png	food_plant_kitchen	potato	תפוח אדמה	картошка
-food_plant_kitchen-carrot.png	food_plant_kitchen	carrot	גזר	морковь
-food_plant_kitchen-cucumber.png	food_plant_kitchen	cucumber	מלפפון	огурец
-food_plant_kitchen-broccoli.png	food_plant_kitchen	broccoli	ברוקולי	брокколи
-food_plant_kitchen-garlic.png	food_plant_kitchen	garlic	שום	чеснок
-food_plant_kitchen-onion.png	food_plant_kitchen	onion	בצל	лук
-food_plant_kitchen-bread.png	food_plant_kitchen	bread	לחם	хлеб
-food_plant_kitchen-croissant.png	food_plant_kitchen	croissant	קרואסון	круассан
-food_plant_kitchen-bagel.png	food_plant_kitchen	bagel	בייגל	бублик
-food_plant_kitchen-pancakes.png	food_plant_kitchen	pancakes	פנקייקים	блины
-food_plant_kitchen-waffle.png	food_plant_kitchen	waffle	וופל	вафля
-food_plant_kitchen-bacon.png	food_plant_kitchen	bacon	בייקון	бекон
-food_plant_kitchen-hamburger.png	food_plant_kitchen	hamburger	המבורגר	гамбургер
-food_plant_kitchen-pizza.png	food_plant_kitchen	pizza	פיצה	пицца
-food_plant_kitchen-sandwich.png	food_plant_kitchen	sandwich	כריך	бутерброд
-food_plant_kitchen-taco.png	food_plant_kitchen	taco	טאקו	тако
-food_plant_kitchen-burrito.png	food_plant_kitchen	burrito	בוריטו	буррито
-food_plant_kitchen-egg.png	food_plant_kitchen	egg	ביצה	яйцо
-food_plant_kitchen-cooking.png	food_plant_kitchen	cooking	בישול	готовка
-food_plant_kitchen-salt.png	food_plant_kitchen	salt	מלח	соль
-food_plant_kitchen-spaghetti.png	food_plant_kitchen	spaghetti	ספגטי	спагетти
-food_plant_kitchen-sushi.png	food_plant_kitchen	sushi	סושי	суши
-food_plant_kitchen-dumpling.png	food_plant_kitchen	dumpling	כיסון	пельмень
-food_plant_kitchen-doughnut.png	food_plant_kitchen	doughnut	דונאט	пончик
-food_plant_kitchen-cookie.png	food_plant_kitchen	cookie	עוגייה	печенье
-food_plant_kitchen-pie.png	food_plant_kitchen	pie	פאי	пирог
-food_plant_kitchen-candy.png	food_plant_kitchen	candy	ממתק	конфета
-food_plant_kitchen-lollipop.png	food_plant_kitchen	lollipop	סוכרייה על מקל	леденец
-food_plant_kitchen-teapot.png	food_plant_kitchen	teapot	קומקום תה	чайник
-food_plant_kitchen-ice.png	food_plant_kitchen	ice	קרח	лёд
-food_plant_kitchen-chopsticks.png	food_plant_kitchen	chopsticks	מקלות אכילה	палочки
-food_plant_kitchen-spoon.png	food_plant_kitchen	spoon	כף	ложка
-food_plant_kitchen-jar.png	food_plant_kitchen	jar	צנצנת	банка
-transport-train.png	transport	train	רכבת	поезд
-transport-metro.png	transport	metro	מטרו	метро
-transport-tram.png	transport	tram	חשמלית	трамвай
-transport-monorail.png	transport	monorail	מונורייל	монорельс
-transport-bus.png	transport	bus	אוטובוס	автобус
-transport-trolleybus.png	transport	trolleybus	טרוליבוס	троллейбус
-transport-ambulance.png	transport	ambulance	אמבולנס	скорая
-transport-taxi.png	transport	taxi	מונית	такси
-transport-automobile.png	transport	automobile	מכונית	машина
-transport-tractor.png	transport	tractor	טרקטור	трактор
-transport-motorcycle.png	transport	motorcycle	אופנוע	мотоцикл
-transport-bicycle.png	transport	bicycle	אופניים	велосипед
-transport-sailboat.png	transport	sailboat	סירת מפרש	парусник
-transport-canoe.png	transport	canoe	קאנו	каноэ
-transport-speedboat.png	transport	speedboat	סירת מנוע מהירה	катер
-transport-ferry.png	transport	ferry	מעבורת	паром
-transport-ship.png	transport	ship	ספינה	корабль
-transport-airplane.png	transport	airplane	מטוס	самолёт
-transport-helicopter.png	transport	helicopter	מסוק	вертолёт
-transport-rocket.png	transport	rocket	רקטה	ракета
-legacy-apple.png	legacy	apple	תפוח	яблоко
-legacy-cake.png	legacy	cake	עוגה	торт
-nature_weather-tree.png	nature_weather	tree	עץ	дерево
-nature_weather-flower.png	nature_weather	flower	פרח	цветок
-nature_weather-sun.png	nature_weather	sun	שמש	солнце
-nature_weather-cloud.png	nature_weather	cloud	ענן	облако
-nature_weather-leaf.png	nature_weather	leaf	עלה	лист
-nature_weather-cactus.png	nature_weather	cactus	קקטוס	кактус
-nature_weather-seedling.png	nature_weather	seedling	נבט	росток
-nature_weather-rain_drop.png	nature_weather	rain_drop	טיפה	капля
-nature_weather-umbrella.png	nature_weather	umbrella	מטרייה	зонт
-nature_weather-snowflake.png	nature_weather	snowflake	פתית שלג	снежинка
-nature_weather-mountain.png	nature_weather	mountain	הר	гора
-nature_weather-rock.png	nature_weather	rock	אבן	камень
-nature_weather-grass.png	nature_weather	grass	דשא	трава
-clothing-shirt.png	clothing	shirt	חולצה	рубашка
-clothing-pants.png	clothing	pants	מכנסיים	брюки
-clothing-dress.png	clothing	dress	שמלה	платье
-clothing-skirt.png	clothing	skirt	חצאית	юбка
-clothing-socks.png	clothing	socks	גרביים	носки
-clothing-shoes.png	clothing	shoes	נעליים	туфли
-clothing-boots.png	clothing	boots	מגפיים	сапоги
-clothing-hat.png	clothing	hat	כובע	шапка
-clothing-scarf.png	clothing	scarf	צעיף	шарф
-clothing-gloves.png	clothing	gloves	כפפות	перчатки
-clothing-backpack.png	clothing	backpack	תיק גב	рюкзак
-home_furniture_bathroom-bed.png	home_furniture_bathroom	bed	מיטה	кровать
-home_furniture_bathroom-chair.png	home_furniture_bathroom	chair	כיסא	стул
-home_furniture_bathroom-table.png	home_furniture_bathroom	table	שולחן	стол
-home_furniture_bathroom-lamp.png	home_furniture_bathroom	lamp	מנורה	лампа
-home_furniture_bathroom-sofa.png	home_furniture_bathroom	sofa	ספה	диван
-home_furniture_bathroom-door.png	home_furniture_bathroom	door	דלת	дверь
-home_furniture_bathroom-window.png	home_furniture_bathroom	window	חלון	окно
-home_furniture_bathroom-clock.png	home_furniture_bathroom	clock	שעון	часы
-home_furniture_bathroom-mirror.png	home_furniture_bathroom	mirror	מראה	зеркало
-home_furniture_bathroom-bathtub.png	home_furniture_bathroom	bathtub	אמבטיה	ванна
-home_furniture_bathroom-toilet.png	home_furniture_bathroom	toilet	אסלה	туалет
-home_furniture_bathroom-toothbrush.png	home_furniture_bathroom	toothbrush	מברשת שיניים	зубная щётка
-home_furniture_bathroom-toothpaste.png	home_furniture_bathroom	toothpaste	משחת שיניים	зубная паста
-home_furniture_bathroom-soap.png	home_furniture_bathroom	soap	סבון	мыло
-home_furniture_bathroom-towel.png	home_furniture_bathroom	towel	מגבת	полотенце
-school_play-book.png	school_play	book	ספר	книга
-school_play-notebook.png	school_play	notebook	מחברת	тетрадь
-school_play-pencil.png	school_play	pencil	עיפרון	карандаш
-school_play-pen.png	school_play	pen	עט	ручка
-school_play-eraser.png	school_play	eraser	מחק	ластик
-school_play-ruler.png	school_play	ruler	סרגל	линейка
-school_play-scissors.png	school_play	scissors	מספריים	ножницы
-school_play-glue.png	school_play	glue	דבק	клей
-school_play-paint_palette.png	school_play	paint_palette	פלטת צבעים	палитра
-school_play-paintbrush.png	school_play	paintbrush	מכחול	кисть
-school_play-school_bag.png	school_play	school_bag	תיק בית ספר	портфель
-school_play-ball.png	school_play	ball	כדור	мяч
-school_play-kite.png	school_play	kite	עפיפון	воздушный змей
-school_play-puzzle_piece.png	school_play	puzzle_piece	חלק פאזל	пазл
-school_play-gift.png	school_play	gift	מתנה	подарок
-kitchen_household-cup.png	kitchen_household	cup	כוס	чашка
-kitchen_household-mug.png	kitchen_household	mug	ספל	кружка
-kitchen_household-plate.png	kitchen_household	plate	צלחת	тарелка
-kitchen_household-bowl.png	kitchen_household	bowl	קערה	миска
-kitchen_household-fork.png	kitchen_household	fork	מזלג	вилка
-kitchen_household-knife.png	kitchen_household	knife	סכין	нож
-kitchen_household-bottle.png	kitchen_household	bottle	בקבוק	бутылка
-kitchen_household-milk.png	kitchen_household	milk	חלב	молоко
-kitchen_household-cheese.png	kitchen_household	cheese	גבינה	сыр
-kitchen_household-apple_red.png	kitchen_household	apple_red	תפוח	яблоко
-kitchen_household-apple_green.png	kitchen_household	apple_green	תפוח ירוק	зелёное яблоко
-kitchen_household-orange.png	kitchen_household	orange	תפוז	апельсин
-kitchen_household-pepper.png	kitchen_household	pepper	פלפל	перец
-kitchen_household-rice.png	kitchen_household	rice	אורז	рис
-kitchen_household-soup.png	kitchen_household	soup	מרק	суп
-places_city_objects-house.png	places_city_objects	house	בית	дом
-places_city_objects-school.png	places_city_objects	school	בית ספר	школа
-places_city_objects-hospital.png	places_city_objects	hospital	בית חולים	больница
-places_city_objects-store.png	places_city_objects	store	חנות	магазин
-places_city_objects-park.png	places_city_objects	park	פארק	парк
-places_city_objects-playground.png	places_city_objects	playground	מגרש משחקים	площадка
-places_city_objects-traffic_light.png	places_city_objects	traffic_light	רמזור	светофор
-places_city_objects-bridge.png	places_city_objects	bridge	גשר	мост
-places_city_objects-key.png	places_city_objects	key	מפתח	ключ
-places_city_objects-lock.png	places_city_objects	lock	מנעול	замок
-places_city_objects-phone.png	places_city_objects	phone	טלפון	телефон
-places_city_objects-tv.png	places_city_objects	tv	טלוויזיה	телевизор
-places_city_objects-computer.png	places_city_objects	computer	מחשב	компьютер
-places_city_objects-camera.png	places_city_objects	camera	מצלמה	фотоаппарат
-places_city_objects-light_bulb.png	places_city_objects	light_bulb	נורה	лампочка
-places_city_objects-battery.png	places_city_objects	battery	סוללה	батарейка
-places_city_objects-magnet.png	places_city_objects	magnet	מגנט	магнит
-places_city_objects-box.png	places_city_objects	box	קופסה	коробка
-places_city_objects-balloon.png	places_city_objects	balloon	בלון	шарик
-additional_animals-sheep.png	additional_animals	sheep	כבשה	овца
-additional_animals-donkey.png	additional_animals	donkey	חמור	осёл
-additional_animals-chick.png	additional_animals	chick	אפרוח	цыплёнок
-animal-mammoth.png	animal	mammoth	מאמות	мамонт
-animal-walrus.png	animal	walrus	ולרוס	морж
-animal-narwhal.png	animal	narwhal	נרוואל	нарвал
-animal-seal.png	animal	seal	כלב ים	тюлень
-animal-meerkat.png	animal	meerkat	סוריקטה	сурикат
-animal-mongoose.png	animal	mongoose	מנגוסטה	мангуст
-animal-armadillo.png	animal	armadillo	ארמדילו	броненосец
-animal-capybara.png	animal	capybara	קאפיבארה	капибара
-animal-pangolin.png	animal	pangolin	פנגולין	панголин
-bird-toucan.png	bird	toucan	טוקן	тукан
-bird-puffin.png	bird	puffin	פאפין	тупик
-bird-stork.png	bird	stork	חסידה	аист
-bird-albatross.png	bird	albatross	אלבטרוס	альбатрос
-bird-cardinal.png	bird	cardinal	קרדינל	кардинал
-bird-kookaburra.png	bird	kookaburra	קוקאבורה	кукабарра
-bird-pelican.png	bird	pelican	פליקן	пеликан
-bird-dodo.png	bird	dodo	דודו	додо
-reptile_amphibian_sea_insect-jellyfish.png	reptile_amphibian_sea_insect	jellyfish	מדוזה	медуза
-reptile_amphibian_sea_insect-dragonfly.png	reptile_amphibian_sea_insect	dragonfly	שפירית	стрекоза
-reptile_amphibian_sea_insect-iguana.png	reptile_amphibian_sea_insect	iguana	איגואנה	игуана
-reptile_amphibian_sea_insect-chameleon.png	reptile_amphibian_sea_insect	chameleon	זיקית	хамелеон
-reptile_amphibian_sea_insect-cobra.png	reptile_amphibian_sea_insect	cobra	קוברה	кобра
-reptile_amphibian_sea_insect-alligator.png	reptile_amphibian_sea_insect	alligator	אליגטור	аллигатор
-reptile_amphibian_sea_insect-salamander.png	reptile_amphibian_sea_insect	salamander	סלמנדרה	саламандра
-reptile_amphibian_sea_insect-piranha.png	reptile_amphibian_sea_insect	piranha	פירנייה	пиранья
-reptile_amphibian_sea_insect-tarantula.png	reptile_amphibian_sea_insect	tarantula	טרנטולה	тарантул
-reptile_amphibian_sea_insect-firefly.png	reptile_amphibian_sea_insect	firefly	גחלילית	светлячок
-reptile_amphibian_sea_insect-manta_ray.png	reptile_amphibian_sea_insect	manta ray	מנטה	манта
-reptile_amphibian_sea_insect-clownfish.png	reptile_amphibian_sea_insect	clownfish	דג ליצן	рыба-клоун
-food_plant_kitchen-blueberry.png	food_plant_kitchen	blueberry	אוכמניה	черника
-food_plant_kitchen-cherry.png	food_plant_kitchen	cherry	דובדבן	вишня
-food_plant_kitchen-mango.png	food_plant_kitchen	mango	מנגו	манго
-food_plant_kitchen-kiwi.png	food_plant_kitchen	kiwi	קיווי	киви
-food_plant_kitchen-fig.png	food_plant_kitchen	fig	תאנה	инжир
-food_plant_kitchen-pomegranate.png	food_plant_kitchen	pomegranate	רימון	гранат
-food_plant_kitchen-raspberry.png	food_plant_kitchen	raspberry	פטל	малина
-food_plant_kitchen-corn.png	food_plant_kitchen	corn	תירס	кукуруза
-food_plant_kitchen-eggplant.png	food_plant_kitchen	eggplant	חציל	баклажан
-food_plant_kitchen-pumpkin.png	food_plant_kitchen	pumpkin	דלעת	тыква
-food_plant_kitchen-peas.png	food_plant_kitchen	peas	אפונה	горох
-food_plant_kitchen-cabbage.png	food_plant_kitchen	cabbage	כרוב	капуста
-food_plant_kitchen-asparagus.png	food_plant_kitchen	asparagus	אספרגוס	спаржа
-food_plant_kitchen-pretzel.png	food_plant_kitchen	pretzel	פרצל	крендель
-food_plant_kitchen-cupcake.png	food_plant_kitchen	cupcake	קאפקייק	капкейк
-food_plant_kitchen-popcorn.png	food_plant_kitchen	popcorn	פופקורן	попкорн
-food_plant_kitchen-hot_dog.png	food_plant_kitchen	hot dog	נקניקייה	хот-дог
-food_plant_kitchen-lemonade.png	food_plant_kitchen	lemonade	לימונדה	лимонад
-food_plant_kitchen-ice_cream.png	food_plant_kitchen	ice cream	גלידה	мороженое
-food_plant_kitchen-chocolate.png	food_plant_kitchen	chocolate	שוקולד	шоколад
-food_plant_kitchen-steak.png	food_plant_kitchen	steak	סטייק	стейк
-food_plant_kitchen-noodles.png	food_plant_kitchen	noodles	אטריות	лапша
-food_plant_kitchen-omelet.png	food_plant_kitchen	omelet	חביתה	омлет
-food_plant_kitchen-bun.png	food_plant_kitchen	bun	לחמנייה	булочка
-music_instruments-guitar.png	music_instruments	guitar	גיטרה	гитара
-music_instruments-piano.png	music_instruments	piano	פסנתר	пианино
-music_instruments-violin.png	music_instruments	violin	כינור	скрипка
-music_instruments-drum.png	music_instruments	drum	תוף	барабан
-music_instruments-harp.png	music_instruments	harp	נבל	арфа
-music_instruments-flute.png	music_instruments	flute	חליל	флейта
-music_instruments-trumpet.png	music_instruments	trumpet	חצוצרה	труба
-music_instruments-clarinet.png	music_instruments	clarinet	קלרינט	кларнет
-music_instruments-trombone.png	music_instruments	trombone	טרומבון	тромбон
-music_instruments-saxophone.png	music_instruments	saxophone	סקסופון	саксофон
-music_instruments-accordion.png	music_instruments	accordion	אקורדיון	аккордеон
-music_instruments-xylophone.png	music_instruments	xylophone	קסילופון	ксилофон
-music_instruments-ukulele.png	music_instruments	ukulele	אוקולילה	укулеле
-music_instruments-banjo.png	music_instruments	banjo	בנג'ו	банджо
-music_instruments-tambourine.png	music_instruments	tambourine	תמבורין	тамбурин
-music_instruments-microphone.png	music_instruments	microphone	מיקרופון	микрофон
-music_instruments-headphones.png	music_instruments	headphones	אוזניות	наушники
-sports_games-skateboard.png	sports_games	skateboard	סקייטבורד	скейтборд
-sports_games-snowboard.png	sports_games	snowboard	סנובורד	сноуборд
-sports_games-badminton.png	sports_games	badminton	בדמינטון	бадминтон
-sports_games-basketball.png	sports_games	basketball	כדורסל	баскетбол
-sports_games-baseball.png	sports_games	baseball	בייסבול	бейсбол
-sports_games-volleyball.png	sports_games	volleyball	כדורעף	волейбол
-sports_games-bowling.png	sports_games	bowling	באולינג	боулинг
-sports_games-gymnastics.png	sports_games	gymnastics	התעמלות	гимнастика
-sports_games-wrestling.png	sports_games	wrestling	היאבקות	борьба
-sports_games-boxing.png	sports_games	boxing	אגרוף	бокс
-sports_games-archery.png	sports_games	archery	קשתות	стрельба из лука
-sports_games-chess.png	sports_games	chess	שחמט	шахматы
-sports_games-frisbee.png	sports_games	frisbee	פריסבי	фрисби
-sports_games-darts.png	sports_games	darts	דרטס	дартс
-sports_games-kayaking.png	sports_games	kayaking	קייקינג	каякинг
-sports_games-ping_pong.png	sports_games	ping pong	פינג פונג	пинг-понг
-science_space-telescope.png	science_space	telescope	טלסקופ	телескоп
-science_space-microscope.png	science_space	microscope	מיקרוסקופ	микроскоп
-science_space-robot.png	science_space	robot	רובוט	робот
-science_space-satellite.png	science_space	satellite	לוויין	спутник
-science_space-astronaut.png	science_space	astronaut	אסטרונאוט	космонавт
-science_space-asteroid.png	science_space	asteroid	אסטרואיד	астероид
-science_space-comet.png	science_space	comet	שביט	комета
-science_space-calculator.png	science_space	calculator	מחשבון	калькулятор
-science_space-abacus.png	science_space	abacus	חשבונייה	счёты
-transport-scooter.png	transport	scooter	קורקינט	самокат
-transport-bulldozer.png	transport	bulldozer	בולדוזר	бульдозер
-transport-submarine.png	transport	submarine	צוללת	подводная лодка
-transport-gondola.png	transport	gondola	גונדולה	гондола
-transport-snowmobile.png	transport	snowmobile	מוטוסלג	снегоход
-transport-fire_truck.png	transport	fire truck	כבאית	пожарная машина
-transport-cable_car.png	transport	cable car	רכבל	канатная дорога
-places_city_objects-aquarium.png	places_city_objects	aquarium	אקווריום	аквариум
-places_city_objects-museum.png	places_city_objects	museum	מוזיאון	музей
-places_city_objects-theater.png	places_city_objects	theater	תיאטרון	театр
-places_city_objects-stadium.png	places_city_objects	stadium	אצטדיון	стадион
-places_city_objects-pyramid.png	places_city_objects	pyramid	פירמידה	пирамида
-places_city_objects-lighthouse.png	places_city_objects	lighthouse	מגדלור	маяк
-places_city_objects-windmill.png	places_city_objects	windmill	טחנת רוח	ветряная мельница
-places_city_objects-igloo.png	places_city_objects	igloo	איגלו	иглу
-clothing-glasses.png	clothing	glasses	משקפיים	очки
-clothing-suitcase.png	clothing	suitcase	מזוודה	чемодан
-clothing-kimono.png	clothing	kimono	קימונו	кимоно
-clothing-necklace.png	clothing	necklace	שרשרת	ожерелье
-clothing-helmet.png	clothing	helmet	קסדה	шлем
-clothing-crown.png	clothing	crown	כתר	корона
-nature_weather-seashell.png	nature_weather	seashell	קונכייה	ракушка
-nature_weather-tornado.png	nature_weather	tornado	טורנדו	торнадо
-nature_weather-coral.png	nature_weather	coral	אלמוג	коралл
-nature_weather-volcano.png	nature_weather	volcano	וולקן	вулкан
-nature_weather-palm_tree.png	nature_weather	palm tree	דקל	пальма
-nature_weather-rainbow.png	nature_weather	rainbow	קשת	радуга
+filename	category	english	hebrew	russian	frequency
+animal-monkey.png	animal	monkey	קוף	обезьяна	1
+animal-gorilla.png	animal	gorilla	גורילה	горилла	1
+animal-orangutan.png	animal	orangutan	אורנגאוטן	орангутан	2
+animal-dog.png	animal	dog	כלב	собака	1
+animal-poodle.png	animal	poodle	פודל	пудель	2
+animal-wolf.png	animal	wolf	זאב	волк	1
+animal-fox.png	animal	fox	שועל	лиса	1
+animal-cat.png	animal	cat	חתול	кот	1
+animal-lion.png	animal	lion	אריה	лев	1
+animal-tiger.png	animal	tiger	טיגריס	тигр	1
+animal-leopard.png	animal	leopard	נמר	леопард	2
+animal-moose.png	animal	moose	אייל קורא	лось	2
+animal-horse.png	animal	horse	סוס	лошадь	1
+animal-unicorn.png	animal	unicorn	חד-קרן	единорог	1
+animal-zebra.png	animal	zebra	זברה	зебра	1
+animal-deer.png	animal	deer	אייל	олень	1
+animal-bison.png	animal	bison	ביזון	бизон	3
+animal-ox.png	animal	ox	שור	бык	2
+animal-cow.png	animal	cow	פרה	корова	1
+animal-pig.png	animal	pig	חזיר	свинья	1
+animal-boar.png	animal	boar	חזיר בר	кабан	2
+animal-ram.png	animal	ram	איל	баран	2
+animal-goat.png	animal	goat	עז	коза	1
+animal-camel.png	animal	camel	גמל	верблюд	1
+animal-llama.png	animal	llama	למה	лама	2
+animal-giraffe.png	animal	giraffe	ג'ירפה	жираф	1
+animal-elephant.png	animal	elephant	פיל	слон	1
+animal-rhinoceros.png	animal	rhinoceros	קרנף	носорог	2
+animal-hippopotamus.png	animal	hippopotamus	היפופוטם	бегемот	2
+animal-mouse.png	animal	mouse	עכבר	мышь	1
+animal-rat.png	animal	rat	חולדה	крыса	1
+animal-hamster.png	animal	hamster	אוגר	хомяк	1
+animal-rabbit.png	animal	rabbit	ארנב	кролик	1
+animal-chipmunk.png	animal	chipmunk	סנאי מפוספס	бурундук	2
+animal-beaver.png	animal	beaver	בונה	бобёр	2
+animal-hedgehog.png	animal	hedgehog	קיפוד	ёж	2
+animal-bat.png	animal	bat	עטלף	летучая мышь	1
+animal-bear.png	animal	bear	דוב	медведь	1
+animal-koala.png	animal	koala	קואלה	коала	1
+animal-panda.png	animal	panda	פנדה	панда	1
+animal-sloth.png	animal	sloth	עצלן	ленивец	2
+animal-otter.png	animal	otter	לוטרה	выдра	2
+animal-skunk.png	animal	skunk	בואש	скунс	2
+animal-kangaroo.png	animal	kangaroo	קנגרו	кенгуру	1
+animal-badger.png	animal	badger	גירית	барсук	3
+bird-turkey.png	bird	turkey	תרנגול הודו	индейка	1
+bird-chicken.png	bird	chicken	תרנגולת	курица	1
+bird-rooster.png	bird	rooster	תרנגול	петух	2
+bird-bird.png	bird	bird	ציפור	птица	1
+bird-penguin.png	bird	penguin	פינגווין	пингвин	1
+bird-dove.png	bird	dove	יונה	голубь	2
+bird-eagle.png	bird	eagle	עיט	орёл	1
+bird-duck.png	bird	duck	ברווז	утка	1
+bird-swan.png	bird	swan	ברבור	лебедь	1
+bird-owl.png	bird	owl	ינשוף	сова	1
+bird-flamingo.png	bird	flamingo	פלמינגו	фламинго	1
+bird-peacock.png	bird	peacock	טווס	павлин	2
+bird-parrot.png	bird	parrot	תוכי	попугай	1
+bird-goose.png	bird	goose	אווז	гусь	1
+reptile_amphibian_sea_insect-frog.png	reptile_amphibian_sea_insect	frog	צפרדע	лягушка	1
+reptile_amphibian_sea_insect-crocodile.png	reptile_amphibian_sea_insect	crocodile	תנין	крокодил	1
+reptile_amphibian_sea_insect-turtle.png	reptile_amphibian_sea_insect	turtle	צב	черепаха	1
+reptile_amphibian_sea_insect-lizard.png	reptile_amphibian_sea_insect	lizard	לטאה	ящерица	1
+reptile_amphibian_sea_insect-snake.png	reptile_amphibian_sea_insect	snake	נחש	змея	1
+reptile_amphibian_sea_insect-dragon.png	reptile_amphibian_sea_insect	dragon	דרקון	дракон	1
+reptile_amphibian_sea_insect-whale.png	reptile_amphibian_sea_insect	whale	לווייתן	кит	1
+reptile_amphibian_sea_insect-dolphin.png	reptile_amphibian_sea_insect	dolphin	דולפין	дельфин	1
+reptile_amphibian_sea_insect-seal.png	reptile_amphibian_sea_insect	seal	כלב ים	тюлень	1
+reptile_amphibian_sea_insect-fish.png	reptile_amphibian_sea_insect	fish	דג	рыба	1
+reptile_amphibian_sea_insect-blowfish.png	reptile_amphibian_sea_insect	blowfish	נפוחית	рыба-шар	2
+reptile_amphibian_sea_insect-shark.png	reptile_amphibian_sea_insect	shark	כריש	акула	1
+reptile_amphibian_sea_insect-octopus.png	reptile_amphibian_sea_insect	octopus	תמנון	осьминог	1
+reptile_amphibian_sea_insect-crab.png	reptile_amphibian_sea_insect	crab	סרטן	краб	1
+reptile_amphibian_sea_insect-lobster.png	reptile_amphibian_sea_insect	lobster	לובסטר	омар	2
+reptile_amphibian_sea_insect-shrimp.png	reptile_amphibian_sea_insect	shrimp	שרימפ	креветка	2
+reptile_amphibian_sea_insect-squid.png	reptile_amphibian_sea_insect	squid	דיונון	кальмар	2
+reptile_amphibian_sea_insect-snail.png	reptile_amphibian_sea_insect	snail	חילזון	улитка	1
+reptile_amphibian_sea_insect-butterfly.png	reptile_amphibian_sea_insect	butterfly	פרפר	бабочка	1
+reptile_amphibian_sea_insect-bug.png	reptile_amphibian_sea_insect	bug	חרק	жук	1
+reptile_amphibian_sea_insect-ant.png	reptile_amphibian_sea_insect	ant	נמלה	муравей	1
+reptile_amphibian_sea_insect-honeybee.png	reptile_amphibian_sea_insect	honeybee	דבורת דבש	пчела	1
+reptile_amphibian_sea_insect-beetle.png	reptile_amphibian_sea_insect	beetle	חיפושית	жук	2
+reptile_amphibian_sea_insect-spider.png	reptile_amphibian_sea_insect	spider	עכביש	паук	1
+reptile_amphibian_sea_insect-scorpion.png	reptile_amphibian_sea_insect	scorpion	עקרב	скорпион	2
+reptile_amphibian_sea_insect-mosquito.png	reptile_amphibian_sea_insect	mosquito	יתוש	комар	2
+reptile_amphibian_sea_insect-worm.png	reptile_amphibian_sea_insect	worm	תולעת	червяк	1
+food_plant_kitchen-mushroom.png	food_plant_kitchen	mushroom	פטרייה	гриб	1
+food_plant_kitchen-grapes.png	food_plant_kitchen	grapes	ענבים	виноград	1
+food_plant_kitchen-melon.png	food_plant_kitchen	melon	מלון	дыня	1
+food_plant_kitchen-watermelon.png	food_plant_kitchen	watermelon	אבטיח	арбуз	1
+food_plant_kitchen-lemon.png	food_plant_kitchen	lemon	לימון	лимон	1
+food_plant_kitchen-banana.png	food_plant_kitchen	banana	בננה	банан	1
+food_plant_kitchen-pineapple.png	food_plant_kitchen	pineapple	אננס	ананас	1
+food_plant_kitchen-pear.png	food_plant_kitchen	pear	אגס	груша	1
+food_plant_kitchen-peach.png	food_plant_kitchen	peach	אפרסק	персик	1
+food_plant_kitchen-strawberry.png	food_plant_kitchen	strawberry	תות	клубника	1
+food_plant_kitchen-tomato.png	food_plant_kitchen	tomato	עגבנייה	помидор	1
+food_plant_kitchen-coconut.png	food_plant_kitchen	coconut	קוקוס	кокос	1
+food_plant_kitchen-avocado.png	food_plant_kitchen	avocado	אבוקדו	авокадо	2
+food_plant_kitchen-potato.png	food_plant_kitchen	potato	תפוח אדמה	картошка	1
+food_plant_kitchen-carrot.png	food_plant_kitchen	carrot	גזר	морковь	1
+food_plant_kitchen-cucumber.png	food_plant_kitchen	cucumber	מלפפון	огурец	1
+food_plant_kitchen-broccoli.png	food_plant_kitchen	broccoli	ברוקולי	брокколи	1
+food_plant_kitchen-garlic.png	food_plant_kitchen	garlic	שום	чеснок	1
+food_plant_kitchen-onion.png	food_plant_kitchen	onion	בצל	лук	1
+food_plant_kitchen-bread.png	food_plant_kitchen	bread	לחם	хлеб	1
+food_plant_kitchen-croissant.png	food_plant_kitchen	croissant	קרואסון	круассан	2
+food_plant_kitchen-bagel.png	food_plant_kitchen	bagel	בייגל	бублик	2
+food_plant_kitchen-pancakes.png	food_plant_kitchen	pancakes	פנקייקים	блины	1
+food_plant_kitchen-waffle.png	food_plant_kitchen	waffle	וופל	вафля	2
+food_plant_kitchen-bacon.png	food_plant_kitchen	bacon	בייקון	бекон	2
+food_plant_kitchen-hamburger.png	food_plant_kitchen	hamburger	המבורגר	гамбургер	1
+food_plant_kitchen-pizza.png	food_plant_kitchen	pizza	פיצה	пицца	1
+food_plant_kitchen-sandwich.png	food_plant_kitchen	sandwich	כריך	бутерброд	1
+food_plant_kitchen-taco.png	food_plant_kitchen	taco	טאקו	тако	2
+food_plant_kitchen-burrito.png	food_plant_kitchen	burrito	בוריטו	буррито	3
+food_plant_kitchen-egg.png	food_plant_kitchen	egg	ביצה	яйцо	1
+food_plant_kitchen-cooking.png	food_plant_kitchen	cooking	בישול	готовка	1
+food_plant_kitchen-salt.png	food_plant_kitchen	salt	מלח	соль	1
+food_plant_kitchen-spaghetti.png	food_plant_kitchen	spaghetti	ספגטי	спагетти	1
+food_plant_kitchen-sushi.png	food_plant_kitchen	sushi	סושי	суши	2
+food_plant_kitchen-dumpling.png	food_plant_kitchen	dumpling	כיסון	пельмень	3
+food_plant_kitchen-doughnut.png	food_plant_kitchen	doughnut	דונאט	пончик	1
+food_plant_kitchen-cookie.png	food_plant_kitchen	cookie	עוגייה	печенье	1
+food_plant_kitchen-pie.png	food_plant_kitchen	pie	פאי	пирог	1
+food_plant_kitchen-candy.png	food_plant_kitchen	candy	ממתק	конфета	1
+food_plant_kitchen-lollipop.png	food_plant_kitchen	lollipop	סוכרייה על מקל	леденец	1
+food_plant_kitchen-teapot.png	food_plant_kitchen	teapot	קומקום תה	чайник	2
+food_plant_kitchen-ice.png	food_plant_kitchen	ice	קרח	лёд	1
+food_plant_kitchen-chopsticks.png	food_plant_kitchen	chopsticks	מקלות אכילה	палочки	3
+food_plant_kitchen-spoon.png	food_plant_kitchen	spoon	כף	ложка	1
+food_plant_kitchen-jar.png	food_plant_kitchen	jar	צנצנת	банка	2
+transport-train.png	transport	train	רכבת	поезд	1
+transport-metro.png	transport	metro	מטרו	метро	2
+transport-tram.png	transport	tram	חשמלית	трамвай	2
+transport-monorail.png	transport	monorail	מונורייל	монорельс	3
+transport-bus.png	transport	bus	אוטובוס	автобус	1
+transport-trolleybus.png	transport	trolleybus	טרוליבוס	троллейбус	3
+transport-ambulance.png	transport	ambulance	אמבולנס	скорая	1
+transport-taxi.png	transport	taxi	מונית	такси	1
+transport-automobile.png	transport	automobile	מכונית	машина	1
+transport-tractor.png	transport	tractor	טרקטור	трактор	1
+transport-motorcycle.png	transport	motorcycle	אופנוע	мотоцикл	1
+transport-bicycle.png	transport	bicycle	אופניים	велосипед	1
+transport-sailboat.png	transport	sailboat	סירת מפרש	парусник	2
+transport-canoe.png	transport	canoe	קאנו	каноэ	2
+transport-speedboat.png	transport	speedboat	סירת מנוע מהירה	катер	2
+transport-ferry.png	transport	ferry	מעבורת	паром	2
+transport-ship.png	transport	ship	ספינה	корабль	1
+transport-airplane.png	transport	airplane	מטוס	самолёт	1
+transport-helicopter.png	transport	helicopter	מסוק	вертолёт	1
+transport-rocket.png	transport	rocket	רקטה	ракета	1
+legacy-apple.png	legacy	apple	תפוח	яблוко	1
+legacy-cake.png	legacy	cake	עוגה	торт	1
+nature_weather-tree.png	nature_weather	tree	עץ	дерево	1
+nature_weather-flower.png	nature_weather	flower	פרח	цветок	1
+nature_weather-sun.png	nature_weather	sun	שמש	солнце	1
+nature_weather-cloud.png	nature_weather	cloud	ענן	облако	1
+nature_weather-leaf.png	nature_weather	leaf	עלה	лист	1
+nature_weather-cactus.png	nature_weather	cactus	קקטוס	кактус	2
+nature_weather-seedling.png	nature_weather	seedling	נבט	росток	3
+nature_weather-rain_drop.png	nature_weather	rain_drop	טיפה	капля	1
+nature_weather-umbrella.png	nature_weather	umbrella	מטרייה	зонт	1
+nature_weather-snowflake.png	nature_weather	snowflake	פתית שלג	снежинка	1
+nature_weather-mountain.png	nature_weather	mountain	הר	гора	1
+nature_weather-rock.png	nature_weather	rock	אבן	камень	1
+nature_weather-grass.png	nature_weather	grass	דשא	трава	1
+clothing-shirt.png	clothing	shirt	חולצה	рубашка	1
+clothing-pants.png	clothing	pants	מכנסיים	брюки	1
+clothing-dress.png	clothing	dress	שמלה	платье	1
+clothing-skirt.png	clothing	skirt	חצאית	юбка	1
+clothing-socks.png	clothing	socks	גרביים	носки	1
+clothing-shoes.png	clothing	shoes	נעליים	туфли	1
+clothing-boots.png	clothing	boots	מגפיים	сапоги	1
+clothing-hat.png	clothing	hat	כובע	шапка	1
+clothing-scarf.png	clothing	scarf	צעיף	шарف	2
+clothing-gloves.png	clothing	gloves	כפפות	перчатки	2
+clothing-backpack.png	clothing	backpack	תיק גב	рюкзак	1
+home_furniture_bathroom-bed.png	home_furniture_bathroom	bed	מיטה	кровать	1
+home_furniture_bathroom-chair.png	home_furniture_bathroom	chair	כיסא	стул	1
+home_furniture_bathroom-table.png	home_furniture_bathroom	table	שולחן	стол	1
+home_furniture_bathroom-lamp.png	home_furniture_bathroom	lamp	מנורה	лампа	1
+home_furniture_bathroom-sofa.png	home_furniture_bathroom	sofa	ספה	диван	1
+home_furniture_bathroom-door.png	home_furniture_bathroom	door	דלת	дверь	1
+home_furniture_bathroom-window.png	home_furniture_bathroom	window	חלון	окно	1
+home_furniture_bathroom-clock.png	home_furniture_bathroom	clock	שעון	часы	1
+home_furniture_bathroom-mirror.png	home_furniture_bathroom	mirror	מראה	зеркало	1
+home_furniture_bathroom-bathtub.png	home_furniture_bathroom	bathtub	אמבטיה	ванна	1
+home_furniture_bathroom-toilet.png	home_furniture_bathroom	toilet	אסלה	туалет	1
+home_furniture_bathroom-toothbrush.png	home_furniture_bathroom	toothbrush	מברשת שיניים	зубная щётка	1
+home_furniture_bathroom-toothpaste.png	home_furniture_bathroom	toothpaste	משחת שיניים	зубная паста	2
+home_furniture_bathroom-soap.png	home_furniture_bathroom	soap	סבון	мыло	1
+home_furniture_bathroom-towel.png	home_furniture_bathroom	towel	מגבת	полотенце	1
+school_play-book.png	school_play	book	ספר	книга	1
+school_play-notebook.png	school_play	notebook	מחברת	тетрадь	1
+school_play-pencil.png	school_play	pencil	עיפרון	карандаш	1
+school_play-pen.png	school_play	pen	עט	ручка	1
+school_play-eraser.png	school_play	eraser	מחק	ластик	1
+school_play-ruler.png	school_play	ruler	סרגל	линейка	1
+school_play-scissors.png	school_play	scissors	מספריים	ножницы	1
+school_play-glue.png	school_play	glue	דבק	клей	1
+school_play-paint_palette.png	school_play	paint_palette	פלטת צבעים	палитра	2
+school_play-paintbrush.png	school_play	paintbrush	מכחול	кисть	2
+school_play-school_bag.png	school_play	school_bag	תיק בית ספר	портфель	1
+school_play-ball.png	school_play	ball	כדור	мяч	1
+school_play-kite.png	school_play	kite	עפיפון	воздушный змей	1
+school_play-puzzle_piece.png	school_play	puzzle_piece	חלק פאזל	пазл	2
+school_play-gift.png	school_play	gift	מתנה	подарок	1
+kitchen_household-cup.png	kitchen_household	cup	כוס	чашка	1
+kitchen_household-mug.png	kitchen_household	mug	ספל	кружка	2
+kitchen_household-plate.png	kitchen_household	plate	צלחת	тарелка	1
+kitchen_household-bowl.png	kitchen_household	bowl	קערה	миска	1
+kitchen_household-fork.png	kitchen_household	fork	מזלג	вилка	1
+kitchen_household-knife.png	kitchen_household	knife	סכין	нож	1
+kitchen_household-bottle.png	kitchen_household	bottle	בקבוק	бутылка	1
+kitchen_household-milk.png	kitchen_household	milk	חלב	молоко	1
+kitchen_household-cheese.png	kitchen_household	cheese	גבינה	сыр	1
+kitchen_household-apple_red.png	kitchen_household	apple_red	תפוח	яблоко	1
+kitchen_household-apple_green.png	kitchen_household	apple_green	תפוח ירוק	зелёное яблоко	2
+kitchen_household-orange.png	kitchen_household	orange	תפוז	апельсин	1
+kitchen_household-pepper.png	kitchen_household	pepper	פלפל	перец	1
+kitchen_household-rice.png	kitchen_household	rice	אורז	рис	1
+kitchen_household-soup.png	kitchen_household	soup	מרק	суп	1
+places_city_objects-house.png	places_city_objects	house	בית	дом	1
+places_city_objects-school.png	places_city_objects	school	בית ספר	школа	1
+places_city_objects-hospital.png	places_city_objects	hospital	בית חולים	больница	1
+places_city_objects-store.png	places_city_objects	store	חנות	магазин	1
+places_city_objects-park.png	places_city_objects	park	פארק	парк	1
+places_city_objects-playground.png	places_city_objects	playground	מגרש משחקים	площадка	1
+places_city_objects-traffic_light.png	places_city_objects	traffic_light	רמזור	светофор	1
+places_city_objects-bridge.png	places_city_objects	bridge	גשר	мост	1
+places_city_objects-key.png	places_city_objects	key	מפתח	ключ	1
+places_city_objects-lock.png	places_city_objects	lock	מנעול	замок	1
+places_city_objects-phone.png	places_city_objects	phone	טלפון	телефон	1
+places_city_objects-tv.png	places_city_objects	tv	טלוויזיה	телевизор	1
+places_city_objects-computer.png	places_city_objects	computer	מחשב	компьютер	1
+places_city_objects-camera.png	places_city_objects	camera	מצלמה	фотоаппарат	1
+places_city_objects-light_bulb.png	places_city_objects	light_bulb	נורה	лампочка	1
+places_city_objects-battery.png	places_city_objects	battery	סוללה	батарейка	2
+places_city_objects-magnet.png	places_city_objects	magnet	מגנט	магнит	2
+places_city_objects-box.png	places_city_objects	box	קופסה	коробка	1
+places_city_objects-balloon.png	places_city_objects	balloon	בלון	шарик	1
+additional_animals-sheep.png	additional_animals	sheep	כבשה	овца	1
+additional_animals-donkey.png	additional_animals	donkey	חמור	осёл	1
+additional_animals-chick.png	additional_animals	chick	אפרוח	цыплёнок	1
+animal-mammoth.png	animal	mammoth	מאמות	мамонт	2
+animal-walrus.png	animal	walrus	ולרוס	морж	2
+animal-narwhal.png	animal	narwhal	נרוואל	нарвал	3
+animal-seal.png	animal	seal	כלב ים	тюлень	1
+animal-meerkat.png	animal	meerkat	סוריקטה	сурикат	2
+animal-mongoose.png	animal	mongoose	מנגוסטה	мангуст	3
+animal-armadillo.png	animal	armadillo	ארמדילו	броненосец	3
+animal-capybara.png	animal	capybara	קאפיבארה	капибара	2
+animal-pangolin.png	animal	pangolin	פנגולין	панголин	4
+bird-toucan.png	bird	toucan	טוקן	тукан	2
+bird-puffin.png	bird	puffin	פאפין	тупик	3
+bird-stork.png	bird	stork	חסידה	аист	2
+bird-albatross.png	bird	albatross	אלבטרוס	альбатрос	3
+bird-cardinal.png	bird	cardinal	קרדינל	кардинал	3
+bird-kookaburra.png	bird	kookaburra	קוקאבורה	кукабарра	3
+bird-pelican.png	bird	pelican	פליקן	пеликан	2
+bird-dodo.png	bird	dodo	דודו	додо	2
+reptile_amphibian_sea_insect-jellyfish.png	reptile_amphibian_sea_insect	jellyfish	מדוזה	медуза	1
+reptile_amphibian_sea_insect-dragonfly.png	reptile_amphibian_sea_insect	dragonfly	שפירית	стрекоза	2
+reptile_amphibian_sea_insect-iguana.png	reptile_amphibian_sea_insect	iguana	איגואנה	игуана	2
+reptile_amphibian_sea_insect-chameleon.png	reptile_amphibian_sea_insect	chameleon	זיקית	хамелеон	2
+reptile_amphibian_sea_insect-cobra.png	reptile_amphibian_sea_insect	cobra	קוברה	кобра	2
+reptile_amphibian_sea_insect-alligator.png	reptile_amphibian_sea_insect	alligator	אליגטור	аллигатор	1
+reptile_amphibian_sea_insect-salamander.png	reptile_amphibian_sea_insect	salamander	סלמנדרה	саламандра	3
+reptile_amphibian_sea_insect-piranha.png	reptile_amphibian_sea_insect	piranha	פירנייה	пиранья	2
+reptile_amphibian_sea_insect-tarantula.png	reptile_amphibian_sea_insect	tarantula	טרנטולה	тарантул	2
+reptile_amphibian_sea_insect-firefly.png	reptile_amphibian_sea_insect	firefly	גחלילית	светлячок	2
+reptile_amphibian_sea_insect-manta_ray.png	reptile_amphibian_sea_insect	manta ray	מנטה	манта	3
+reptile_amphibian_sea_insect-clownfish.png	reptile_amphibian_sea_insect	clownfish	דג ליצן	рыба-клוун	1
+food_plant_kitchen-blueberry.png	food_plant_kitchen	blueberry	אוכמניה	черника	1
+food_plant_kitchen-cherry.png	food_plant_kitchen	cherry	דובדבן	вишня	1
+food_plant_kitchen-mango.png	food_plant_kitchen	mango	מנגו	манго	1
+food_plant_kitchen-kiwi.png	food_plant_kitchen	kiwi	קיווי	киви	1
+food_plant_kitchen-fig.png	food_plant_kitchen	fig	תאנה	инжир	3
+food_plant_kitchen-pomegranate.png	food_plant_kitchen	pomegranate	רימון	гранат	2
+food_plant_kitchen-raspberry.png	food_plant_kitchen	raspberry	פטל	малина	1
+food_plant_kitchen-corn.png	food_plant_kitchen	corn	תירס	кукуруза	1
+food_plant_kitchen-eggplant.png	food_plant_kitchen	eggplant	חציל	баклажан	1
+food_plant_kitchen-pumpkin.png	food_plant_kitchen	pumpkin	דלעת	тыква	1
+food_plant_kitchen-peas.png	food_plant_kitchen	peas	אפונה	горох	1
+food_plant_kitchen-cabbage.png	food_plant_kitchen	cabbage	כרוב	капуста	1
+food_plant_kitchen-asparagus.png	food_plant_kitchen	asparagus	אספרגוס	спаржа	2
+food_plant_kitchen-pretzel.png	food_plant_kitchen	pretzel	פרצל	крендель	2
+food_plant_kitchen-cupcake.png	food_plant_kitchen	cupcake	קאפקייק	капкейк	1
+food_plant_kitchen-popcorn.png	food_plant_kitchen	popcorn	פופקורן	попкорн	1
+food_plant_kitchen-hot_dog.png	food_plant_kitchen	hot dog	נקניקייה	хот-дог	1
+food_plant_kitchen-lemonade.png	food_plant_kitchen	lemonade	לימונדה	лимонад	1
+food_plant_kitchen-ice_cream.png	food_plant_kitchen	ice cream	גלידה	мороженое	1
+food_plant_kitchen-chocolate.png	food_plant_kitchen	chocolate	שוקולד	шоколад	1
+food_plant_kitchen-steak.png	food_plant_kitchen	steak	סטייק	стейк	2
+food_plant_kitchen-noodles.png	food_plant_kitchen	noodles	אטריות	лапша	1
+food_plant_kitchen-omelet.png	food_plant_kitchen	omelet	חביתה	омлет	2
+food_plant_kitchen-bun.png	food_plant_kitchen	bun	לחמנייה	булочка	2
+music_instruments-guitar.png	music_instruments	guitar	גיטרה	гитара	1
+music_instruments-piano.png	music_instruments	piano	פסנתר	пианино	1
+music_instruments-violin.png	music_instruments	violin	כינור	скрипка	1
+music_instruments-drum.png	music_instruments	drum	תוף	барабан	1
+music_instruments-harp.png	music_instruments	harp	נבל	арфа	2
+music_instruments-flute.png	music_instruments	flute	חליל	флейта	2
+music_instruments-trumpet.png	music_instruments	trumpet	חצוצרה	труба	2
+music_instruments-clarinet.png	music_instruments	clarinet	קלרינט	кларнет	3
+music_instruments-trombone.png	music_instruments	trombone	טרומבון	тромбон	3
+music_instruments-saxophone.png	music_instruments	saxophone	סקסופון	саксофон	2
+music_instruments-accordion.png	music_instruments	accordion	אקורדיון	аккордеон	3
+music_instruments-xylophone.png	music_instruments	xylophone	קסילופון	ксилофон	2
+music_instruments-ukulele.png	music_instruments	ukulele	אוקולילה	укулеле	3
+music_instruments-banjo.png	music_instruments	banjo	בנג'ו	банджо	3
+music_instruments-tambourine.png	music_instruments	tambourine	תמבורין	тамбурин	3
+music_instruments-microphone.png	music_instruments	microphone	מיקרופון	микрофон	1
+music_instruments-headphones.png	music_instruments	headphones	אוזניות	наушники	1
+sports_games-skateboard.png	sports_games	skateboard	סקייטבורד	скейтборд	1
+sports_games-snowboard.png	sports_games	snowboard	סנובורד	сноуборд	2
+sports_games-badminton.png	sports_games	badminton	בדמינטון	бадминтон	2
+sports_games-basketball.png	sports_games	basketball	כדורסל	баскетбол	1
+sports_games-baseball.png	sports_games	baseball	בייסבול	бейсбол	1
+sports_games-volleyball.png	sports_games	volleyball	כדורעף	волейбол	1
+sports_games-bowling.png	sports_games	bowling	באולינג	боулינг	1
+sports_games-gymnastics.png	sports_games	gymnastics	התעמלות	гимнастика	2
+sports_games-wrestling.png	sports_games	wrestling	היאבקות	борьба	2
+sports_games-boxing.png	sports_games	boxing	אגרוף	бокс	2
+sports_games-archery.png	sports_games	archery	קשתות	стрельба из лука	3
+sports_games-chess.png	sports_games	chess	שחמט	шахматы	1
+sports_games-frisbee.png	sports_games	frisbee	פריסבי	фрисби	2
+sports_games-darts.png	sports_games	darts	דרטס	дартс	2
+sports_games-kayaking.png	sports_games	kayaking	קייקינג	каякинг	3
+sports_games-ping_pong.png	sports_games	ping pong	פינג פונג	пинг-понг	1
+science_space-telescope.png	science_space	telescope	טלסקופ	телескоп	2
+science_space-microscope.png	science_space	microscope	מיקרוסקופ	микроскоп	2
+science_space-robot.png	science_space	robot	רובוט	робот	1
+science_space-satellite.png	science_space	satellite	לוויין	спутник	2
+science_space-astronaut.png	science_space	astronaut	אסטרונאוט	космонавт	1
+science_space-asteroid.png	science_space	asteroid	אסטרואיד	астероид	3
+science_space-comet.png	science_space	comet	שביט	комета	3
+science_space-calculator.png	science_space	calculator	מחשבון	калькулятор	2
+science_space-abacus.png	science_space	abacus	חשבונייה	счёты	4
+transport-scooter.png	transport	scooter	קורקינט	самокат	1
+transport-bulldozer.png	transport	bulldozer	בולדוזר	бульдозер	2
+transport-submarine.png	transport	submarine	צוללת	подводная лодка	1
+transport-gondola.png	transport	gondola	גונדולה	гондола	4
+transport-snowmobile.png	transport	snowmobile	מוטוסלג	снегоход	3
+transport-fire_truck.png	transport	fire truck	כבאית	пожарная машина	1
+transport-cable_car.png	transport	cable car	רכבל	канатная дорога	3
+places_city_objects-aquarium.png	places_city_objects	aquarium	אקווריום	аквариум	1
+places_city_objects-museum.png	places_city_objects	museum	מוזיאון	музей	1
+places_city_objects-theater.png	places_city_objects	theater	תיאטרון	театр	1
+places_city_objects-stadium.png	places_city_objects	stadium	אצטדיון	стадион	2
+places_city_objects-pyramid.png	places_city_objects	pyramid	פירמידה	пирамида	2
+places_city_objects-lighthouse.png	places_city_objects	lighthouse	מגדלור	маяк	2
+places_city_objects-windmill.png	places_city_objects	windmill	טחנת רוח	ветряная мельница	2
+places_city_objects-igloo.png	places_city_objects	igloo	איגלו	иглу	2
+clothing-glasses.png	clothing	glasses	משקפיים	очки	1
+clothing-suitcase.png	clothing	suitcase	מזוודה	чемодан	1
+clothing-kimono.png	clothing	kimono	קימונו	кимоно	3
+clothing-necklace.png	clothing	necklace	שרשרת	ожерелье	2
+clothing-helmet.png	clothing	helmet	קסדה	шлем	2
+clothing-crown.png	clothing	crown	כתר	корона	1
+nature_weather-seashell.png	nature_weather	seashell	קונכייה	ракушка	2
+nature_weather-tornado.png	nature_weather	tornado	טורנדו	торнадо	2
+nature_weather-coral.png	nature_weather	coral	אלמוג	коралл	3
+nature_weather-volcano.png	nature_weather	volcano	וולקן	вулкан	2
+nature_weather-palm_tree.png	nature_weather	palm tree	דקל	пальма	2
+nature_weather-rainbow.png	nature_weather	rainbow	קשת	радуга	1
