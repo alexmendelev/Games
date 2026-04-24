@@ -372,6 +372,8 @@ html[data-meta-overlay="open"] .game {
   z-index: 30;
   transform: translate(20px, -120px);
   isolation: isolate;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .tile.tile--special {

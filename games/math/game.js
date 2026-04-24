@@ -509,7 +509,7 @@
       }
     }
 
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    tileEl.style.transform = `translate3d(${Math.round(task.x)}px, ${Math.round(task.y)}px, 0)`;
     syncWaterReflection(task, rectArg);
   }
 

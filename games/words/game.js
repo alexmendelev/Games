@@ -108,7 +108,8 @@
   let levelProgressTarget = 1;
   let task = null;
   let questionCount = 0;
-  let levelDirection = "word-to-image";
+  let levelDirection = "image-to-word";
+  meta.showStart({ levelVariant: levelDirection });
   let preparedTasks = [];
   let backgroundEmojiQueue = [];
   let backgroundEmojiTimer = 0;
@@ -170,8 +171,6 @@
       tileEl.removeAttribute("data-reward");
       tileEl.style.width = "";
       tileEl.style.height = "";
-      clearMysteryMode();
-      clearImageWordMode();
       tileEl.style.transform = "";
       shell.hideWaterReflection();
     }
@@ -308,10 +307,10 @@
     tileEl.classList.remove("tile--special", "tile--silver", "tile--gold", "tile--diamond", "tile--mystery", "tile--image-mode");
     tileEl.style.width = "";
     tileEl.style.height = "";
-    clearMysteryMode();
-    clearImageWordMode();
 
     if (nextTask.mystery) {
+      clearMysteryMode();
+      clearImageWordMode();
       tileTextEl.textContent = nextTask.word;
       tileEl.setAttribute("lang", nextTask.wordLang || "he");
       tileEl.setAttribute("dir", nextTask.wordDir || "ltr");
@@ -335,6 +334,7 @@
     }
 
     if (nextTask.direction === "image-to-word") {
+      clearMysteryMode();
       tileTextEl.textContent = "";
       tileEl.removeAttribute("lang");
       tileEl.removeAttribute("dir");
@@ -368,6 +368,8 @@
     }
 
     // word-to-image (default)
+    clearMysteryMode();
+    clearImageWordMode();
     tileTextEl.textContent = nextTask.word;
     tileEl.setAttribute("lang", nextTask.wordLang || "he");
     tileEl.setAttribute("dir", nextTask.wordDir || "rtl");
@@ -691,7 +693,7 @@
     paused = false;
     pauseBtn.classList.remove("paused");
     session.finishLevel();
-    levelDirection = Math.random() < 0.5 ? "word-to-image" : "image-to-word";
+    levelDirection = levelDirection === "word-to-image" ? "image-to-word" : "word-to-image";
     await meta.showResults(Object.assign(session.buildResultsPayload(), { nextLevelVariant: levelDirection }));
     syncCheckpointState();
     preparedTasks = [];
@@ -1081,8 +1083,25 @@
         applyTaskUi(task);
       }
     }
-    tileEl.style.transform = `translate(${task.x}px, ${task.y}px)`;
+    tileEl.style.transform = `translate3d(${Math.round(task.x)}px, ${Math.round(task.y)}px, 0)`;
     syncWaterReflection(task, rectArg);
+  }
+
+  function trySetItem(prepared, token) {
+    if (token !== spawnRequestToken || !running || falling.getItem()) {
+      return null;
+    }
+    task = falling.setItem(prepared.task, "spawn");
+    refreshBackgroundEmojiWarmup();
+    return task;
+  }
+
+  function recoverSpawn(token) {
+    if (token !== spawnRequestToken || !running || falling.getItem()) {
+      return;
+    }
+    task = falling.spawn();
+    refreshBackgroundEmojiWarmup();
   }
 
   function spawnPreparedTask(prepared, token) {
@@ -1093,26 +1112,16 @@
     }
     if (prepared.ready) {
       return applyTaskUi(prepared.task).then(() => {
-        if (token !== spawnRequestToken || !running || falling.getItem()) {
-          return null;
-        }
-        task = falling.setItem(prepared.task, "spawn");
-        refreshBackgroundEmojiWarmup();
-        return task;
-      });
+        return trySetItem(prepared, token);
+      }).catch(() => recoverSpawn(token));
     }
     task = null;
     refreshBackgroundEmojiWarmup();
     return prepared.readyPromise.then(() => {
       return applyTaskUi(prepared.task);
     }).then(() => {
-      if (token !== spawnRequestToken || !running || falling.getItem()) {
-        return null;
-      }
-      task = falling.setItem(prepared.task, "spawn");
-      refreshBackgroundEmojiWarmup();
-      return task;
-    });
+      return trySetItem(prepared, token);
+    }).catch(() => recoverSpawn(token));
   }
 
   function spawnTask() {
@@ -1131,7 +1140,7 @@
     if (!currentTask) return;
     const drownX = currentTask.x + currentTask.width / 2;
     const missOutcome = session.handleMiss();
-    playMascotShame();
+    bh.playMascotShame();
     audio.sfx.splash();
     playSplash(drownX);
     if (missOutcome.levelComplete) {
@@ -1217,7 +1226,10 @@
   async function startGame() {
     resetState();
     let firstPrepared = takeStartupPreparedTask();
-    if (firstPrepared && firstPrepared.task && firstPrepared.task.mystery) {
+    if (firstPrepared && firstPrepared.task && (
+      firstPrepared.task.mystery ||
+      firstPrepared.task.direction !== levelDirection
+    )) {
       firstPrepared = null;
     }
     if (!firstPrepared) {
