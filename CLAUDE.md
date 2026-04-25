@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Commit Rules
+
+- **Always update `games/version.json` before committing.** Set `"date"` to today's date in `YYYY-MM-DD` format and include the file in the commit.
+
 ## Running the Games
 
 Start the static server (serves on `http://127.0.0.1:8000`):
