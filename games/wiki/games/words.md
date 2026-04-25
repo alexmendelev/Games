@@ -87,7 +87,7 @@ Word lengths are counted in the active display language (e.g., Hebrew letter cou
 - columns: `filename`, `category`, `english`, `hebrew`, `russian`, `frequency`
 - `frequency` (1–4) is read at runtime by `buildPoolForProfile` and enforced via `maxFrequency` in `config.js`
 - to add new words: add a row to the TSV with a `frequency` rating and place the 160×160 PNG in `data/emojis-new/`
-- high-res 512×512 source images live in `data/image_source/emojis-new/` (not served, kept for regeneration)
+- high-res 512×512 source images live in `image_source/emojis-new/` at the repo root (not served, kept for regeneration)
 - `scripts/generate-word-images.py` generates images via OpenAI API; `scripts/resize-source-images.py` batch-resizes sources
 
 ## Useful Dev Notes
