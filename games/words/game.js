@@ -912,6 +912,7 @@
       const imgLane = shell.fallLane(imgSize.width, imgSize.margin, imgRect);
       return Object.assign(base, {
         direction: "image-to-word",
+        emojiId: correct.id,
         word: "",
         tileImageSrc: correct.src,
         correctId: correctWord,
@@ -926,6 +927,7 @@
 
     return Object.assign(base, {
       direction: "word-to-image",
+      emojiId: correct.id,
       word: emojiWord(correct, languageId),
       correctId: correct.id
     });
@@ -1264,7 +1266,11 @@
     const firstTask = placeTaskForCurrentLayout(firstPrepared.task);
     task = firstTask;
     if (!task) return;
-    recentCorrectIds = firstTask.correctId ? [firstTask.correctId] : [];
+    const firstEmojiId = firstTask.emojiId;
+    if (firstEmojiId) {
+      recentCorrectIds = [firstEmojiId];
+      levelUsedIds.add(firstEmojiId);
+    }
     fillPreparedTasks(preparedTaskTarget);
     await applyTaskUi(task);
     session.beginLevel();
