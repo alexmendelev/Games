@@ -107,7 +107,10 @@ window.GAMES_V2_META_STATE = (function (utils) {
       testMode: "מצב בדיקה",
       previewResults: "תצוגת מסך תוצאות",
       progressBadge(levelNumber) { return "הישג שיא: שלב " + levelNumber; },
-      defaultPlayerName: "את/ה"
+      defaultPlayerName: "את/ה",
+      levelUpTitle: "עלית רמה!",
+      keepPracticingTitle: "ממשיכים להתאמן",
+      keepPracticingDetail(label) { return "מתאמנים על " + label + " קצת"; }
     },
     en: {
       startTitle: "Your next level is ready",
@@ -168,7 +171,10 @@ window.GAMES_V2_META_STATE = (function (utils) {
       testMode: "Test mode",
       previewResults: "Preview results screen",
       progressBadge(levelNumber) { return "Best checkpoint: Level " + levelNumber; },
-      defaultPlayerName: "You"
+      defaultPlayerName: "You",
+      levelUpTitle: "Level up!",
+      keepPracticingTitle: "Let's keep practicing",
+      keepPracticingDetail(label) { return "Trying " + label + " for a bit"; }
     },
     ru: {
       startTitle: "Следующий уровень ждёт тебя",
@@ -229,7 +235,10 @@ window.GAMES_V2_META_STATE = (function (utils) {
       testMode: "Режим тестирования",
       previewResults: "Предпросмотр результатов",
       progressBadge(levelNumber) { return "Лучший результат: уровень " + levelNumber; },
-      defaultPlayerName: "Ты"
+      defaultPlayerName: "Ты",
+      levelUpTitle: "Новый уровень!",
+      keepPracticingTitle: "Продолжаем тренироваться",
+      keepPracticingDetail(label) { return "Поиграем на «" + label + "»"; }
     }
   };
   const DIFF_LABELS = {
@@ -778,6 +787,7 @@ window.GAMES_V2_META_STATE = (function (utils) {
         afterRanks,
         message: nextMessage(previewMessageState),
         previewOnly: true,
+        progression: { type: "promoted", fromKey: "easy", toKey: "medium" },
         metrics: {
           accuracy: 1,
           bestStreak: Math.max(7, snapshot.nextLevel + 3),

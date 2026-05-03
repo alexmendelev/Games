@@ -1,5 +1,40 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&display=swap");
 
+.metaResultsContinueButton--progression {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.5vw, 22px);
+  padding-inline: clamp(10px, 1.5vw, 18px);
+}
+.metaContinueLevelBlock {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6em;
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 1.15em;
+  font-weight: 900;
+}
+.metaContinueProgressionText {
+  flex: 1 1 auto;
+  text-align: center;
+}
+.metaLevelChar {
+  display: inline-block;
+  animation: metaLevelColorLoop 1.2s ease-in-out infinite;
+}
+@keyframes metaLevelColorLoop {
+  0%   { color: #10213d; }
+  20%  { color: #c0392b; }
+  40%  { color: #7c3aed; }
+  60%  { color: #0891b2; }
+  80%  { color: #16a34a; }
+  100% { color: #10213d; }
+}
+
 .metaCard {
   --meta-dialog-font: Arial, "Arial Hebrew", sans-serif;
   --meta-dialog-font-he: Arial, "Arial Hebrew", sans-serif;
@@ -4403,29 +4438,36 @@ html[data-dashboard-layout="portrait"] .metaCard--dashboard .metaLeaderboardList
 
 .metaCard--dashboard-start .metaDashboardActions,
 .metaCard--dashboard-results .metaDashboardActions {
+  display: flex;
   margin-top: 0;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: calc(10px * var(--ui, 1));
 }
 
-.metaCard--dashboard-start .metaDashboardActions .metaGhostButton,
-.metaCard--dashboard-start .metaDashboardActions .metaPrimaryButton,
-.metaCard--dashboard-results .metaDashboardActions .metaGhostButton,
-.metaCard--dashboard-results .metaDashboardActions .metaPrimaryButton {
-  width: 100%;
+.metaCard--dashboard-start .metaDashboardActions .metaResultsContinueButton,
+.metaCard--dashboard-results .metaDashboardActions .metaResultsContinueButton {
+  flex: 1 1 0;
+  width: auto;
   margin-top: 0;
   min-height: clamp(52px, 8vh, 74px);
   border-radius: calc(22px * var(--ui, 1));
+  font-size: clamp(24px, 2.8vw, 36px);
 }
 
-.metaCard--dashboard-start .metaResultsExitButton,
-.metaCard--dashboard-results .metaResultsExitButton {
-  font-size: clamp(18px, 2vw, 28px);
-}
-
-.metaCard--dashboard-start .metaResultsContinueButton,
-.metaCard--dashboard-results .metaResultsContinueButton {
-  font-size: clamp(19px, 2.1vw, 30px);
+.metaCard--dashboard-start .metaDashboardActions .metaResultsExitButton,
+.metaCard--dashboard-results .metaDashboardActions .metaResultsExitButton {
+  flex: 0 0 auto;
+  width: auto;
+  white-space: nowrap;
+  margin-top: 0;
+  min-height: clamp(52px, 8vh, 74px);
+  border-radius: calc(22px * var(--ui, 1));
+  padding-inline: clamp(24px, 3vw, 40px);
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 900;
+  color: #ffffff !important;
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 @media (orientation: portrait) {

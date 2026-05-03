@@ -403,6 +403,23 @@ window.GAMES_V2_META_UI = (function (utils, s) {
     const cardClassName = isResults
       ? "metaCard metaCard--results metaCard--dashboard metaCard--dashboard-results"
       : "metaCard metaCard--dashboard metaCard--dashboard-start";
+    const progression = isResults && resultContext && resultContext.progression ? resultContext.progression : null;
+    const continueButtonClass = "metaPrimaryButton metaResultsContinueButton metaResultsContinueButton--progression";
+    let progressionText = escapeHtml(difficultyText);
+    if (progression) {
+      const isRtl = language.dir === "rtl";
+      const arrow = isRtl ? "←" : "→";
+      const fromLabel = diffLabel(progression.fromKey, languageId);
+      const toLabel = diffLabel(progression.toKey, languageId);
+      const animText = toLabel.split("").map(function(ch, i) {
+        return "<span class=\"metaLevelChar\" style=\"animation-delay:" + (i * 0.08) + "s\">" + escapeHtml(ch) + "</span>";
+      }).join("");
+      progressionText = escapeHtml(fromLabel) + " " + arrow + " " + animText;
+    }
+    const continueButtonInner =
+      "<span class=\"metaContinueLevelBlock\">" + escapeHtml(snapshot.nextLevel) + "</span>" +
+      "<span class=\"metaContinueProgressionText\">" + progressionText + "</span>" +
+      levelVariantHint;
 
     return "<div class=\"" + cardClassName + "\" dir=\"" + escapeHtml(language.dir) + "\">" +
       "<div class=\"metaDashboardBoard\">" +
@@ -427,8 +444,8 @@ window.GAMES_V2_META_UI = (function (utils, s) {
         leaderboardSection.markup +
       "</div>" +
       "<div class=\"metaResultsActions metaDashboardActions\">" +
+        "<button class=\"" + continueButtonClass + "\" type=\"button\" data-action=\"" + primaryAction + "\">" + continueButtonInner + "</button>" +
         "<button class=\"metaGhostButton metaResultsExitButton\" type=\"button\" data-action=\"exit-game\">" + escapeHtml(copy.exit) + "</button>" +
-        "<button class=\"metaPrimaryButton metaResultsContinueButton\" type=\"button\" data-action=\"" + primaryAction + "\">" + escapeHtml(primaryLabel) + levelVariantHint + "</button>" +
       "</div>" +
     "</div>";
   }
@@ -505,6 +522,25 @@ window.GAMES_V2_META_UI = (function (utils, s) {
 
   function buildStartMarkup(state, selectedDiff, options) {
     return buildDashboardMarkup(state, selectedDiff, options);
+  }
+
+  function buildProgressionBanner(progression, languageId, copy) {
+    const isPromoted = progression.type === "promoted";
+    const icon = isPromoted ? "🎉" : "💪";
+    const title = isPromoted ? copy.levelUpTitle : copy.keepPracticingTitle;
+    const fromLabel = diffLabel(progression.fromKey, languageId);
+    const toLabel   = diffLabel(progression.toKey, languageId);
+    const detail = isPromoted
+      ? escapeHtml(fromLabel) + " <span class=\"metaProgressionArrow\" aria-hidden=\"true\">→</span> " + escapeHtml(toLabel)
+      : escapeHtml(copy.keepPracticingDetail(toLabel));
+    const variant = isPromoted ? "is-promoted" : "is-demoted";
+    return "<div class=\"metaProgressionBanner " + variant + "\" role=\"status\" aria-live=\"polite\">" +
+      "<span class=\"metaProgressionIcon\" aria-hidden=\"true\">" + icon + "</span>" +
+      "<div class=\"metaProgressionText\">" +
+        "<strong class=\"metaProgressionTitle\">" + escapeHtml(title) + "</strong>" +
+        "<span class=\"metaProgressionDetail\">" + detail + "</span>" +
+      "</div>" +
+    "</div>";
   }
 
   function buildResultsMarkup(resultContext, state, selectedDiff, gameKey, expandedRows) {

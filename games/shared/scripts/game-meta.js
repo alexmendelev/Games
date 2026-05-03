@@ -363,9 +363,10 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
         metrics: context && context.metrics ? deepClone(context.metrics) : null
       });
       state = round.state;
+      let adaptiveOutcome = null;
       if (difficultyApi && typeof difficultyApi.completeLevel === "function" && diffOptions.length) {
         const bounds = getDifficultyBounds(state, settings.gameKey, diffOptions);
-        const adaptiveOutcome = difficultyApi.completeLevel({
+        adaptiveOutcome = difficultyApi.completeLevel({
           difficultyOrder: diffOptions.map((option) => option.key),
           minDifficulty: bounds.minKey,
           maxDifficulty: bounds.maxKey
@@ -393,6 +394,20 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
       } else {
         selectedDiff = rerollSelectedDiff();
       }
+      let progression = null;
+      if (adaptiveOutcome) {
+        const orderKeys = diffOptions.map((o) => o.key);
+        const beforeIdx = orderKeys.indexOf(adaptiveOutcome.beforeState.currentDifficulty);
+        const afterIdx  = orderKeys.indexOf(adaptiveOutcome.state.currentDifficulty);
+        console.log("[progression]", adaptiveOutcome.classification.label, adaptiveOutcome.beforeState.currentDifficulty, "→", adaptiveOutcome.state.currentDifficulty, "streak:", adaptiveOutcome.state.comfortableStreak);
+        if (beforeIdx >= 0 && afterIdx >= 0 && beforeIdx !== afterIdx) {
+          progression = {
+            type: afterIdx > beforeIdx ? "promoted" : "demoted",
+            fromKey: adaptiveOutcome.beforeState.currentDifficulty,
+            toKey: adaptiveOutcome.state.currentDifficulty
+          };
+        }
+      }
       persist();
       currentScreen = "results";
       currentStartOptions = {};
@@ -406,7 +421,8 @@ window.GAMES_V2_META = (function (utils, s, lb, ui) {
         metrics: context && context.metrics ? Object.assign({}, deepClone(context.metrics), {
           coinsEarned: Math.max(0, Number(context.metrics.coinsEarned) || 0) + Math.max(0, Number(round.playerBonus) || 0)
         }) : null,
-        nextLevelVariant: (context && context.nextLevelVariant) || null
+        nextLevelVariant: (context && context.nextLevelVariant) || null,
+        progression
       };
       render();
       return new Promise((resolve) => {
